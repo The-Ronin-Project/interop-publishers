@@ -1,6 +1,7 @@
 rootProject.name = "interop-publishers-build"
 
 include("interop-aidbox")
+include("interop-aidbox-testcontainer")
 
 for (project in rootProject.children) {
     project.buildFileName = "${project.name}.gradle.kts"
