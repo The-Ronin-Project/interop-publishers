@@ -1,0 +1,8 @@
+resourceType: "Patient"
+identifier:
+  - system: "http://projectronin.com/id/tenantId"
+    value: "mdaoc"
+birthDate: "1984-08-31"
+name:
+  - family: "Smith"
+    given: [ "Joshua" ]

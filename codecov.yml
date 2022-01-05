@@ -9,6 +9,11 @@ coverage:
         threshold: 1%
         flags:
           - aidbox
+      aidbox-testcontainer:
+        target: auto
+        threshold: 1%
+        flags:
+          - aidbox-tc
 
     patch:
       aidbox:
@@ -17,6 +22,12 @@ coverage:
         base: auto
         flags:
           - aidbox
+      aidbox-testcontainer:
+        target: 80
+        threshold: 1%
+        base: auto
+        flags:
+          - aidbox-tc
 
 comment:
   layout: "reach, diff, flags, files"
@@ -31,4 +42,8 @@ flags:
   aidbox:
     paths:
       - interop-aidbox/
+    carryforward: true
+  aidbox-tc:
+    paths:
+      - interop-aidbox-testcontainer/
     carryforward: true
