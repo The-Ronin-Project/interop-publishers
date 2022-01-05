@@ -1,7 +1,5 @@
 package com.projectronin.interop.aidbox.utils
 
-import com.projectronin.interop.aidbox.client.model.GraphQLError
-import com.projectronin.interop.aidbox.client.model.GraphQLResponse
 import io.ktor.client.call.receive
 import io.ktor.client.features.ClientRequestException
 import io.ktor.client.features.RedirectResponseException
@@ -31,9 +29,8 @@ class AidboxUtilsTest {
             respondToException<String>(exception)
         }
 
-        val expectedError =
-            GraphQLError("Error communicating with Aidbox. Received status code 301 Moved Permanently with message \"Moved to http://localhost:9000\"")
-        val expectedResponse = GraphQLResponse<String>(errors = listOf(expectedError))
+        val expectedError = httpResponse
+        val expectedResponse = httpResponse
         assertEquals(expectedResponse, response)
     }
 
@@ -50,9 +47,8 @@ class AidboxUtilsTest {
             respondToException<String>(exception)
         }
 
-        val expectedError =
-            GraphQLError("Error communicating with Aidbox. Received status code 401 Unauthorized with message \"Unauthorized\"")
-        val expectedResponse = GraphQLResponse<String>(errors = listOf(expectedError))
+        val expectedError = httpResponse
+        val expectedResponse = httpResponse
         assertEquals(expectedResponse, response)
     }
 
@@ -69,9 +65,8 @@ class AidboxUtilsTest {
             respondToException<String>(exception)
         }
 
-        val expectedError =
-            GraphQLError("Error communicating with Aidbox. Received status code 500 Internal Server Error with message \"Server Error\"")
-        val expectedResponse = GraphQLResponse<String>(errors = listOf(expectedError))
+        val expectedError = httpResponse
+        val expectedResponse = httpResponse
         assertEquals(expectedResponse, response)
     }
 

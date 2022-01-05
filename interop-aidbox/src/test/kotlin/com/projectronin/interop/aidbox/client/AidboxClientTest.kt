@@ -1,5 +1,6 @@
 package com.projectronin.interop.aidbox.client
 
+import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -7,10 +8,9 @@ import io.ktor.client.engine.mock.toByteArray
 import io.ktor.client.features.ClientRequestException
 import io.ktor.client.features.RedirectResponseException
 import io.ktor.client.features.ServerResponseException
-import io.ktor.client.HttpClient
-import io.ktor.http.headersOf
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -22,13 +22,6 @@ class AidboxClientTest {
     private val practitionerList = this::class.java.getResource("/json/AidboxPractitionerList.json")!!.readText()
 
     @Test
-    fun `confirm reading from test resources json files`() {
-        val duplicateList = this::class.java.getResource("/json/AidboxPractitionerList.json")!!.readText()
-        assert(duplicateList.length == 3069)
-        assertEquals(practitionerList, duplicateList)
-    }
-
-    @Test
     fun `publish array of 3 Practitioner resources to aidbox, response 2xx`() {
         val urlPublish = "$urlRest/"
         val expectedBody = practitionerList
@@ -36,7 +29,7 @@ class AidboxClientTest {
         val expectedResponseStatus = HttpStatusCode.OK
 
         val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish)
-        var actualResponseJSON: String
+        val actualResponseJSON: String
         var actualResponseStatus: HttpStatusCode
 
         actualResponseJSON = runBlocking {
