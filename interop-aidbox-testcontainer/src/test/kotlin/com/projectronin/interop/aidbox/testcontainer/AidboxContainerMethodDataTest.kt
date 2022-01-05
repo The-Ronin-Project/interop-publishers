@@ -1,8 +1,6 @@
 package com.projectronin.interop.aidbox.testcontainer
 
-import com.projectronin.interop.aidbox.PatientService
-import com.projectronin.interop.aidbox.client.AidboxClient
-import com.projectronin.interop.aidbox.config.AidboxConfig
+import com.projectronin.interop.aidbox.testcontainer.client.PatientService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -46,10 +44,6 @@ class AidboxContainerMethodDataTest : BaseAidboxTest() {
         assertEquals("1984-08-31", patients[0].birthDate)
     }
 
-    private fun patientService() = PatientService(
-        AidboxClient(
-            AidboxConfig().getHttpClient(),
-            "${aidbox.baseUrl()}/\$graphql"
-        )
-    )
+    private fun patientService() =
+        PatientService(com.projectronin.interop.aidbox.testcontainer.client.AidboxClient("${aidbox.baseUrl()}/\$graphql"))
 }
