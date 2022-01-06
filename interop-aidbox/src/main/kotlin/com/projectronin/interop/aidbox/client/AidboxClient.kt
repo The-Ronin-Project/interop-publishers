@@ -27,18 +27,18 @@ class AidboxClient(
     /**
      * Publishes resources to Aidbox via its REST API at its configured base URL.
      * Sends a PUT / call with the raw JSON String for a collection of raw JSON resources (not a FHIR bundle).
-     * The resources may be any mix of FHIR resource types.
-     * For efficiency, Aidbox does not validate the resources submitted using PUT / or $import or $load.
+     * The resources in this collection may be any mix of FHIR resource types. Note that for efficiency,
+     * Aidbox does not validate the resources submitted using PUT / (as is used here) or $import or $load.
      * PUT / does not require an id to be on any resource, but in practice, we expect to provide id values in this data.
      * For an existing Aidbox id, PUT / updates that resource with the new data. For a new id, it adds the resource.
-     * @param rawJsonCollection Collection of raw JSON strings that each represent a FHIR resource to publish.
-     * @return The HTTP Response. By design, we do not examine the payload of resources in the 200 from this API call.
+     * @param rawJsonCollection Stringified raw JSON array of strings that each represent a FHIR resource to publish.
+     * @return Boolean, true only for a 200 response. We do not examine the payload in the 200 response from this call.
      * @throws RedirectResponseException for a 3xx response.
      * @throws ClientRequestException for a 4xx response.
      * @throws ServerResponseException for a 5xx response.
      */
-    suspend fun publish(rawJsonCollection: String, authString: String): HttpResponse {
-        val arrayLength = rawJsonCollection.length
+    suspend fun publish(rawJsonCollection: String, authString: String): Boolean {
+        val arrayLength = "\"resourceType\"".toRegex().findAll(rawJsonCollection).count()
         val showArray = when (arrayLength) {
             1 -> "resource"
             else -> "resources"
@@ -60,16 +60,16 @@ class AidboxClient(
             }
         }
 
-        val message = "Aidbox publish returned ${response.status}"
+        val statusText = response.status.toString()
+        val message = "Aidbox publish returned $statusText"
         logger.debug { message }
 
-        val status = response.status.toString().substring(0, 1)
-        when (status) {
+        when (statusText.substring(0, 1)) {
             "3" -> throw RedirectResponseException(response, message)
             "4" -> throw ClientRequestException(response, message)
             "5" -> throw ServerResponseException(response, message)
         }
 
-        return response
+        return (statusText.substring(0, 3) == "200")
     }
 }

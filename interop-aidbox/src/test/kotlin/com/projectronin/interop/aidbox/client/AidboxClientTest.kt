@@ -1,7 +1,6 @@
 package com.projectronin.interop.aidbox.client
 
 import io.ktor.client.HttpClient
-import io.ktor.client.call.receive
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.toByteArray
@@ -22,34 +21,54 @@ class AidboxClientTest {
     private val practitionerList = this::class.java.getResource("/json/AidboxPractitionerList.json")!!.readText()
 
     @Test
-    fun `publish array of 3 Practitioner resources to aidbox, response 2xx`() {
+    fun `publish array of 3 Practitioner resources to aidbox, response 200 true`() {
         val urlPublish = "$urlRest/"
         val expectedBody = practitionerList
-        val expectedResponseJSON = practitionerList
-        val expectedResponseStatus = HttpStatusCode.OK
-
+        val expectedResponseJSON = ""
+        val expectedReturn = true
         val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish)
-        val actualResponseJSON: String
-        var actualResponseStatus: HttpStatusCode
-
-        actualResponseJSON = runBlocking {
-            val httpResponse = aidboxClient.publish(practitionerList, authString)
-            actualResponseStatus = httpResponse.status
-            httpResponse.receive<String>()
+        val actualReturn: Boolean = runBlocking {
+            aidboxClient.publish(practitionerList, authString)
         }
-        assertEquals(actualResponseJSON, expectedResponseJSON)
-        assertEquals(actualResponseStatus, expectedResponseStatus)
+        assertEquals(actualReturn, expectedReturn)
     }
 
     @Test
-    fun `publish array of 3 Practitioner resources to aidbox, response 3xx`() {
+    fun `publish array of 3 Practitioner resources to aidbox, response 1xx false`() {
+        val urlPublish = "$urlRest/"
+        val expectedBody = practitionerList
+        val expectedResponseJSON = ""
+        val expectedResponseStatus = HttpStatusCode.Continue
+        val expectedReturn = false
+        val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
+        val actualReturn: Boolean = runBlocking {
+            aidboxClient.publish(practitionerList, authString)
+        }
+        assertEquals(actualReturn, expectedReturn)
+    }
+
+    @Test
+    fun `publish array of 3 Practitioner resources to aidbox, response 2xx false`() {
+        val urlPublish = "$urlRest/"
+        val expectedBody = practitionerList
+        val expectedResponseJSON = ""
+        val expectedResponseStatus = HttpStatusCode.Accepted
+        val expectedReturn = false
+        val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
+        val actualReturn: Boolean = runBlocking {
+            aidboxClient.publish(practitionerList, authString)
+        }
+        assertEquals(actualReturn, expectedReturn)
+    }
+
+    @Test
+    fun `publish array of 3 Practitioner resources to aidbox, response 3xx exception`() {
         val expectedResponseStatus = HttpStatusCode.TemporaryRedirect
         val exception = assertThrows(RedirectResponseException::class.java) {
             val urlPublish = "$urlRest/"
             val expectedBody = practitionerList
             val expectedResponseJSON = ""
             val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
-
             runBlocking {
                 aidboxClient.publish(practitionerList, authString)
             }
@@ -58,14 +77,13 @@ class AidboxClientTest {
     }
 
     @Test
-    fun `publish array of 3 Practitioner resources to aidbox, response 4xx`() {
+    fun `publish array of 3 Practitioner resources to aidbox, response 4xx exception`() {
         val expectedResponseStatus = HttpStatusCode.Unauthorized
         val exception = assertThrows(ClientRequestException::class.java) {
             val urlPublish = "$urlRest/"
             val expectedBody = practitionerList
             val expectedResponseJSON = ""
             val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
-
             runBlocking {
                 aidboxClient.publish(practitionerList, authString)
             }
@@ -74,14 +92,13 @@ class AidboxClientTest {
     }
 
     @Test
-    fun `publish array of 3 Practitioner resources to aidbox, response 5xx`() {
+    fun `publish array of 3 Practitioner resources to aidbox, response 5xx exception`() {
         val expectedResponseStatus = HttpStatusCode.ServiceUnavailable
         val exception = assertThrows(ServerResponseException::class.java) {
             val urlPublish = "$urlRest/"
             val expectedBody = practitionerList
             val expectedResponseJSON = ""
             val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
-
             runBlocking {
                 aidboxClient.publish(practitionerList, authString)
             }
@@ -102,13 +119,13 @@ class AidboxClientTest {
             assert(expectedUrl.startsWith(baseUrl, ignoreCase = true))
             assertEquals(expectedBody, String(request.body.toByteArray()))
             assertEquals(expectedAuthHeader, request.headers["Authorization"])
-
             respond(
                 content = responseContent,
                 status = responseStatus,
                 headers = headersOf(HttpHeaders.ContentType, "application/json")
             )
         }
+
         val httpClient = HttpClient(mockEngine) {
         }
 
