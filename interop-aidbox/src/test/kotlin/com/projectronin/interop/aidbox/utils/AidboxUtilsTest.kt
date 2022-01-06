@@ -24,14 +24,11 @@ class AidboxUtilsTest {
         coEvery { httpResponse.receive<String>() } returns "Moved to http://localhost:9000"
 
         val exception = RedirectResponseException(httpResponse, "Error")
-
         val response = runBlocking {
             respondToException<String>(exception)
         }
 
-        val expectedError = httpResponse
-        val expectedResponse = httpResponse
-        assertEquals(expectedResponse, response)
+        assertEquals(httpResponse, response)
     }
 
     @Test
@@ -42,14 +39,11 @@ class AidboxUtilsTest {
         coEvery { httpResponse.receive<String>() } returns "Unauthorized"
 
         val exception = ClientRequestException(httpResponse, "Error")
-
         val response = runBlocking {
             respondToException<String>(exception)
         }
 
-        val expectedError = httpResponse
-        val expectedResponse = httpResponse
-        assertEquals(expectedResponse, response)
+        assertEquals(httpResponse, response)
     }
 
     @Test
@@ -60,14 +54,11 @@ class AidboxUtilsTest {
         coEvery { httpResponse.receive<String>() } returns "Server Error"
 
         val exception = ServerResponseException(httpResponse, "Error")
-
         val response = runBlocking {
             respondToException<String>(exception)
         }
 
-        val expectedError = httpResponse
-        val expectedResponse = httpResponse
-        assertEquals(expectedResponse, response)
+        assertEquals(httpResponse, response)
     }
 
     @Test
