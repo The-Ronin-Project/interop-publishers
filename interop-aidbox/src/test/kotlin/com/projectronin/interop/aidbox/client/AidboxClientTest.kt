@@ -7,6 +7,7 @@ import io.ktor.client.engine.mock.toByteArray
 import io.ktor.client.features.ClientRequestException
 import io.ktor.client.features.RedirectResponseException
 import io.ktor.client.features.ServerResponseException
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
@@ -25,12 +26,12 @@ class AidboxClientTest {
         val urlPublish = "$urlRest/"
         val expectedBody = practitionerList
         val expectedResponseJSON = ""
-        val expectedReturn = true
-        val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish)
-        val actualReturn: Boolean = runBlocking {
-            aidboxClient.publish(practitionerList, authString)
+        val expectedResponseStatus = HttpStatusCode.OK
+        val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
+        val actualResponse: HttpResponse = runBlocking {
+            aidboxClient.batchUpsert(practitionerList)
         }
-        assertEquals(actualReturn, expectedReturn)
+        assertEquals(actualResponse.status, expectedResponseStatus)
     }
 
     @Test
@@ -39,12 +40,11 @@ class AidboxClientTest {
         val expectedBody = practitionerList
         val expectedResponseJSON = ""
         val expectedResponseStatus = HttpStatusCode.Continue
-        val expectedReturn = false
         val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
-        val actualReturn: Boolean = runBlocking {
-            aidboxClient.publish(practitionerList, authString)
+        val actualResponse: HttpResponse = runBlocking {
+            aidboxClient.batchUpsert(practitionerList)
         }
-        assertEquals(actualReturn, expectedReturn)
+        assertEquals(actualResponse.status, expectedResponseStatus)
     }
 
     @Test
@@ -53,12 +53,11 @@ class AidboxClientTest {
         val expectedBody = practitionerList
         val expectedResponseJSON = ""
         val expectedResponseStatus = HttpStatusCode.Accepted
-        val expectedReturn = false
         val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
-        val actualReturn: Boolean = runBlocking {
-            aidboxClient.publish(practitionerList, authString)
+        val actualResponse: HttpResponse = runBlocking {
+            aidboxClient.batchUpsert(practitionerList)
         }
-        assertEquals(actualReturn, expectedReturn)
+        assertEquals(actualResponse.status, expectedResponseStatus)
     }
 
     @Test
@@ -70,7 +69,7 @@ class AidboxClientTest {
             val expectedResponseJSON = ""
             val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
             runBlocking {
-                aidboxClient.publish(practitionerList, authString)
+                aidboxClient.batchUpsert(practitionerList)
             }
         }
         assertEquals(expectedResponseStatus, exception.response.status)
@@ -85,7 +84,7 @@ class AidboxClientTest {
             val expectedResponseJSON = ""
             val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
             runBlocking {
-                aidboxClient.publish(practitionerList, authString)
+                aidboxClient.batchUpsert(practitionerList)
             }
         }
         assertEquals(expectedResponseStatus, exception.response.status)
@@ -100,7 +99,7 @@ class AidboxClientTest {
             val expectedResponseJSON = ""
             val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
             runBlocking {
-                aidboxClient.publish(practitionerList, authString)
+                aidboxClient.batchUpsert(practitionerList)
             }
         }
         assertEquals(expectedResponseStatus, exception.response.status)
@@ -129,6 +128,6 @@ class AidboxClientTest {
         val httpClient = HttpClient(mockEngine) {
         }
 
-        return AidboxClient(httpClient, baseUrl)
+        return AidboxClient(httpClient, baseUrl, authString)
     }
 }

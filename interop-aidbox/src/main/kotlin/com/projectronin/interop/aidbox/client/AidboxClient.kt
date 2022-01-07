@@ -16,40 +16,41 @@ import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 
 /**
- * Client for accessing Aidbox.
+ * Client for accessing an Aidbox server via its configured base URL for REST API calls.
  */
 class AidboxClient(
     private val httpClient: HttpClient,
-    private val urlRest: String
+    private val aidboxURLRest: String,
+    private val aidboxAuthString: String
 ) {
     private val logger = KotlinLogging.logger { }
 
     /**
-     * Publishes resources to Aidbox via its REST API at its configured base URL.
-     * Sends a PUT / call with the raw JSON String for a collection of raw JSON resources (not a FHIR bundle).
-     * The resources in this collection may be any mix of FHIR resource types. Note that for efficiency,
-     * Aidbox does not validate the resources submitted using PUT / (as is used here) or $import or $load.
-     * PUT / does not require an id to be on any resource, but in practice, we expect to provide id values in this data.
+     * Provides access to the Aidbox Batch Upsert feature, see https://docs.aidbox.app/api-1/batch-upsert.
+     * Sends a raw JSON String that represents an array of JSON resources (not a FHIR bundle).
+     * The resources in this array may be any mix of FHIR resource types. Note that for efficiency,
+     * Aidbox does not validate the resources submitted using PUT / (Batch Upsert) or $import or $load.
+     * PUT / does not require an id to be on any resource, but we expect to provide id values in this data.
      * For an existing Aidbox id, PUT / updates that resource with the new data. For a new id, it adds the resource.
      * @param rawJsonCollection Stringified raw JSON array of strings that each represent a FHIR resource to publish.
-     * @return Boolean, true only for a 200 response. We do not examine the payload in the 200 response from this call.
-     * @throws RedirectResponseException for a 3xx response.
-     * @throws ClientRequestException for a 4xx response.
+     * @return [HttpResponse] from the "Batch Upsert" API.
+     * @throws [RedirectResponseException] for a 3xx response.
+     * @throws [ClientRequestException] for a 4xx response.
      * @throws ServerResponseException for a 5xx response.
      */
-    suspend fun publish(rawJsonCollection: String, authString: String): Boolean {
+    suspend fun batchUpsert(rawJsonCollection: String): HttpResponse {
         val arrayLength = "\"resourceType\"".toRegex().findAll(rawJsonCollection).count()
         val showArray = when (arrayLength) {
             1 -> "resource"
             else -> "resources"
         }
-        logger.debug { "Aidbox publish of $arrayLength $showArray" }
+        logger.debug { "Aidbox Batch Upsert of $arrayLength $showArray" }
 
         val response: HttpResponse = runBlocking {
             try {
-                httpClient.put("$urlRest/") {
+                httpClient.put("$aidboxURLRest/") {
                     headers {
-                        append(HttpHeaders.Authorization, "Bearer $authString")
+                        append(HttpHeaders.Authorization, "Bearer $aidboxAuthString")
                     }
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
@@ -61,7 +62,7 @@ class AidboxClient(
         }
 
         val statusText = response.status.toString()
-        val message = "Aidbox publish returned $statusText"
+        val message = "Aidbox Batch Upsert responded $statusText"
         logger.debug { message }
 
         when (statusText.substring(0, 1)) {
@@ -70,6 +71,6 @@ class AidboxClient(
             "5" -> throw ServerResponseException(response, message)
         }
 
-        return (statusText.substring(0, 3) == "200")
+        return response
     }
 }
