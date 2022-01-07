@@ -33,10 +33,10 @@ class AidboxClient(
      * PUT / does not require an id to be on any resource, but we expect to provide id values in this data.
      * For an existing Aidbox id, PUT / updates that resource with the new data. For a new id, it adds the resource.
      * @param rawJsonCollection Stringified raw JSON array of strings that each represent a FHIR resource to publish.
-     * @return [HttpResponse] from the "Batch Upsert" API.
+     * @return [HttpResponse] from the Batch Upsert API.
      * @throws [RedirectResponseException] for a 3xx response.
      * @throws [ClientRequestException] for a 4xx response.
-     * @throws ServerResponseException for a 5xx response.
+     * @throws [ServerResponseException] for a 5xx response.
      */
     suspend fun batchUpsert(rawJsonCollection: String): HttpResponse {
         val arrayLength = "\"resourceType\"".toRegex().findAll(rawJsonCollection).count()
