@@ -20,14 +20,12 @@ class AidboxClientTest {
     private val urlRest = "http://localhost/8888"
     private val authString = "Auth-String"
     private val practitionerList = this::class.java.getResource("/json/AidboxPractitionerList.json")!!.readText()
+    private val urlBatchUpsert = "$urlRest/"
 
     @Test
-    fun `publish array of 3 Practitioner resources to aidbox, response 200 true`() {
-        val urlPublish = "$urlRest/"
-        val expectedBody = practitionerList
-        val expectedResponseJSON = ""
+    fun `aidbox batch upsert of 3 Practitioner resources, response 200`() {
         val expectedResponseStatus = HttpStatusCode.OK
-        val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
+        val aidboxClient = createClient(practitionerList, urlBatchUpsert, practitionerList, responseStatus = expectedResponseStatus)
         val actualResponse: HttpResponse = runBlocking {
             aidboxClient.batchUpsert(practitionerList)
         }
@@ -35,12 +33,9 @@ class AidboxClientTest {
     }
 
     @Test
-    fun `publish array of 3 Practitioner resources to aidbox, response 1xx false`() {
-        val urlPublish = "$urlRest/"
-        val expectedBody = practitionerList
-        val expectedResponseJSON = ""
+    fun `aidbox batch upsert of 3 Practitioner resources, response 1xx`() {
         val expectedResponseStatus = HttpStatusCode.Continue
-        val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
+        val aidboxClient = createClient(practitionerList, urlBatchUpsert, responseStatus = expectedResponseStatus)
         val actualResponse: HttpResponse = runBlocking {
             aidboxClient.batchUpsert(practitionerList)
         }
@@ -48,12 +43,9 @@ class AidboxClientTest {
     }
 
     @Test
-    fun `publish array of 3 Practitioner resources to aidbox, response 2xx false`() {
-        val urlPublish = "$urlRest/"
-        val expectedBody = practitionerList
-        val expectedResponseJSON = ""
+    fun `aidbox batch upsert of 3 Practitioner resources, response 2xx`() {
         val expectedResponseStatus = HttpStatusCode.Accepted
-        val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
+        val aidboxClient = createClient(practitionerList, urlBatchUpsert, responseStatus = expectedResponseStatus)
         val actualResponse: HttpResponse = runBlocking {
             aidboxClient.batchUpsert(practitionerList)
         }
@@ -61,28 +53,22 @@ class AidboxClientTest {
     }
 
     @Test
-    fun `publish array of 3 Practitioner resources to aidbox, response 3xx exception`() {
+    fun `aidbox batch upsert of 3 Practitioner resources, response 3xx exception`() {
         val expectedResponseStatus = HttpStatusCode.TemporaryRedirect
+        val aidboxClient = createClient(practitionerList, urlBatchUpsert, responseStatus = expectedResponseStatus)
         val exception = assertThrows(RedirectResponseException::class.java) {
-            val urlPublish = "$urlRest/"
-            val expectedBody = practitionerList
-            val expectedResponseJSON = ""
-            val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
             runBlocking {
                 aidboxClient.batchUpsert(practitionerList)
             }
         }
-        assertEquals(expectedResponseStatus, exception.response.status)
+        assertEquals(exception.response.status, expectedResponseStatus)
     }
 
     @Test
-    fun `publish array of 3 Practitioner resources to aidbox, response 4xx exception`() {
+    fun `aidbox batch upsert of 3 Practitioner resources, response 4xx exception`() {
         val expectedResponseStatus = HttpStatusCode.Unauthorized
+        val aidboxClient = createClient(practitionerList, urlBatchUpsert, responseStatus = expectedResponseStatus)
         val exception = assertThrows(ClientRequestException::class.java) {
-            val urlPublish = "$urlRest/"
-            val expectedBody = practitionerList
-            val expectedResponseJSON = ""
-            val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
             runBlocking {
                 aidboxClient.batchUpsert(practitionerList)
             }
@@ -91,24 +77,21 @@ class AidboxClientTest {
     }
 
     @Test
-    fun `publish array of 3 Practitioner resources to aidbox, response 5xx exception`() {
+    fun `aidbox batch upsert of 3 Practitioner resources, response 5xx exception`() {
         val expectedResponseStatus = HttpStatusCode.ServiceUnavailable
         val exception = assertThrows(ServerResponseException::class.java) {
-            val urlPublish = "$urlRest/"
-            val expectedBody = practitionerList
-            val expectedResponseJSON = ""
-            val aidboxClient = createClient(expectedBody, expectedResponseJSON, urlPublish, responseStatus = expectedResponseStatus)
+            val aidboxClient = createClient(practitionerList, urlBatchUpsert, responseStatus = expectedResponseStatus)
             runBlocking {
                 aidboxClient.batchUpsert(practitionerList)
             }
         }
-        assertEquals(expectedResponseStatus, exception.response.status)
+        assertEquals(exception.response.status, expectedResponseStatus)
     }
 
     private fun createClient(
         expectedBody: String,
-        responseContent: String,
         expectedUrl: String,
+        responseContent: String = "",
         baseUrl: String = urlRest,
         expectedAuthHeader: String = "Bearer $authString",
         responseStatus: HttpStatusCode = HttpStatusCode.OK
