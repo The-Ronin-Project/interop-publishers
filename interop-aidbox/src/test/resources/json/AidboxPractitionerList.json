@@ -1,0 +1,148 @@
+[
+  {
+    "resourceType": "Practitioner",
+    "id": "e.tz0cM0q4ZzQ2lLNRueTqg3",
+    "identifier": [
+      {
+        "use": "usual",
+        "type": {
+          "text": "INTERNAL"
+        },
+        "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.697780",
+        "value": " HEALOGICS"
+      },
+      {
+        "use": "usual",
+        "type": {
+          "text": "EXTERNAL"
+        },
+        "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.697780",
+        "value": "HEALOGICS"
+      },
+      {
+        "use": "usual",
+        "type": {
+          "text": "INTERNAL"
+        },
+        "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.836982",
+        "value": "      23"
+      },
+      {
+        "use": "usual",
+        "type": {
+          "text": "EXTERNAL"
+        },
+        "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.836982",
+        "value": "23"
+      }
+    ],
+    "active": true,
+    "name": [
+      {
+        "use": "usual",
+        "text": "Family Medicine Physician, MD",
+        "family": "Physician",
+        "given": [
+          "Healogics"
+        ]
+      }
+    ],
+    "gender": "male",
+    "qualification": [
+      {
+        "code": {
+          "coding": [
+            {
+              "system": "urn:oid:1.2.840.114350.1.13.0.1.7.4.836982.6000",
+              "code": "11",
+              "display": "MD"
+            }
+          ],
+          "text": "MD"
+        }
+      }
+    ]
+  },
+  {
+    "resourceType": "Practitioner",
+    "id": "e2gxs4Fn7l-TbzLO17uxuHw3",
+    "identifier": [
+      {
+        "use": "usual",
+        "type": {
+          "text": "EPIC"
+        },
+        "system": "POTFID",
+        "value": "E4881"
+      },
+      {
+        "use": "usual",
+        "type": {
+          "text": "INTERNAL"
+        },
+        "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.836982",
+        "value": "   E4881"
+      },
+      {
+        "use": "usual",
+        "type": {
+          "text": "EXTERNAL"
+        },
+        "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.836982",
+        "value": "E4881"
+      }
+    ],
+    "active": true,
+    "name": [
+      {
+        "use": "usual",
+        "text": "Provider3 Clearwave Inc",
+        "family": "Clearwave Inc",
+        "given": [
+          "Provider3"
+        ]
+      }
+    ]
+  },
+  {
+    "resourceType": "Practitioner",
+    "id": "e2nqnkB7y8k8ZDbY2d2KgIQ3",
+    "identifier": [
+      {
+        "use": "usual",
+        "type": {
+          "text": "PROVID"
+        },
+        "system": "PROVID",
+        "value": "54321"
+      },
+      {
+        "use": "usual",
+        "type": {
+          "text": "INTERNAL"
+        },
+        "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.836982",
+        "value": "   54321"
+      },
+      {
+        "use": "usual",
+        "type": {
+          "text": "EXTERNAL"
+        },
+        "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.836982",
+        "value": "54321"
+      }
+    ],
+    "active": true,
+    "name": [
+      {
+        "use": "usual",
+        "text": "George Johan",
+        "family": "Johan",
+        "given": [
+          "George"
+        ]
+      }
+    ]
+  }
+]

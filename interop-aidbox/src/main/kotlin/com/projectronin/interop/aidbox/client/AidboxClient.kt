@@ -1,56 +1,75 @@
 package com.projectronin.interop.aidbox.client
 
-import com.projectronin.interop.aidbox.client.model.GraphQLPostRequest
+import com.projectronin.interop.aidbox.utils.respondToException
 import io.ktor.client.HttpClient
+import io.ktor.client.features.ClientRequestException
+import io.ktor.client.features.RedirectResponseException
+import io.ktor.client.features.ServerResponseException
 import io.ktor.client.request.accept
 import io.ktor.client.request.headers
-import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
 
 /**
- * Client for accessing Aidbox.
+ * Client for accessing an Aidbox server via its configured base URL for REST API calls.
  */
-@Component
 class AidboxClient(
-    @Qualifier("aidbox")
     private val httpClient: HttpClient,
-    @Value("\${aidbox.graphql.url}") private val aidboxGraphQLUrl: String
+    private val aidboxURLRest: String,
+    private val aidboxAuthString: String
 ) {
     private val logger = KotlinLogging.logger { }
 
     /**
-     * Submits the given query to Aidbox and returns the resulting response.
-     * @param query The parameterized query that should be run through Aidbox
-     * @param authString The authorization string that should be provided to Aidbox
-     * @param parameters The optional Map of parameters. The key should match the parameter name provided in the query.
-     * @return The HTTP Response. Consumers can then use the [receive] function to extract the parameterized
-     * [com.projectronin.interop.aidbox.model.GraphQLResponse] object. This is required due to issues with Jacoco and inline functions.
-     * @throws RedirectResponseException for a 3xx response.
-     * @throws ClientRequestException for a 4xx response.
-     * @throws ServerResponseException for a 5xx response.
+     * Provides access to the Aidbox Batch Upsert feature, see https://docs.aidbox.app/api-1/batch-upsert.
+     * Sends a raw JSON String that represents an array of JSON resources (not a FHIR bundle).
+     * The resources in this array may be any mix of FHIR resource types. Note that for efficiency,
+     * Aidbox does not validate the resources submitted using PUT / (Batch Upsert) or $import or $load.
+     * PUT / does not require an id to be on any resource, but we expect to provide id values in this data.
+     * For an existing Aidbox id, PUT / updates that resource with the new data. For a new id, it adds the resource.
+     * @param rawJsonCollection Stringified raw JSON array of strings that each represent a FHIR resource to publish.
+     * @return [HttpResponse] from the Batch Upsert API.
+     * @throws [RedirectResponseException] for a 3xx response.
+     * @throws [ClientRequestException] for a 4xx response.
+     * @throws [ServerResponseException] for a 5xx response.
      */
-    suspend fun query(query: String, authString: String, parameters: Map<String, String> = mapOf()): HttpResponse {
-        // We're intentionally not logging the parameters here since they could have PHI.
-        logger.debug { "Processing Aidbox query: $query" }
+    suspend fun batchUpsert(rawJsonCollection: String): HttpResponse {
+        val arrayLength = "\"resourceType\"".toRegex().findAll(rawJsonCollection).count()
+        val showArray = when (arrayLength) {
+            1 -> "resource"
+            else -> "resources"
+        }
+        logger.debug { "Aidbox Batch Upsert of $arrayLength $showArray" }
 
-        val response: HttpResponse = httpClient.post(aidboxGraphQLUrl) {
-            headers {
-                append(HttpHeaders.Authorization, "Bearer $authString")
+        val response: HttpResponse = runBlocking {
+            try {
+                httpClient.put("$aidboxURLRest/") {
+                    headers {
+                        append(HttpHeaders.Authorization, "Bearer $aidboxAuthString")
+                    }
+                    contentType(ContentType.Application.Json)
+                    accept(ContentType.Application.Json)
+                    body = rawJsonCollection
+                }
+            } catch (e: Exception) {
+                respondToException<HttpResponse>(e)
             }
-            contentType(ContentType.Application.Json)
-            accept(ContentType.Application.Json)
-
-            body = GraphQLPostRequest(query = query, variables = parameters.toSortedMap())
         }
 
-        logger.debug { "Aidbox query returned ${response.status}" }
+        val statusText = response.status.toString()
+        val message = "Aidbox Batch Upsert responded $statusText"
+        logger.debug { message }
+
+        when (statusText.substring(0, 1)) {
+            "3" -> throw RedirectResponseException(response, message)
+            "4" -> throw ClientRequestException(response, message)
+            "5" -> throw ServerResponseException(response, message)
+        }
 
         return response
     }

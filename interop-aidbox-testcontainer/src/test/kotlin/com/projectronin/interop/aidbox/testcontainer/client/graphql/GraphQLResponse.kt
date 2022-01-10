@@ -1,4 +1,4 @@
-package com.projectronin.interop.aidbox.client.model
+package com.projectronin.interop.aidbox.testcontainer.client.graphql
 
 /**
  * Describes a GraphQL response as defined by the [GraphQL Specification](https://spec.graphql.org/June2018/#sec-Response-Format).
@@ -6,5 +6,5 @@ package com.projectronin.interop.aidbox.client.model
 data class GraphQLResponse<T>(
     val data: T? = null,
     val errors: List<GraphQLError>? = null,
-    val extensions: Map<String, Any?>? = null
+    val extensions: Map<String, Any?>? = null,
 )

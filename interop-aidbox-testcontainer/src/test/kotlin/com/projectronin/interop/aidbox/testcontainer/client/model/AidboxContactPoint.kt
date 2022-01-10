@@ -1,4 +1,4 @@
-package com.projectronin.interop.aidbox.model
+package com.projectronin.interop.aidbox.testcontainer.client.model
 
 /**
  * Describes the Aidbox ContactPoint type. This is not intended to be comprehensive and is only focused on current needs.
@@ -6,5 +6,5 @@ package com.projectronin.interop.aidbox.model
 data class AidboxContactPoint(
     val system: String? = null,
     val use: String? = null,
-    val value: String? = null
+    val value: String? = null,
 )

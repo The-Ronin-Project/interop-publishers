@@ -1,7 +1,5 @@
 package com.projectronin.interop.aidbox.utils
 
-import com.projectronin.interop.aidbox.client.model.GraphQLError
-import com.projectronin.interop.aidbox.client.model.GraphQLResponse
 import io.ktor.client.call.receive
 import io.ktor.client.features.ClientRequestException
 import io.ktor.client.features.RedirectResponseException
@@ -26,15 +24,11 @@ class AidboxUtilsTest {
         coEvery { httpResponse.receive<String>() } returns "Moved to http://localhost:9000"
 
         val exception = RedirectResponseException(httpResponse, "Error")
-
         val response = runBlocking {
             respondToException<String>(exception)
         }
 
-        val expectedError =
-            GraphQLError("Error communicating with Aidbox. Received status code 301 Moved Permanently with message \"Moved to http://localhost:9000\"")
-        val expectedResponse = GraphQLResponse<String>(errors = listOf(expectedError))
-        assertEquals(expectedResponse, response)
+        assertEquals(httpResponse, response)
     }
 
     @Test
@@ -45,15 +39,11 @@ class AidboxUtilsTest {
         coEvery { httpResponse.receive<String>() } returns "Unauthorized"
 
         val exception = ClientRequestException(httpResponse, "Error")
-
         val response = runBlocking {
             respondToException<String>(exception)
         }
 
-        val expectedError =
-            GraphQLError("Error communicating with Aidbox. Received status code 401 Unauthorized with message \"Unauthorized\"")
-        val expectedResponse = GraphQLResponse<String>(errors = listOf(expectedError))
-        assertEquals(expectedResponse, response)
+        assertEquals(httpResponse, response)
     }
 
     @Test
@@ -64,15 +54,11 @@ class AidboxUtilsTest {
         coEvery { httpResponse.receive<String>() } returns "Server Error"
 
         val exception = ServerResponseException(httpResponse, "Error")
-
         val response = runBlocking {
             respondToException<String>(exception)
         }
 
-        val expectedError =
-            GraphQLError("Error communicating with Aidbox. Received status code 500 Internal Server Error with message \"Server Error\"")
-        val expectedResponse = GraphQLResponse<String>(errors = listOf(expectedError))
-        assertEquals(expectedResponse, response)
+        assertEquals(httpResponse, response)
     }
 
     @Test
