@@ -1,5 +1,6 @@
 package com.projectronin.interop.aidbox.client
 
+import com.projectronin.interop.aidbox.auth.AuthenticationBroker
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -11,6 +12,8 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -18,14 +21,14 @@ import org.junit.jupiter.api.Test
 
 class AidboxClientTest {
     private val urlRest = "http://localhost/8888"
-    private val authString = "Auth-String"
     private val practitionerList = this::class.java.getResource("/json/AidboxPractitionerList.json")!!.readText()
     private val urlBatchUpsert = "$urlRest/"
 
     @Test
     fun `aidbox batch upsert of 3 Practitioner resources, response 200`() {
         val expectedResponseStatus = HttpStatusCode.OK
-        val aidboxClient = createClient(practitionerList, urlBatchUpsert, practitionerList, responseStatus = expectedResponseStatus)
+        val aidboxClient =
+            createClient(practitionerList, urlBatchUpsert, practitionerList, responseStatus = expectedResponseStatus)
         val actualResponse: HttpResponse = runBlocking {
             aidboxClient.batchUpsert(practitionerList)
         }
@@ -93,14 +96,20 @@ class AidboxClientTest {
         expectedUrl: String,
         responseContent: String = "",
         baseUrl: String = urlRest,
-        expectedAuthHeader: String = "Bearer $authString",
         responseStatus: HttpStatusCode = HttpStatusCode.OK
     ): AidboxClient {
+        val authenticationBroker = mockk<AuthenticationBroker> {
+            every { getAuthentication() } returns mockk {
+                every { tokenType } returns "Bearer"
+                every { accessToken } returns "Auth-String"
+            }
+        }
+
         val mockEngine = MockEngine { request ->
             assertEquals(expectedUrl, request.url.toString())
             assert(expectedUrl.startsWith(baseUrl, ignoreCase = true))
             assertEquals(expectedBody, String(request.body.toByteArray()))
-            assertEquals(expectedAuthHeader, request.headers["Authorization"])
+            assertEquals("Bearer Auth-String", request.headers["Authorization"])
             respond(
                 content = responseContent,
                 status = responseStatus,
@@ -111,6 +120,6 @@ class AidboxClientTest {
         val httpClient = HttpClient(mockEngine) {
         }
 
-        return AidboxClient(httpClient, baseUrl, authString)
+        return AidboxClient(httpClient, baseUrl, authenticationBroker)
     }
 }

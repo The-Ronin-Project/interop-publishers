@@ -1,6 +1,6 @@
 package com.projectronin.interop.aidbox.client
 
-import com.projectronin.interop.aidbox.utils.respondToException
+import com.projectronin.interop.aidbox.auth.AuthenticationBroker
 import io.ktor.client.HttpClient
 import io.ktor.client.features.ClientRequestException
 import io.ktor.client.features.RedirectResponseException
@@ -21,7 +21,7 @@ import mu.KotlinLogging
 class AidboxClient(
     private val httpClient: HttpClient,
     private val aidboxURLRest: String,
-    private val aidboxAuthString: String
+    private val authenticationBroker: AuthenticationBroker
 ) {
     private val logger = KotlinLogging.logger { }
 
@@ -46,29 +46,22 @@ class AidboxClient(
         }
         logger.debug { "Aidbox Batch Upsert of $arrayLength $showArray" }
 
+        val authentication = authenticationBroker.getAuthentication()
+
         val response: HttpResponse = runBlocking {
             try {
                 httpClient.put("$aidboxURLRest/") {
                     headers {
-                        append(HttpHeaders.Authorization, "Bearer $aidboxAuthString")
+                        append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
                     }
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
                     body = rawJsonCollection
                 }
             } catch (e: Exception) {
-                respondToException<HttpResponse>(e)
+                logger.error(e) { "Exception during batch upsert attempt" }
+                throw e
             }
-        }
-
-        val statusText = response.status.toString()
-        val message = "Aidbox Batch Upsert responded $statusText"
-        logger.debug { message }
-
-        when (statusText.substring(0, 1)) {
-            "3" -> throw RedirectResponseException(response, message)
-            "4" -> throw ClientRequestException(response, message)
-            "5" -> throw ServerResponseException(response, message)
         }
 
         return response

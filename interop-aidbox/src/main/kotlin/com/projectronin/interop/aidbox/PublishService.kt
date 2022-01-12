@@ -5,12 +5,10 @@ import com.projectronin.interop.aidbox.utils.respondToException
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
-import org.springframework.stereotype.Component
 
 /**
  * Service allowing access to push data updates to Aidbox.
  */
-@Component
 class PublishService(private val aidboxClient: AidboxClient) {
 
     /**
