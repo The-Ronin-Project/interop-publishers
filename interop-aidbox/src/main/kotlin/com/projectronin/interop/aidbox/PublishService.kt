@@ -2,6 +2,7 @@ package com.projectronin.interop.aidbox
 
 import com.projectronin.interop.aidbox.client.AidboxClient
 import com.projectronin.interop.aidbox.utils.respondToException
+import com.projectronin.interop.fhir.r4.ronin.resource.RoninDomainResource
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
@@ -10,17 +11,16 @@ import kotlinx.coroutines.runBlocking
  * Service allowing access to push data updates to Aidbox.
  */
 class PublishService(private val aidboxClient: AidboxClient) {
-
     /**
-     * Publishes resources to Aidbox via its REST API. Expects an id to be supplied in each resource.
+     * Publishes resources to Aidbox via its REST API for Batch Upsert. Expects an id value in each resource.
      * For an existing resource id, publish updates that resource with the new data. For a new id, it adds the resource.
-     * @param rawJsonCollection Stringified raw JSON array of strings that each represent a FHIR resource to publish.
+     * @param resourceCollection List of FHIR resources to publish. May be a mixed List with different resourceTypes.
      * @return Boolean true only for a 200 OK response from Aidbox; otherwise, even if 1xx or 2xx, false.
      */
-    fun publish(rawJsonCollection: String): Boolean {
+    fun publish(resourceCollection: List<RoninDomainResource>): Boolean {
         val response: HttpResponse = runBlocking {
             try {
-                aidboxClient.batchUpsert(rawJsonCollection)
+                aidboxClient.batchUpsert(resourceCollection)
             } catch (e: Exception) {
                 respondToException<HttpResponse>(e)
             }

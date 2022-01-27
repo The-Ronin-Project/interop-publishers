@@ -1,6 +1,7 @@
 package com.projectronin.interop.aidbox.client
 
 import com.projectronin.interop.aidbox.auth.AuthenticationBroker
+import com.projectronin.interop.fhir.r4.ronin.resource.RoninDomainResource
 import io.ktor.client.HttpClient
 import io.ktor.client.features.ClientRequestException
 import io.ktor.client.features.RedirectResponseException
@@ -27,27 +28,21 @@ class AidboxClient(
 
     /**
      * Provides access to the Aidbox Batch Upsert feature, see https://docs.aidbox.app/api-1/batch-upsert.
-     * Sends a raw JSON String that represents an array of JSON resources (not a FHIR bundle).
-     * The resources in this array may be any mix of FHIR resource types. Note that for efficiency,
-     * Aidbox does not validate the resources submitted using PUT / (Batch Upsert) or $import or $load.
-     * PUT / does not require an id to be on any resource, but we expect to provide id values in this data.
-     * For an existing Aidbox id, PUT / updates that resource with the new data. For a new id, it adds the resource.
-     * @param rawJsonCollection Stringified raw JSON array of strings that each represent a FHIR resource to publish.
+     * Publishes resources to Aidbox via its REST API for Batch Upsert. Expects an id value in each resource.
+     * For an existing resource id, publish updates that resource with the new data. For a new id, it adds the resource.
+     * For efficiency, Aidbox does not validate the resources submitted using PUT / (Batch Upsert) or $import or $load.
+     * PUT / does not require an id to be on any resource, but we expect to provide id values when we put this data.
+     * @param resourceCollection List of FHIR resources to publish. May be a mixed List with different resourceTypes.
      * @return [HttpResponse] from the Batch Upsert API.
      * @throws [RedirectResponseException] for a 3xx response.
      * @throws [ClientRequestException] for a 4xx response.
      * @throws [ServerResponseException] for a 5xx response.
      */
-    suspend fun batchUpsert(rawJsonCollection: String): HttpResponse {
-        val arrayLength = "\"resourceType\"".toRegex().findAll(rawJsonCollection).count()
-        val showArray = when (arrayLength) {
-            1 -> "resource"
-            else -> "resources"
-        }
-        logger.debug { "Aidbox Batch Upsert of $arrayLength $showArray" }
-
+    suspend fun batchUpsert(resourceCollection: List<RoninDomainResource>): HttpResponse {
+        val arrayLength = resourceCollection.size
+        val showArray = when (arrayLength) { 1 -> "resource"; else -> "resources" }
+        logger.debug { "Aidbox batch upsert of $arrayLength $showArray" }
         val authentication = authenticationBroker.getAuthentication()
-
         val response: HttpResponse = runBlocking {
             try {
                 httpClient.put("$aidboxURLRest/") {
@@ -56,10 +51,10 @@ class AidboxClient(
                     }
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
-                    body = rawJsonCollection
+                    body = resourceCollection
                 }
             } catch (e: Exception) {
-                logger.error(e) { "Exception during batch upsert attempt" }
+                logger.error(e) { "Exception during Aidbox batch upsert" }
                 throw e
             }
         }
