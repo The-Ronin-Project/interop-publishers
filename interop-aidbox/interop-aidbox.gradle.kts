@@ -11,4 +11,5 @@ dependencies {
 
     testImplementation("com.projectronin.interop.ehr:interop-ehr:${project.property("interopEhrVersion")}")
     testImplementation("com.projectronin.interop.ehr:interop-fhir:${project.property("interopEhrVersion")}")
+    testImplementation("com.projectronin.interop:interop-common-jackson:${project.property("interopCommonVersion")}")
 }

@@ -1,7 +1,9 @@
 package com.projectronin.interop.aidbox.client
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.projectronin.interop.aidbox.auth.AuthenticationBroker
+import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.HumanName
@@ -37,153 +39,53 @@ class AidboxClientTest {
             identifier = listOf(
                 Identifier(system = CodeSystem.RONIN_TENANT.uri, type = CodeableConcepts.RONIN_TENANT, value = "third")
             ),
+            meta = null,
+            implicitRules = null,
+            language = null,
+            text = null,
+            contained = listOf(),
+            extension = listOf(),
+            modifierExtension = listOf(),
+            active = null,
             name = listOf(
                 HumanName(family = "Jones", given = listOf("Cordelia", "May"))
-            )
+            ),
+            telecom = listOf(),
+            address = listOf(),
+            gender = null,
+            birthDate = null,
+            photo = listOf(),
+            qualification = listOf(),
+            communication = listOf()
         ),
         OncologyPractitioner(
             id = Id("rallyr"),
+            meta = null,
+            implicitRules = null,
+            language = null,
+            text = null,
+            contained = listOf(),
+            extension = listOf(),
+            modifierExtension = listOf(),
             identifier = listOf(
                 Identifier(system = CodeSystem.RONIN_TENANT.uri, type = CodeableConcepts.RONIN_TENANT, value = "second")
             ),
+            active = null,
             name = listOf(
                 HumanName(
                     family = "Llyr", given = listOf("Regan", "Anne")
                 )
-            )
+            ),
+            telecom = listOf(),
+            address = listOf(),
+            gender = null,
+            birthDate = null,
+            photo = listOf(),
+            qualification = listOf(),
+            communication = listOf()
         )
     )
-    private val collectionString = """
-        |[
-        |  {
-        |    "resourceType": "Practitioner",
-        |    "id": "cmjones",
-        |    "meta": null,
-        |    "implicitRules": null,
-        |    "language": null,
-        |    "text": null,
-        |    "contained": [],
-        |    "extension": [],
-        |    "modifierExtension": [],
-        |    "identifier": [
-        |      {
-        |        "id": null,
-        |        "extension": [],
-        |        "use": null,
-        |        "type": {
-        |          "id": null,
-        |          "extension": [],
-        |          "coding": [
-        |            {
-        |              "id": null,
-        |              "extension": [],
-        |              "system": "http://projectronin.com/id/tenantId",
-        |              "version": null,
-        |              "code": "TID",
-        |              "display": "Ronin-specified Tenant Identifier",
-        |              "userSelected": null
-        |            }
-        |          ],
-        |          "text": "Tenant ID"
-        |        },
-        |        "system": "http://projectronin.com/id/tenantId",
-        |        "value": "third",
-        |        "period": null,
-        |        "assigner": null
-        |      }
-        |    ],
-        |    "active": null,
-        |    "name": [
-        |      {
-        |        "id": null,
-        |        "extension": [],
-        |        "use": null,
-        |        "text": null,
-        |        "family": "Jones",
-        |        "given": [
-        |          "Cordelia",
-        |          "May"
-        |        ],
-        |        "prefix": [],
-        |        "suffix": [],
-        |        "period": null
-        |      }
-        |    ],
-        |    "telecom": [],
-        |    "address": [],
-        |    "gender": null,
-        |    "birthDate": null,
-        |    "photo": [],
-        |    "qualification": [],
-        |    "communication": []
-        |  },
-        |  {
-        |    "resourceType": "Practitioner",
-        |    "id": "rallyr",
-        |    "meta": null,
-        |    "implicitRules": null,
-        |    "language": null,
-        |    "text": null,
-        |    "contained": [],
-        |    "extension": [],
-        |    "modifierExtension": [],
-        |    "identifier": [
-        |      {
-        |        "id": null,
-        |        "extension": [],
-        |        "use": null,
-        |        "type": {
-        |          "id": null,
-        |          "extension": [],
-        |          "coding": [
-        |            {
-        |              "id": null,
-        |              "extension": [],
-        |              "system": "http://projectronin.com/id/tenantId",
-        |              "version": null,
-        |              "code": "TID",
-        |              "display": "Ronin-specified Tenant Identifier",
-        |              "userSelected": null
-        |            }
-        |          ],
-        |          "text": "Tenant ID"
-        |        },
-        |        "system": "http://projectronin.com/id/tenantId",
-        |        "value": "second",
-        |        "period": null,
-        |        "assigner": null
-        |      }
-        |    ],
-        |    "active": null,
-        |    "name": [
-        |      {
-        |        "id": null,
-        |        "extension": [],
-        |        "use": null,
-        |        "text": null,
-        |        "family": "Llyr",
-        |        "given": [
-        |          "Regan",
-        |          "Anne"
-        |        ],
-        |        "prefix": [],
-        |        "suffix": [],
-        |        "period": null
-        |      }
-        |    ],
-        |    "telecom": [],
-        |    "address": [],
-        |    "gender": null,
-        |    "birthDate": null,
-        |    "photo": [],
-        |    "qualification": [],
-        |    "communication": []
-        |  }
-        |]""".trimMargin() // Minify while retaining single space characters inside data values: "Tenant ID"
-        .replace(regex = "\\s\\s+".toRegex(), "")
-        .replace(": ", ":")
-        .replace(", ", ",")
-        .replace("\n", "")
+    private val collectionString = objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS).writeValueAsString(collection)
 
     @Test
     fun `aidbox batch upsert of 2 Practitioner resources, response 200`() {
