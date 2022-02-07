@@ -3,6 +3,7 @@ package com.projectronin.interop.aidbox.client
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.projectronin.interop.aidbox.auth.AuthenticationBroker
+import com.projectronin.interop.aidbox.model.GraphQLPostRequest
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.CodeableConcepts
@@ -85,7 +86,20 @@ class AidboxClientTest {
             communication = listOf()
         )
     )
-    private val collectionString = objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS).writeValueAsString(collection)
+    private val collectionString =
+        objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS).writeValueAsString(collection)
+
+    @Test
+    fun `query test`() {
+        val query = javaClass.getResource("/graphql/AidboxLimitedPractitionerIDsQuery.graphql")!!.readText()
+        val param = mapOf("id" to "id1")
+        val expectedBody = objectMapper.writeValueAsString(GraphQLPostRequest(query = query, variables = param))
+        val aidboxClient = createClient(expectedBody, "$urlRest/\$graphql")
+        val actual: HttpResponse = runBlocking {
+            aidboxClient.queryGraphQL(query, param)
+        }
+        assertEquals(actual.status, HttpStatusCode.OK)
+    }
 
     @Test
     fun `aidbox batch upsert of 2 Practitioner resources, response 200`() {
@@ -159,7 +173,7 @@ class AidboxClientTest {
         expectedBody: String,
         expectedUrl: String,
         baseUrl: String = urlRest,
-        responseStatus: HttpStatusCode = HttpStatusCode.OK
+        responseStatus: HttpStatusCode = HttpStatusCode.OK,
     ): AidboxClient {
         val authenticationBroker = mockk<AuthenticationBroker> {
             every { getAuthentication() } returns mockk {

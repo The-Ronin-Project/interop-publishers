@@ -69,4 +69,13 @@ class AidboxUtilsTest {
             }
         }
     }
+
+    @Test
+    fun `respondToGraphQLException handles unsupported exception`() {
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking {
+                respondToGraphQLException<String>(IllegalStateException())
+            }
+        }
+    }
 }

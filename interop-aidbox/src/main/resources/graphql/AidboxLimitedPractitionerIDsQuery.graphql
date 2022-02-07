@@ -1,0 +1,8 @@
+query Practitioner($id:string) {
+    Practitioner(id:$id) {
+        identifier{
+            type
+            value
+        }
+    }
+}

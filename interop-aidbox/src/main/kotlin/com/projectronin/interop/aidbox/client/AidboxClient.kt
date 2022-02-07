@@ -1,6 +1,7 @@
 package com.projectronin.interop.aidbox.client
 
 import com.projectronin.interop.aidbox.auth.AuthenticationBroker
+import com.projectronin.interop.aidbox.model.GraphQLPostRequest
 import com.projectronin.interop.fhir.r4.ronin.resource.RoninDomainResource
 import io.ktor.client.HttpClient
 import io.ktor.client.features.ClientRequestException
@@ -8,6 +9,7 @@ import io.ktor.client.features.RedirectResponseException
 import io.ktor.client.features.ServerResponseException
 import io.ktor.client.request.accept
 import io.ktor.client.request.headers
+import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
@@ -40,7 +42,10 @@ class AidboxClient(
      */
     suspend fun batchUpsert(resourceCollection: List<RoninDomainResource>): HttpResponse {
         val arrayLength = resourceCollection.size
-        val showArray = when (arrayLength) { 1 -> "resource"; else -> "resources" }
+        val showArray = when (arrayLength) {
+            1 -> "resource"
+            else -> "resources"
+        }
         logger.debug { "Aidbox batch upsert of $arrayLength $showArray" }
         val authentication = authenticationBroker.getAuthentication()
         val response: HttpResponse = runBlocking {
@@ -58,6 +63,32 @@ class AidboxClient(
                 throw e
             }
         }
+
+        return response
+    }
+
+    /**
+     * Provides access to the Aidbox GraphQL server feature.
+     * Executes any graphQL query against the correct endpoint and returns the HttpResponse.
+     * @param query [String] containing the properly formatted graphQL-style query
+     * @param parameters [Map] holds variables to be used in the query
+     * @return [HttpResponse] containing the raw data from the server. Use HttpResponse.recieve<T>() to deserialize.
+     */
+    suspend fun queryGraphQL(query: String, parameters: Map<String, String>): HttpResponse {
+
+        logger.debug { "Processing Aidbox query: $query" }
+        val authentication = authenticationBroker.getAuthentication()
+        val response: HttpResponse = httpClient.post("$aidboxURLRest/\$graphql") {
+            headers {
+                append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
+            }
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+
+            body = GraphQLPostRequest(query = query, variables = parameters.toSortedMap())
+        }
+
+        logger.debug { "Aidbox query returned ${response.status}" }
 
         return response
     }
