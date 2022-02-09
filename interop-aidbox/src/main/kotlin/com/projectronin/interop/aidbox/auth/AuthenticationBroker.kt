@@ -26,7 +26,7 @@ class AuthenticationBroker(private val authenticationService: AuthenticationServ
         logger.debug { "Requesting fresh authentication for Aidbox" }
         val authentication = authenticationService.getAuthentication()
         authentication.expiresAt?.let {
-            logger.debug { "Retrieved authentication Aidbox has expiration, so it will be cached" }
+            logger.debug { "Retrieved authentication Aidbox has expiration (${authentication.expiresAt}), so it will be cached" }
             cachedAuthentication = authentication
         }
         return authentication

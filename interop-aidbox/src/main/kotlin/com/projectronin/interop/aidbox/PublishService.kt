@@ -6,11 +6,13 @@ import com.projectronin.interop.fhir.r4.ronin.resource.RoninDomainResource
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
+import mu.KotlinLogging
 
 /**
  * Service allowing access to push data updates to Aidbox.
  */
 class PublishService(private val aidboxClient: AidboxClient) {
+    private val logger = KotlinLogging.logger { }
     /**
      * Publishes resources to Aidbox via its REST API for Batch Upsert. Expects an id value in each resource.
      * For an existing resource id, publish updates that resource with the new data. For a new id, it adds the resource.
@@ -18,10 +20,12 @@ class PublishService(private val aidboxClient: AidboxClient) {
      * @return Boolean true only for a 200 OK response from Aidbox; otherwise, even if 1xx or 2xx, false.
      */
     fun publish(resourceCollection: List<RoninDomainResource>): Boolean {
+        logger.info { "Publishing to Aidbox" }
         val response: HttpResponse = runBlocking {
             try {
                 aidboxClient.batchUpsert(resourceCollection)
             } catch (e: Exception) {
+                logger.error(e) { "Failed to publish to Aidbox" }
                 respondToException<HttpResponse>(e)
             }
         }

@@ -18,6 +18,7 @@ class PractitionerService(private val aidboxClient: AidboxClient) {
      * @param practitionerFHIRID the FHIR ID of the practitioner (the key value in AidBox)
      */
     fun getPractitionerIdentifiers(practitionerFHIRID: String): List<Identifier> {
+        logger.info { "Retrieving Practitioner Identifiers from Aidbox using FHIR ID" }
         val query = javaClass.getResource("/graphql/AidboxLimitedPractitionerIDsQuery.graphql")!!.readText()
         val parameters = mapOf("id" to practitionerFHIRID)
         val response: GraphQLResponse<LimitedPractitioner> = runBlocking {
@@ -25,14 +26,19 @@ class PractitionerService(private val aidboxClient: AidboxClient) {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
                 httpResponse.receive()
             } catch (e: Exception) {
+                logger.warn(e) {
+                    "Encountered exception when requesting Practitioner Identifiers from Aidbox using FHIR ID"
+                }
                 respondToGraphQLException(e)
             }
         }
         response.errors?.let {
-            logger.error { "Encountered errors while requesting Practitioner IDs from Aidbox: $it" }
+            logger.error {
+                "Encountered errors while requesting Practitioner Identifiers from Aidbox using FHIR ID: $it"
+            }
             return listOf()
         }
-
+        logger.info { "Completed retrieving Practitioner Identifiers from Aidbox using FHIR ID" }
         return response.data?.practitioner?.identifier ?: listOf()
     }
 
