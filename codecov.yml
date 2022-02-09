@@ -14,6 +14,11 @@ coverage:
         threshold: 1%
         flags:
           - aidbox-tc
+      publishers:
+        target: auto
+        threshold: 1%
+        flags:
+          - publishers
 
     patch:
       aidbox:
@@ -28,6 +33,12 @@ coverage:
         base: auto
         flags:
           - aidbox-tc
+      publishers:
+        target: 80
+        threshold: 1%
+        base: auto
+        flags:
+          - publishers
 
 comment:
   layout: "reach, diff, flags, files"
@@ -46,4 +57,8 @@ flags:
   aidbox-tc:
     paths:
       - interop-aidbox-testcontainer/
+    carryforward: true
+  publishers:
+    paths:
+      - interop-publishers/
     carryforward: true

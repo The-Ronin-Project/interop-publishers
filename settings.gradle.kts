@@ -1,5 +1,6 @@
 rootProject.name = "interop-publishers-build"
 
+include("interop-publishers")
 include("interop-aidbox")
 include("interop-aidbox-testcontainer")
 
