@@ -8,7 +8,7 @@ import java.time.Instant
 /**
  * Brokers [Authentication] allowing re-use of existing credentials as long as they have not expired.
  */
-@Component
+@Component("aidbox")
 class AuthenticationBroker(private val authenticationService: AuthenticationService) {
     private val logger = KotlinLogging.logger { }
     private val expirationBuffer: Long = 60 // seconds

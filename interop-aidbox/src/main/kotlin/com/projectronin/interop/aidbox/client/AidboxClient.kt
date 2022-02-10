@@ -30,6 +30,7 @@ class AidboxClient(
     private val httpClient: HttpClient,
     @Value("\${aidbox.url}")
     private val aidboxURLRest: String,
+    @Qualifier("aidbox")
     private val authenticationBroker: AuthenticationBroker
 ) {
     private val logger = KotlinLogging.logger { }
