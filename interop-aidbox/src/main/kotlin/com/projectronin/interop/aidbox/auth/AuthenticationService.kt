@@ -9,12 +9,18 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Service
 
 /**
  * Service providing Authentication capabilities for an Aidbox instance located at [aidboxBaseUrl] with the provided [aidboxCredentials].
  */
+@Service
 class AuthenticationService(
+    @Qualifier("aidbox")
     private val httpClient: HttpClient,
+    @Value("\${aidbox.url}")
     private val aidboxBaseUrl: String,
     private val aidboxCredentials: AidboxCredentials
 ) {

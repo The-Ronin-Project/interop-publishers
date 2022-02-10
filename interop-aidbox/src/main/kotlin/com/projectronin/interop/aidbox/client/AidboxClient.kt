@@ -17,12 +17,18 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 
 /**
  * Client for accessing an Aidbox server via its configured base URL for REST API calls.
  */
+@Component
 class AidboxClient(
+    @Qualifier("aidbox")
     private val httpClient: HttpClient,
+    @Value("\${aidbox.url}")
     private val aidboxURLRest: String,
     private val authenticationBroker: AuthenticationBroker
 ) {

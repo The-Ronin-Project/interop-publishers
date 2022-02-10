@@ -10,7 +10,9 @@ import com.projectronin.interop.fhir.r4.datatype.Identifier
 import io.ktor.client.call.receive
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import org.springframework.stereotype.Service
 
+@Service
 class PractitionerService(private val aidboxClient: AidboxClient) {
     private val logger = KotlinLogging.logger { }
     /**
