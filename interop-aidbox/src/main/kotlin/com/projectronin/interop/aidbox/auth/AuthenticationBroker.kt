@@ -2,15 +2,13 @@ package com.projectronin.interop.aidbox.auth
 
 import com.projectronin.interop.common.auth.Authentication
 import mu.KotlinLogging
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.time.Instant
 
 /**
  * Brokers [Authentication] allowing re-use of existing credentials as long as they have not expired.
  */
-@Component
-@Qualifier("aidbox")
+@Component("AidboxAuthBroker")
 class AuthenticationBroker(private val authenticationService: AuthenticationService) {
     private val logger = KotlinLogging.logger { }
     private val expirationBuffer: Long = 60 // seconds

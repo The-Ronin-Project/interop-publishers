@@ -26,11 +26,11 @@ import org.springframework.stereotype.Component
  */
 @Component
 class AidboxClient(
-    @Qualifier("aidbox")
+    @Qualifier("AidboxHTTPClient")
     private val httpClient: HttpClient,
     @Value("\${aidbox.url}")
     private val aidboxURLRest: String,
-    @Qualifier("aidbox")
+    @Qualifier("AidboxAuthBroker")
     private val authenticationBroker: AuthenticationBroker
 ) {
     private val logger = KotlinLogging.logger { }

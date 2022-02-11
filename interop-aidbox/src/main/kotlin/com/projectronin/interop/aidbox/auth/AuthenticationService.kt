@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class AuthenticationService(
-    @Qualifier("aidbox")
+    @Qualifier("AidboxHTTPClient")
     private val httpClient: HttpClient,
     @Value("\${aidbox.url}")
     private val aidboxBaseUrl: String,

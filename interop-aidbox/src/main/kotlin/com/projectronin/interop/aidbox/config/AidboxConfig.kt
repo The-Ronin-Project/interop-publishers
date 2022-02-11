@@ -5,7 +5,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -13,8 +12,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @ComponentScan("com.projectronin.interop.aidbox")
 class AidboxConfig {
-    @Bean
-    @Qualifier("aidbox")
+    @Bean("AidboxHTTPClient")
     fun getHttpClient(): HttpClient {
         return HttpClient(CIO) {
             install(JsonFeature) {
