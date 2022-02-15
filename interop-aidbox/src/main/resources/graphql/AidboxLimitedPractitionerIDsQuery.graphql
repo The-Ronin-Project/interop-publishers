@@ -1,7 +1,10 @@
 query Practitioner($id:string) {
     Practitioner(id:$id) {
         identifier{
-            type
+            system
+            type{
+                text
+            }
             value
         }
     }
