@@ -30,7 +30,7 @@ class AuthenticationServiceTest {
             |}""".trimMargin()
 
         val httpClient = makeClient(expectedBody, responseContent, HttpStatusCode.OK)
-        val service = AuthenticationService(httpClient, baseUrl, AidboxCredentials("client-id", "client-secret"))
+        val service = AidboxAuthenticationService(httpClient, baseUrl, AidboxCredentials("client-id", "client-secret"))
         val authentication = service.getAuthentication()
         assertEquals("Bearer", authentication.tokenType)
         assertEquals("abcd1234", authentication.accessToken)
@@ -52,7 +52,7 @@ class AuthenticationServiceTest {
             |}""".trimMargin()
 
         val httpClient = makeClient(expectedBody, responseContent, HttpStatusCode.OK)
-        val service = AuthenticationService(httpClient, baseUrl, AidboxCredentials("client-id", "client-secret"))
+        val service = AidboxAuthenticationService(httpClient, baseUrl, AidboxCredentials("client-id", "client-secret"))
         val authentication = service.getAuthentication()
         assertEquals("Bearer", authentication.tokenType)
         assertEquals("abcd1234", authentication.accessToken)
@@ -67,7 +67,7 @@ class AuthenticationServiceTest {
             """{"client_id":"client-id","client_secret":"client-secret","grant_type":"client_credentials"}"""
 
         val httpClient = makeClient(expectedBody, "", HttpStatusCode.ServiceUnavailable)
-        val service = AuthenticationService(httpClient, baseUrl, AidboxCredentials("client-id", "client-secret"))
+        val service = AidboxAuthenticationService(httpClient, baseUrl, AidboxCredentials("client-id", "client-secret"))
         assertThrows<ServerResponseException> {
             service.getAuthentication()
         }

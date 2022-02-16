@@ -2,7 +2,7 @@ package com.projectronin.interop.aidbox.client
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.projectronin.interop.aidbox.auth.AuthenticationBroker
+import com.projectronin.interop.aidbox.auth.AidboxAuthenticationBroker
 import com.projectronin.interop.aidbox.model.GraphQLPostRequest
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.fhir.r4.CodeSystem
@@ -175,7 +175,7 @@ class AidboxClientTest {
         baseUrl: String = urlRest,
         responseStatus: HttpStatusCode = HttpStatusCode.OK,
     ): AidboxClient {
-        val authenticationBroker = mockk<AuthenticationBroker> {
+        val authenticationBroker = mockk<AidboxAuthenticationBroker> {
             every { getAuthentication() } returns mockk {
                 every { tokenType } returns "Bearer"
                 every { accessToken } returns "Auth-String"

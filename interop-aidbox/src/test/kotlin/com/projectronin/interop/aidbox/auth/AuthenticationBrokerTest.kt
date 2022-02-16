@@ -14,11 +14,11 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
 class AuthenticationBrokerTest {
-    private lateinit var authenticationService: AuthenticationService
-    private lateinit var broker: AuthenticationBroker
+    private lateinit var authenticationService: AidboxAuthenticationService
+    private lateinit var broker: AidboxAuthenticationBroker
 
     private val cachedAuthorizationProperty =
-        AuthenticationBroker::class.memberProperties.first { it.name == "cachedAuthentication" } as KMutableProperty<Authentication?>
+        AidboxAuthenticationBroker::class.memberProperties.first { it.name == "cachedAuthentication" } as KMutableProperty<Authentication?>
 
     init {
         cachedAuthorizationProperty.isAccessible = true
@@ -27,7 +27,7 @@ class AuthenticationBrokerTest {
     @BeforeEach
     fun initTest() {
         authenticationService = mockk()
-        broker = AuthenticationBroker(authenticationService)
+        broker = AidboxAuthenticationBroker(authenticationService)
     }
 
     @Test

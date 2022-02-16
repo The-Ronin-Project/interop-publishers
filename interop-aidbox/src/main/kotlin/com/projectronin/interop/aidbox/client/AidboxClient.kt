@@ -1,6 +1,6 @@
 package com.projectronin.interop.aidbox.client
 
-import com.projectronin.interop.aidbox.auth.AuthenticationBroker
+import com.projectronin.interop.aidbox.auth.AidboxAuthenticationBroker
 import com.projectronin.interop.aidbox.model.GraphQLPostRequest
 import com.projectronin.interop.fhir.r4.ronin.resource.RoninDomainResource
 import io.ktor.client.HttpClient
@@ -17,7 +17,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
@@ -26,12 +25,10 @@ import org.springframework.stereotype.Component
  */
 @Component
 class AidboxClient(
-    @Qualifier("AidboxHTTPClient")
     private val httpClient: HttpClient,
     @Value("\${aidbox.url}")
     private val aidboxURLRest: String,
-    @Qualifier("AidboxAuthBroker")
-    private val authenticationBroker: AuthenticationBroker
+    private val authenticationBroker: AidboxAuthenticationBroker
 ) {
     private val logger = KotlinLogging.logger { }
 
