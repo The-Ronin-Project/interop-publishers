@@ -1,0 +1,14 @@
+query PractitionerList(
+    $identifier: string,
+    ){
+    PractitionerList(identifier: $identifier) {
+        identifier{
+            system
+            type{
+                text
+            }
+            value
+        },
+        id
+    }
+}
