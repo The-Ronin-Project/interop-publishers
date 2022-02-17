@@ -1,14 +1,17 @@
 package com.projectronin.interop.aidbox
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.projectronin.interop.aidbox.client.AidboxClient
 import com.projectronin.interop.aidbox.model.GraphQLResponse
+import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
+import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import io.ktor.client.call.receive
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service
 @Service
 class PractitionerService(private val aidboxClient: AidboxClient) {
     private val logger = KotlinLogging.logger { }
+
     /**
      * Returns a [List] of [Identifier] for a single practitioner from AidBox.
      * @param practitionerFHIRID the FHIR ID of the practitioner (the key value in AidBox)
@@ -70,9 +74,48 @@ class PractitionerService(private val aidboxClient: AidboxClient) {
     }
 
     /**
-     * Returns a [List] of [List] of practitioner [Identifier] for a [String] representing a given tenant mnemonic.
+     * Searches Aidbox for Practitioners based on their [tenantMnemonic] and a map of keys to [SystemValue]s, each
+     * representing a Practitioner identifier.  Returns a map of the given keys, along with the practitioner's FHIR ID
+     * if it was found, otherwise no entry for that key.
+     */
+    fun <K> getPractitionerFHIRIds(tenantMnemonic: String, identifiers: Map<K, SystemValue>): Map<K, String> {
+        logger.info { "Retrieving Practitioner FHIR IDs from Aidbox" }
+
+        val query = javaClass.getResource("/graphql/AidboxPractitionerFHIRIDsQuery.graphql")!!.readText()
+        val parameters = mapOf(
+            "tenant" to SystemValue(system = CodeSystem.RONIN_TENANT.uri.value, value = tenantMnemonic).queryString,
+            "identifiers" to identifiers.values.joinToString(separator = ",") { it.queryString }
+        )
+
+        val response: GraphQLResponse<LimitedPractitionersFHIR> = runBlocking {
+            try {
+                val httpResponse = aidboxClient.queryGraphQL(query, parameters)
+                httpResponse.receive()
+            } catch (e: Exception) {
+                logger.warn(e) { "Encountered exception when requesting Practitioner FHIR IDs from Aidbox" }
+                respondToGraphQLException(e)
+            }
+        }
+
+        val identifierToFhirIdMap = response.data?.practitionerList?.flatMap {
+            it.identifiers.map { identifier -> identifier to it.id }
+        }?.toMap() ?: mapOf()
+
+        return identifiers.mapNotNull {
+            val fhirId = identifierToFhirIdMap[Identifier(system = Uri(it.value.system), value = it.value.value)]
+
+            if (fhirId != null) {
+                it.key to fhirId
+            } else {
+                null
+            }
+        }.toMap()
+    }
+
+    /**
+     * Returns a [Map] of String to [List] of practitioner [Identifier] for a [String] representing a given tenant mnemonic.
      * @param tenantMnemonic a tenant mnemonic
-     * @return a [List] of [List] of practitioner [Identifier]
+     * @return a [Map] of String to [List] of practitioner [Identifier]
      */
     fun getPractitionersByTenant(tenantMnemonic: String): Map<String, List<Identifier>> {
         logger.info { "Retrieving Practitioners for $tenantMnemonic" }
@@ -101,9 +144,10 @@ class PractitionerService(private val aidboxClient: AidboxClient) {
     }
 }
 
-@JsonNaming(PropertyNamingStrategies.UpperCamelCaseStrategy::class) // fix awful issue where Json doesn't recognize 'Practitioner' when uppercase
-data class LimitedPractitioner(val practitioner: LimitedPractitionerIDs)
-data class LimitedPractitionerIDs(val identifier: List<Identifier>)
 @JsonNaming(PropertyNamingStrategies.UpperCamelCaseStrategy::class)
+data class LimitedPractitioner(val practitioner: LimitedPractitionerIdentifiers?)
+data class LimitedPractitionerIdentifiers(val identifier: List<Identifier>)
 data class PractitionerList(val practitionerList: List<PartialPractitioner>)
 data class PartialPractitioner(val identifier: List<Identifier>, val id: Id)
+data class LimitedPractitionersFHIR(@JsonProperty("PractitionerList") val practitionerList: List<LimitedPractitionerFHIRIdentifiers>)
+data class LimitedPractitionerFHIRIdentifiers(val id: String, @JsonProperty("identifier") val identifiers: List<Identifier>)
