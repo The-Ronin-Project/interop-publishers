@@ -13,6 +13,4 @@ dependencyManagement {
 dependencies {
     implementation("org.testcontainers:junit-jupiter")
     implementation("commons-codec:commons-codec:1.15")
-
-    testImplementation(project(":interop-aidbox"))
 }

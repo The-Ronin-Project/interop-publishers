@@ -7,12 +7,15 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import org.springframework.stereotype.Service
 
 /**
  * Service allowing access to push data updates to Aidbox.
  */
+@Service
 class PublishService(private val aidboxClient: AidboxClient) {
     private val logger = KotlinLogging.logger { }
+
     /**
      * Publishes resources to Aidbox via its REST API for Batch Upsert. Expects an id value in each resource.
      * For an existing resource id, publish updates that resource with the new data. For a new id, it adds the resource.

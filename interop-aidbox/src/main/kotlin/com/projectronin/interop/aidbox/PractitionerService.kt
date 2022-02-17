@@ -1,8 +1,6 @@
 package com.projectronin.interop.aidbox
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.projectronin.interop.aidbox.client.AidboxClient
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
@@ -144,10 +142,14 @@ class PractitionerService(private val aidboxClient: AidboxClient) {
     }
 }
 
-@JsonNaming(PropertyNamingStrategies.UpperCamelCaseStrategy::class)
-data class LimitedPractitioner(val practitioner: LimitedPractitionerIdentifiers?)
+data class LimitedPractitioner(@JsonProperty("Practitioner") val practitioner: LimitedPractitionerIdentifiers?)
 data class LimitedPractitionerIdentifiers(val identifier: List<Identifier>)
-data class PractitionerList(val practitionerList: List<PartialPractitioner>)
+
+data class PractitionerList(@JsonProperty("PractitionerList") val practitionerList: List<PartialPractitioner>)
 data class PartialPractitioner(val identifier: List<Identifier>, val id: Id)
+
 data class LimitedPractitionersFHIR(@JsonProperty("PractitionerList") val practitionerList: List<LimitedPractitionerFHIRIdentifiers>)
-data class LimitedPractitionerFHIRIdentifiers(val id: String, @JsonProperty("identifier") val identifiers: List<Identifier>)
+data class LimitedPractitionerFHIRIdentifiers(
+    val id: String,
+    @JsonProperty("identifier") val identifiers: List<Identifier>
+)

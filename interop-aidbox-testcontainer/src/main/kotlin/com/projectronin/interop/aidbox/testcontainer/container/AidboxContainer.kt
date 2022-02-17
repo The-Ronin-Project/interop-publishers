@@ -40,8 +40,8 @@ class AidboxContainer(
     private val databaseContainer: AidboxDatabaseContainer,
     private val version: String = "latest",
     private val fhirVersion: String = "4.0.0",
-    private val aidboxClientId: String = "test-client",
-    private val aidboxClientSecret: String = "testclientsecret"
+    val aidboxClientId: String = "test-client",
+    val aidboxClientSecret: String = "testclientsecret"
 ) :
     GenericContainer<AidboxContainer>(DockerImageName.parse("healthsamurai/devbox:$version")) {
     init {
