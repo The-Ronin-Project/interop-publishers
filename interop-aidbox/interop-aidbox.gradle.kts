@@ -6,12 +6,6 @@ plugins {
     id("com.projectronin.interop.gradle.integration")
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("org.testcontainers:testcontainers-bom:1.16.2")
-    }
-}
-
 dependencies {
     implementation("com.projectronin.interop:interop-common:${project.property("interopCommonVersion")}")
     implementation("com.projectronin.interop.fhir:interop-fhir:${project.property("interopFhirVersion")}")

@@ -4,13 +4,8 @@ plugins {
     id("com.projectronin.interop.gradle.spring")
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("org.testcontainers:testcontainers-bom:1.16.2")
-    }
-}
-
 dependencies {
+    api(platform("org.testcontainers:testcontainers-bom:1.16.0"))
     implementation("org.testcontainers:junit-jupiter")
     implementation("commons-codec:commons-codec:1.15")
 }
