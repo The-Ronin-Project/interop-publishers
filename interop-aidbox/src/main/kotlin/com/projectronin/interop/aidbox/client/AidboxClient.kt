@@ -2,7 +2,8 @@ package com.projectronin.interop.aidbox.client
 
 import com.projectronin.interop.aidbox.auth.AidboxAuthenticationBroker
 import com.projectronin.interop.aidbox.model.GraphQLPostRequest
-import com.projectronin.interop.fhir.r4.ronin.resource.RoninDomainResource
+import com.projectronin.interop.aidbox.utils.makeBundleForBatchUpsert
+import com.projectronin.interop.fhir.FHIRResource
 import io.ktor.client.HttpClient
 import io.ktor.client.features.ClientRequestException
 import io.ktor.client.features.RedirectResponseException
@@ -10,7 +11,6 @@ import io.ktor.client.features.ServerResponseException
 import io.ktor.client.request.accept
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
-import io.ktor.client.request.put
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -33,34 +33,35 @@ class AidboxClient(
     private val logger = KotlinLogging.logger { }
 
     /**
-     * Provides access to the Aidbox Batch Upsert feature, see https://docs.aidbox.app/api-1/batch-upsert.
-     * Publishes resources to Aidbox via its REST API for Batch Upsert. Expects an id value in each resource.
-     * For an existing resource id, publish updates that resource with the new data. For a new id, it adds the resource.
-     * For efficiency, Aidbox does not validate the resources submitted using PUT / (Batch Upsert) or $import or $load.
-     * PUT / does not require an id to be on any resource, but we expect to provide id values when we put this data.
+     * Publishes FHIR resources to Aidbox by POSTing a FHIR transaction bundle. Expects an id value in each resource.
+     * For an existing resource id, updates that resource with the new data. For a new id, adds the resource to Aidbox.
+     * Order of resources in the bundle is not important to resolve references within the bundle. The only requirement
+     * on references is that all the referenced resources are either in the bundle or already in Aidbox.
+     * The transaction bundle is all-or-nothing: Every resource in the bundle must succeed to return a 200 response.
      * @param resourceCollection List of FHIR resources to publish. May be a mixed List with different resourceTypes.
-     * @return [HttpResponse] from the Batch Upsert API.
+     * @return [HttpResponse] from the Aidbox FHIR transaction bundle REST API.
      * @throws [RedirectResponseException] for a 3xx response.
      * @throws [ClientRequestException] for a 4xx response.
      * @throws [ServerResponseException] for a 5xx response.
      */
-    suspend fun batchUpsert(resourceCollection: List<RoninDomainResource>): HttpResponse {
+    suspend fun batchUpsert(resourceCollection: List<FHIRResource>): HttpResponse {
         val arrayLength = resourceCollection.size
         val showArray = when (arrayLength) {
             1 -> "resource"
             else -> "resources"
         }
         logger.debug { "Aidbox batch upsert of $arrayLength $showArray" }
+        val bundle = makeBundleForBatchUpsert(aidboxURLRest, resourceCollection)
         val authentication = authenticationBroker.getAuthentication()
         val response: HttpResponse = runBlocking {
             try {
-                httpClient.put("$aidboxURLRest/") {
+                httpClient.post("$aidboxURLRest/fhir") {
                     headers {
                         append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
                     }
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
-                    body = resourceCollection
+                    body = bundle
                 }
             } catch (e: Exception) {
                 logger.error(e) { "Exception during Aidbox batch upsert" }

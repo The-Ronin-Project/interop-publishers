@@ -1,5 +1,6 @@
 package com.projectronin.interop.aidbox.testcontainer.client
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.projectronin.interop.aidbox.testcontainer.client.graphql.GraphQLPostRequest
 import io.ktor.client.HttpClient
@@ -17,8 +18,9 @@ import io.ktor.http.contentType
 class AidboxClient(private val aidboxGraphQLUrl: String) {
     private val httpClient: HttpClient = HttpClient(CIO) {
         install(JsonFeature) {
-            serializer = JacksonSerializer() {
+            serializer = JacksonSerializer {
                 disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
             }
         }
     }

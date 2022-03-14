@@ -1,5 +1,6 @@
 package com.projectronin.interop.aidbox.testcontainer.container
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
@@ -58,8 +59,9 @@ class AidboxContainer(
      */
     val ktorClient = HttpClient(CIO) {
         install(JsonFeature) {
-            serializer = JacksonSerializer() {
+            serializer = JacksonSerializer {
                 disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.projectronin.interop.aidbox
 
 import com.projectronin.interop.aidbox.client.AidboxClient
+import com.projectronin.interop.fhir.FHIRResource
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.HumanName
@@ -45,6 +46,19 @@ class PublishServiceTest {
     fun `publish list of 2 Practitioner resources to aidbox, response 200 true`() {
         val expectedSuccess = true
         val httpResponse = mockk<HttpResponse>()
+        coEvery { httpResponse.status } returns HttpStatusCode.OK
+        coEvery { aidboxClient.batchUpsert(collection) } returns httpResponse
+        val actualSuccess: Boolean = runBlocking {
+            publishService.publish(collection)
+        }
+        assertEquals(actualSuccess, expectedSuccess)
+    }
+
+    @Test
+    fun `cannot publish empty list, return false`() {
+        val expectedSuccess = false
+        val httpResponse = mockk<HttpResponse>()
+        val collection = listOf<FHIRResource>()
         coEvery { httpResponse.status } returns HttpStatusCode.OK
         coEvery { aidboxClient.batchUpsert(collection) } returns httpResponse
         val actualSuccess: Boolean = runBlocking {
