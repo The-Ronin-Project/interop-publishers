@@ -17,4 +17,7 @@ data class AidboxCredentials(
     val clientSecret: String
 ) {
     val grantType: String = "client_credentials"
+
+    // Override toString() to prevent accidentally leaking the clientSecret
+    override fun toString(): String = this::class.simpleName!!
 }

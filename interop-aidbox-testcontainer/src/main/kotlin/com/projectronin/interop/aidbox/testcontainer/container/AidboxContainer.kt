@@ -39,12 +39,12 @@ import java.nio.charset.Charset
  */
 class AidboxContainer(
     private val databaseContainer: AidboxDatabaseContainer,
-    private val version: String = "latest",
+    private val version: String = "2112", // "latest",
     private val fhirVersion: String = "4.0.0",
     val aidboxClientId: String = "test-client",
     val aidboxClientSecret: String = "testclientsecret"
 ) :
-    GenericContainer<AidboxContainer>(DockerImageName.parse("healthsamurai/devbox:$version")) {
+    GenericContainer<AidboxContainer>(DockerImageName.parse("docker-proxy.devops.projectronin.io/healthsamurai/devbox:$version")) {
     init {
         // This has to be specified in the init to ensure that the containers are loaded in the correct order by Testcontainers
         dependsOn(databaseContainer)

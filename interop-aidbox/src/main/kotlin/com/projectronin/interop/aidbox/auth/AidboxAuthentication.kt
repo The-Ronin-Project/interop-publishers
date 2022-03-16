@@ -17,4 +17,7 @@ data class AidboxAuthentication(
     override val scope: String? = null
 ) : Authentication {
     override val expiresAt: Instant? = expiresIn?.let { Instant.now().plusSeconds(expiresIn) }
+
+    // Override toString() to prevent accidentally leaking the accessToken
+    override fun toString(): String = this::class.simpleName!!
 }
