@@ -846,10 +846,10 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     }
 
     @Test
-    fun `cannot publish empty list of resources`() {
+    fun `empty list of resources does not error`() {
         val collection = listOf<FHIRResource>()
         val published = publishService.publish(collection)
-        assertFalse(published)
+        assertTrue(published)
     }
 
     private inline fun <reified T : FHIRResource> getResource(resourceType: String, id: String): T? {

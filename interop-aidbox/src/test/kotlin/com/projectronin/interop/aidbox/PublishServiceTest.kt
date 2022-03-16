@@ -14,6 +14,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class PublishServiceTest {
@@ -55,8 +56,7 @@ class PublishServiceTest {
     }
 
     @Test
-    fun `cannot publish empty list, return false`() {
-        val expectedSuccess = false
+    fun `empty list, return true`() {
         val httpResponse = mockk<HttpResponse>()
         val collection = listOf<FHIRResource>()
         coEvery { httpResponse.status } returns HttpStatusCode.OK
@@ -64,7 +64,7 @@ class PublishServiceTest {
         val actualSuccess: Boolean = runBlocking {
             publishService.publish(collection)
         }
-        assertEquals(actualSuccess, expectedSuccess)
+        assertTrue(actualSuccess)
     }
 
     @Test
