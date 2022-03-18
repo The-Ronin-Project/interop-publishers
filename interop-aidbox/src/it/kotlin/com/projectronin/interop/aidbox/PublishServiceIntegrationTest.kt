@@ -10,37 +10,49 @@ import com.projectronin.interop.fhir.FHIRResource
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.Address
+import com.projectronin.interop.fhir.r4.datatype.Attachment
 import com.projectronin.interop.fhir.r4.datatype.AvailableTime
 import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Coding
+import com.projectronin.interop.fhir.r4.datatype.Communication
+import com.projectronin.interop.fhir.r4.datatype.Contact
 import com.projectronin.interop.fhir.r4.datatype.ContactPoint
+import com.projectronin.interop.fhir.r4.datatype.DynamicValue
+import com.projectronin.interop.fhir.r4.datatype.DynamicValueType
+import com.projectronin.interop.fhir.r4.datatype.Extension
 import com.projectronin.interop.fhir.r4.datatype.HumanName
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.LocationHoursOfOperation
 import com.projectronin.interop.fhir.r4.datatype.LocationPosition
 import com.projectronin.interop.fhir.r4.datatype.Narrative
 import com.projectronin.interop.fhir.r4.datatype.NotAvailable
+import com.projectronin.interop.fhir.r4.datatype.Participant
 import com.projectronin.interop.fhir.r4.datatype.Period
 import com.projectronin.interop.fhir.r4.datatype.Reference
+import com.projectronin.interop.fhir.r4.datatype.primitive.Base64Binary
 import com.projectronin.interop.fhir.r4.datatype.primitive.Code
 import com.projectronin.interop.fhir.r4.datatype.primitive.Date
 import com.projectronin.interop.fhir.r4.datatype.primitive.DateTime
 import com.projectronin.interop.fhir.r4.datatype.primitive.Decimal
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
+import com.projectronin.interop.fhir.r4.datatype.primitive.Instant
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.resource.Location
 import com.projectronin.interop.fhir.r4.resource.Resource
+import com.projectronin.interop.fhir.r4.ronin.resource.OncologyAppointment
 import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPatient
 import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPractitioner
 import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPractitionerRole
 import com.projectronin.interop.fhir.r4.ronin.resource.RoninResource
 import com.projectronin.interop.fhir.r4.valueset.AdministrativeGender
+import com.projectronin.interop.fhir.r4.valueset.AppointmentStatus
 import com.projectronin.interop.fhir.r4.valueset.ContactPointSystem
 import com.projectronin.interop.fhir.r4.valueset.ContactPointUse
 import com.projectronin.interop.fhir.r4.valueset.DayOfWeek
 import com.projectronin.interop.fhir.r4.valueset.LocationMode
 import com.projectronin.interop.fhir.r4.valueset.LocationStatus
 import com.projectronin.interop.fhir.r4.valueset.NarrativeStatus
+import com.projectronin.interop.fhir.r4.valueset.ParticipationStatus
 import io.ktor.client.call.receive
 import io.ktor.client.features.ClientRequestException
 import io.ktor.client.request.delete
@@ -336,7 +348,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     }
 
     @Test
-    fun `can publish resource list with all referenced resources provided (RoninResource and R4Resource)`() {
+    fun `can publish resources with all references provided (RoninResource, R4Resource) - PractitionerRole, Practitioner, Location`() {
         // Before
         val idPrefix = "2PRAllRef200-"
         val practitioner1 = OncologyPractitioner(
@@ -517,7 +529,145 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     }
 
     @Test
-    fun `can publish resource list with all referenced resources provided, plus an unreferenced FHIRResource (RoninResource and R4Resource)`() {
+    fun `can publish resources with all references provided (RoninResource) - Appointment, Practitioner, Patient`() {
+        // Before
+        val idPrefix = "1AptAllRef200-"
+        val practitioner1 = OncologyPractitioner(
+            id = Id("${idPrefix}cmjones"),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "third"
+                )
+            ),
+            name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
+        )
+        val practitioner2 = OncologyPractitioner(
+            id = Id("${idPrefix}rallyr"),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "second"
+                )
+            ),
+            name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne")))
+        )
+        val patient = OncologyPatient(
+            id = Id("${idPrefix}12345"),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "tenantId"
+                ),
+                Identifier(
+                    system = CodeSystem.MRN.uri,
+                    type = CodeableConcepts.MRN,
+                    value = "MRN"
+                ),
+                Identifier(
+                    system = CodeSystem.FHIR_STU3_ID.uri,
+                    type = CodeableConcepts.FHIR_STU3_ID,
+                    value = "fhirId"
+                )
+            ),
+            active = true,
+            name = listOf(HumanName(family = "Doe")),
+            telecom = listOf(
+                ContactPoint(
+                    system = ContactPointSystem.PHONE,
+                    value = "8675309",
+                    use = ContactPointUse.MOBILE
+                )
+            ),
+            gender = AdministrativeGender.FEMALE,
+            birthDate = Date("1975-07-05"),
+            // deceased = DynamicValue(type = DynamicValueType.BOOLEAN, value = false), // INT-480
+            address = listOf(Address(country = "USA")),
+            maritalStatus = CodeableConcept(text = "M"),
+            // multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2), // INT-480
+            photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
+            contact = listOf(Contact(name = HumanName(text = "Jane Doe"))),
+            communication = listOf(Communication(language = CodeableConcept(text = "English"))),
+            generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones"))
+            // managingOrganization = Reference(display = "organization"), // INT-480
+            // link = listOf(PatientLink(other = Reference(), type = LinkType.REPLACES)) // INT-480
+        )
+        val appointment = OncologyAppointment(
+            id = Id("${idPrefix}12345"),
+            extension = listOf(
+                Extension(
+                    url = Uri("http://projectronin.com/fhir/us/ronin/StructureDefinition/partnerDepartmentReference"),
+                    value = DynamicValue(DynamicValueType.REFERENCE, Reference(reference = "reference"))
+                )
+            ),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "tenantId"
+                )
+            ),
+            status = AppointmentStatus.CANCELLED,
+            appointmentType = CodeableConcept(text = "appointment type"),
+            cancelationReason = CodeableConcept(text = "cancel reason"),
+            serviceCategory = listOf(CodeableConcept(text = "service category")),
+            serviceType = listOf(CodeableConcept(text = "service type")),
+            specialty = listOf(CodeableConcept(text = "specialty")),
+            reasonCode = listOf(CodeableConcept(text = "reason code")),
+            // reasonReference = listOf(Reference(display = "reason reference")), // INT-480
+            priority = 1,
+            description = "appointment test",
+            start = Instant(value = "2017-01-01T00:00:00Z"),
+            end = Instant(value = "2017-01-01T01:00:00Z"),
+            minutesDuration = 15,
+            // slot = listOf(Reference(display = "slot")), // INT-480
+            created = DateTime(value = "2021-11-16"),
+            comment = "comment",
+            patientInstruction = "patient instruction",
+            participant = listOf(
+                Participant(
+                    actor = Reference(reference = "Patient/${idPrefix}12345"),
+                    status = ParticipationStatus.ACCEPTED
+                ),
+                Participant(
+                    actor = Reference(reference = "Practitioner/${idPrefix}cmjones"),
+                    status = ParticipationStatus.ACCEPTED
+                ),
+                Participant(
+                    actor = Reference(reference = "Practitioner/${idPrefix}rallyr"),
+                    status = ParticipationStatus.DECLINED
+                )
+            ),
+            requestedPeriod = listOf(Period(start = DateTime(value = "2021-11-15"), end = DateTime(value = "2021-11-17")))
+        )
+        val fullAppointment: List<FHIRResource> = listOf(
+            practitioner1,
+            practitioner2,
+            patient,
+            appointment
+        )
+        assertTrue(allRoninResourcesNull("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr")))
+        assertTrue(allRoninResourcesNull("Patient", listOf("${idPrefix}12345")))
+        assertTrue(allRoninResourcesNull("Appointment", listOf("${idPrefix}12345")))
+
+        // Test
+        val published = publishService.publish(fullAppointment)
+        assertTrue(published)
+        assertTrue(allRoninResourcesExist("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr")))
+        assertTrue(allRoninResourcesExist("Patient", listOf("${idPrefix}12345")))
+        assertTrue(allRoninResourcesExist("Appointment", listOf("${idPrefix}12345")))
+
+        // After
+        deleteAllResources("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr"))
+        deleteAllResources("Patient", listOf("${idPrefix}12345"))
+        deleteAllResources("Appointment", listOf("${idPrefix}12345"))
+    }
+
+    @Test
+    fun `can publish PractitionerRole with all references provided, plus an extra resource (RoninResource and R4Resource)`() {
         // Before
         val idPrefix = "2PRAllRefPlusUnrelatedP200-"
         val practitioner1 = OncologyPractitioner(
@@ -721,6 +871,262 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     }
 
     @Test
+    fun `can publish Appointment with all references provided, plus extra resources (RoninResource and R4Resource)`() {
+        // Before
+        val idPrefix = "1AptAllRefPlusUnrelatedP200-"
+        val practitioner1 = OncologyPractitioner(
+            id = Id("${idPrefix}cmjones"),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "third"
+                )
+            ),
+            name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
+        )
+        val practitioner2 = OncologyPractitioner(
+            id = Id("${idPrefix}rallyr"),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "second"
+                )
+            ),
+            name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne")))
+        )
+        val practitioner3 = OncologyPractitioner(
+            id = Id("${idPrefix}gwalsh"),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "first"
+                )
+            ),
+            name = listOf(HumanName(family = "Walsh", given = listOf("Goneril")))
+        )
+        val location1 = Location(
+            id = Id("${idPrefix}12345"),
+            language = Code("en-US"),
+            text = Narrative(status = NarrativeStatus.GENERATED, div = "div"),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "id5"
+                )
+            ),
+            mode = LocationMode.INSTANCE,
+            status = LocationStatus.ACTIVE,
+            name = "My Office",
+            alias = listOf("Guest Room"),
+            description = "Sun Room",
+            type = listOf(
+                CodeableConcept(
+                    text = "Diagnostic",
+                    coding = listOf(
+                        Coding(
+                            code = Code("DX"),
+                            system = Uri(value = "http://terminology.hl7.org/ValueSet/v3-ServiceDeliveryLocationRoleType")
+                        )
+                    )
+                )
+            ),
+            telecom = listOf(ContactPoint(value = "8675309")),
+            address = Address(country = "USA"),
+            physicalType = CodeableConcept(
+                text = "Room",
+                coding = listOf(
+                    Coding(
+                        code = Code("ro"),
+                        system = Uri(value = "http://terminology.hl7.org/CodeSystem/location-physical-type")
+                    )
+                )
+            ),
+            position = LocationPosition(longitude = Decimal(13.81531), latitude = Decimal(66.077132)),
+            hoursOfOperation = listOf(
+                LocationHoursOfOperation(
+                    daysOfWeek = listOf(
+                        DayOfWeek.SATURDAY,
+                        DayOfWeek.SUNDAY
+                    ),
+                    allDay = true
+                )
+            ),
+            availabilityExceptions = "Call for details"
+        )
+        val location2 = Location(
+            id = Id("${idPrefix}12346"),
+            language = Code("en-US"),
+            text = Narrative(status = NarrativeStatus.GENERATED, div = "div"),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "id6"
+                )
+            ),
+            mode = LocationMode.INSTANCE,
+            status = LocationStatus.ACTIVE,
+            name = "Back Study",
+            alias = listOf("Studio"),
+            description = "Game Room",
+            type = listOf(
+                CodeableConcept(
+                    text = "Diagnostic",
+                    coding = listOf(
+                        Coding(
+                            code = Code("DX"),
+                            system = Uri(value = "http://terminology.hl7.org/ValueSet/v3-ServiceDeliveryLocationRoleType")
+                        )
+                    )
+                )
+            ),
+            telecom = listOf(ContactPoint(value = "123-456-7890")),
+            address = Address(country = "USA"),
+            physicalType = CodeableConcept(
+                text = "Room",
+                coding = listOf(
+                    Coding(
+                        code = Code("ro"),
+                        system = Uri(value = "http://terminology.hl7.org/CodeSystem/location-physical-type")
+                    )
+                )
+            ),
+            hoursOfOperation = listOf(LocationHoursOfOperation(daysOfWeek = listOf(DayOfWeek.TUESDAY), allDay = true)),
+            availabilityExceptions = "By appointment"
+        )
+        val patient = OncologyPatient(
+            id = Id("${idPrefix}12345"),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "tenantId"
+                ),
+                Identifier(
+                    system = CodeSystem.MRN.uri,
+                    type = CodeableConcepts.MRN,
+                    value = "MRN"
+                ),
+                Identifier(
+                    system = CodeSystem.FHIR_STU3_ID.uri,
+                    type = CodeableConcepts.FHIR_STU3_ID,
+                    value = "fhirId"
+                )
+            ),
+            active = true,
+            name = listOf(HumanName(family = "Doe")),
+            telecom = listOf(
+                ContactPoint(
+                    system = ContactPointSystem.PHONE,
+                    value = "8675309",
+                    use = ContactPointUse.MOBILE
+                )
+            ),
+            gender = AdministrativeGender.FEMALE,
+            birthDate = Date("1975-07-05"),
+            // deceased = DynamicValue(type = DynamicValueType.BOOLEAN, value = false), // INT-480
+            address = listOf(Address(country = "USA")),
+            maritalStatus = CodeableConcept(text = "M"),
+            // multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2), // INT-480
+            photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
+            contact = listOf(Contact(name = HumanName(text = "Jane Doe"))),
+            communication = listOf(Communication(language = CodeableConcept(text = "English"))),
+            generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones"))
+            // managingOrganization = Reference(display = "organization"), // INT-480
+            // link = listOf(PatientLink(other = Reference(), type = LinkType.REPLACES)) // INT-480
+        )
+        val appointment = OncologyAppointment(
+            id = Id("${idPrefix}12345"),
+            extension = listOf(
+                Extension(
+                    url = Uri("http://projectronin.com/fhir/us/ronin/StructureDefinition/partnerDepartmentReference"),
+                    value = DynamicValue(DynamicValueType.REFERENCE, Reference(reference = "reference"))
+                )
+            ),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "tenantId"
+                )
+            ),
+            status = AppointmentStatus.CANCELLED,
+            appointmentType = CodeableConcept(text = "appointment type"),
+            cancelationReason = CodeableConcept(text = "cancel reason"),
+            serviceCategory = listOf(CodeableConcept(text = "service category")),
+            serviceType = listOf(CodeableConcept(text = "service type")),
+            specialty = listOf(CodeableConcept(text = "specialty")),
+            reasonCode = listOf(CodeableConcept(text = "reason code")),
+            // reasonReference = listOf(Reference(display = "reason reference")), // INT-480
+            priority = 1,
+            description = "appointment test",
+            start = Instant(value = "2017-01-01T00:00:00Z"),
+            end = Instant(value = "2017-01-01T01:00:00Z"),
+            minutesDuration = 15,
+            // slot = listOf(Reference(display = "slot")), // INT-480
+            created = DateTime(value = "2021-11-16"),
+            comment = "comment",
+            patientInstruction = "patient instruction",
+            participant = listOf(
+                Participant(
+                    actor = Reference(reference = "Patient/${idPrefix}12345"),
+                    status = ParticipationStatus.ACCEPTED
+                ),
+                Participant(
+                    actor = Reference(reference = "Practitioner/${idPrefix}cmjones"),
+                    status = ParticipationStatus.ACCEPTED
+                ),
+                Participant(
+                    actor = Reference(reference = "Practitioner/${idPrefix}rallyr"),
+                    status = ParticipationStatus.DECLINED
+                )
+            ),
+            requestedPeriod = listOf(Period(start = DateTime(value = "2021-11-15"), end = DateTime(value = "2021-11-17")))
+        )
+        val unrelatedResourceInList: List<FHIRResource> = listOf(
+            location1,
+            location2,
+            practitioner1,
+            practitioner2,
+            practitioner3,
+            patient,
+            appointment
+        )
+        assertTrue(allR4ResourcesNull("Location", listOf("${idPrefix}12345", "${idPrefix}12346")))
+        assertTrue(
+            allRoninResourcesNull(
+                "Practitioner",
+                listOf("${idPrefix}cmjones", "${idPrefix}rallyr", "${idPrefix}gwalsh")
+            )
+        )
+        assertTrue(allRoninResourcesNull("Patient", listOf("${idPrefix}12345")))
+        assertTrue(allRoninResourcesNull("Appointment", listOf("${idPrefix}12345")))
+
+        // Test
+        val published = publishService.publish(unrelatedResourceInList)
+        assertTrue(published)
+        assertTrue(allR4ResourcesExist("Location", listOf("${idPrefix}12345", "${idPrefix}12346")))
+        assertTrue(
+            allRoninResourcesExist(
+                "Practitioner",
+                listOf("${idPrefix}cmjones", "${idPrefix}rallyr", "${idPrefix}gwalsh")
+            )
+        )
+        assertTrue(allRoninResourcesExist("Patient", listOf("${idPrefix}12345")))
+        assertTrue(allRoninResourcesExist("Appointment", listOf("${idPrefix}12345")))
+
+        // After
+        deleteAllResources("Location", listOf("${idPrefix}12345", "${idPrefix}12346"))
+        deleteAllResources("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr", "${idPrefix}gwalsh"))
+        deleteAllResources("Patient", listOf("${idPrefix}12345"))
+        deleteAllResources("Appointment", listOf("${idPrefix}12345"))
+    }
+
+    @Test
     fun `cannot publish list of PractitionerRole if even one reference in one PractitionerRole cannot be resolved`() {
         // Before
         val idPrefix = "2PRNoRef400-"
@@ -843,6 +1249,139 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val published = publishService.publish(practitionerRoles)
         assertFalse(published)
         assertTrue(allRoninResourcesNull("PractitionerRole", listOf("${idPrefix}12347", "${idPrefix}12348")))
+    }
+
+    @Test
+    fun `cannot publish Appointment if even one reference cannot be resolved`() {
+        // Before
+        val idPrefix = "1AptNoRef400-"
+        val practitioner1 = OncologyPractitioner(
+            id = Id("${idPrefix}cmjones"),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "third"
+                )
+            ),
+            name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
+        )
+        val practitioner2 = OncologyPractitioner(
+            id = Id("${idPrefix}rallyr"),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "second"
+                )
+            ),
+            name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne")))
+        )
+        val patient = OncologyPatient(
+            id = Id("${idPrefix}12345"),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "tenantId"
+                ),
+                Identifier(
+                    system = CodeSystem.MRN.uri,
+                    type = CodeableConcepts.MRN,
+                    value = "MRN"
+                ),
+                Identifier(
+                    system = CodeSystem.FHIR_STU3_ID.uri,
+                    type = CodeableConcepts.FHIR_STU3_ID,
+                    value = "fhirId"
+                )
+            ),
+            active = true,
+            name = listOf(HumanName(family = "Doe")),
+            telecom = listOf(
+                ContactPoint(
+                    system = ContactPointSystem.PHONE,
+                    value = "8675309",
+                    use = ContactPointUse.MOBILE
+                )
+            ),
+            gender = AdministrativeGender.FEMALE,
+            birthDate = Date("1975-07-05"),
+            // deceased = DynamicValue(type = DynamicValueType.BOOLEAN, value = false), // INT-480
+            address = listOf(Address(country = "USA")),
+            maritalStatus = CodeableConcept(text = "M"),
+            // multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2), // INT-480
+            photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
+            contact = listOf(Contact(name = HumanName(text = "Jane Doe"))),
+            communication = listOf(Communication(language = CodeableConcept(text = "English"))),
+            generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones"))
+            // managingOrganization = Reference(display = "organization"), // INT-480
+            // link = listOf(PatientLink(other = Reference(), type = LinkType.REPLACES)) // INT-480
+        )
+        val appointment = OncologyAppointment(
+            id = Id("${idPrefix}12345"),
+            extension = listOf(
+                Extension(
+                    url = Uri("http://projectronin.com/fhir/us/ronin/StructureDefinition/partnerDepartmentReference"),
+                    value = DynamicValue(DynamicValueType.REFERENCE, Reference(reference = "reference"))
+                )
+            ),
+            identifier = listOf(
+                Identifier(
+                    system = CodeSystem.RONIN_TENANT.uri,
+                    type = CodeableConcepts.RONIN_TENANT,
+                    value = "tenantId"
+                )
+            ),
+            status = AppointmentStatus.CANCELLED,
+            appointmentType = CodeableConcept(text = "appointment type"),
+            cancelationReason = CodeableConcept(text = "cancel reason"),
+            serviceCategory = listOf(CodeableConcept(text = "service category")),
+            serviceType = listOf(CodeableConcept(text = "service type")),
+            specialty = listOf(CodeableConcept(text = "specialty")),
+            reasonCode = listOf(CodeableConcept(text = "reason code")),
+            // reasonReference = listOf(Reference(display = "reason reference")), // INT-480
+            priority = 1,
+            description = "appointment test",
+            start = Instant(value = "2017-01-01T00:00:00Z"),
+            end = Instant(value = "2017-01-01T01:00:00Z"),
+            minutesDuration = 15,
+            // slot = listOf(Reference(display = "slot")), // INT-480
+            created = DateTime(value = "2021-11-16"),
+            comment = "comment",
+            patientInstruction = "patient instruction",
+            participant = listOf(
+                Participant(
+                    actor = Reference(reference = "Patient/${idPrefix}12345"),
+                    status = ParticipationStatus.ACCEPTED
+                ),
+                Participant(
+                    actor = Reference(reference = "Practitioner/${idPrefix}12345"),
+                    status = ParticipationStatus.ACCEPTED
+                ),
+                Participant(
+                    actor = Reference(reference = "Practitioner/${idPrefix}rallyr"),
+                    status = ParticipationStatus.DECLINED
+                )
+            ),
+            requestedPeriod = listOf(Period(start = DateTime(value = "2021-11-15"), end = DateTime(value = "2021-11-17")))
+        )
+        val resourceList: List<FHIRResource> = listOf(
+            practitioner1,
+            practitioner2,
+            patient,
+            appointment
+        )
+        assertTrue(allRoninResourcesNull("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr", "${idPrefix}12345")))
+        assertTrue(allRoninResourcesNull("Patient", listOf("${idPrefix}12345")))
+        assertTrue(allRoninResourcesNull("Appointment", listOf("${idPrefix}12345")))
+
+        // Test
+        val published = publishService.publish(resourceList)
+        assertFalse(published)
+        assertTrue(allRoninResourcesNull("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr")))
+        assertTrue(allRoninResourcesNull("Patient", listOf("${idPrefix}12345")))
+        assertTrue(allRoninResourcesNull("Appointment", listOf("${idPrefix}12345")))
     }
 
     @Test
