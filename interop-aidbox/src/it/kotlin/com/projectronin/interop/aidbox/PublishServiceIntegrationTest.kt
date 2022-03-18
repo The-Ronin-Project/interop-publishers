@@ -584,10 +584,10 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             gender = AdministrativeGender.FEMALE,
             birthDate = Date("1975-07-05"),
-            // deceased = DynamicValue(type = DynamicValueType.BOOLEAN, value = false), // INT-480
+            deceased = DynamicValue(type = DynamicValueType.BOOLEAN, value = false),
             address = listOf(Address(country = "USA")),
             maritalStatus = CodeableConcept(text = "M"),
-            // multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2), // INT-480
+            multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2),
             photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
             contact = listOf(Contact(name = HumanName(text = "Jane Doe"))),
             communication = listOf(Communication(language = CodeableConcept(text = "English"))),
@@ -641,7 +641,12 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     status = ParticipationStatus.DECLINED
                 )
             ),
-            requestedPeriod = listOf(Period(start = DateTime(value = "2021-11-15"), end = DateTime(value = "2021-11-17")))
+            requestedPeriod = listOf(
+                Period(
+                    start = DateTime(value = "2021-11-15"),
+                    end = DateTime(value = "2021-11-17")
+                )
+            )
         )
         val fullAppointment: List<FHIRResource> = listOf(
             practitioner1,
@@ -1028,10 +1033,10 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             gender = AdministrativeGender.FEMALE,
             birthDate = Date("1975-07-05"),
-            // deceased = DynamicValue(type = DynamicValueType.BOOLEAN, value = false), // INT-480
+            deceased = DynamicValue(type = DynamicValueType.BOOLEAN, value = false),
             address = listOf(Address(country = "USA")),
             maritalStatus = CodeableConcept(text = "M"),
-            // multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2), // INT-480
+            multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2),
             photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
             contact = listOf(Contact(name = HumanName(text = "Jane Doe"))),
             communication = listOf(Communication(language = CodeableConcept(text = "English"))),
@@ -1085,7 +1090,12 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     status = ParticipationStatus.DECLINED
                 )
             ),
-            requestedPeriod = listOf(Period(start = DateTime(value = "2021-11-15"), end = DateTime(value = "2021-11-17")))
+            requestedPeriod = listOf(
+                Period(
+                    start = DateTime(value = "2021-11-15"),
+                    end = DateTime(value = "2021-11-17")
+                )
+            )
         )
         val unrelatedResourceInList: List<FHIRResource> = listOf(
             location1,
@@ -1307,10 +1317,10 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             gender = AdministrativeGender.FEMALE,
             birthDate = Date("1975-07-05"),
-            // deceased = DynamicValue(type = DynamicValueType.BOOLEAN, value = false), // INT-480
+            deceased = DynamicValue(type = DynamicValueType.BOOLEAN, value = false),
             address = listOf(Address(country = "USA")),
             maritalStatus = CodeableConcept(text = "M"),
-            // multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2), // INT-480
+            multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2),
             photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
             contact = listOf(Contact(name = HumanName(text = "Jane Doe"))),
             communication = listOf(Communication(language = CodeableConcept(text = "English"))),
@@ -1364,7 +1374,12 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     status = ParticipationStatus.DECLINED
                 )
             ),
-            requestedPeriod = listOf(Period(start = DateTime(value = "2021-11-15"), end = DateTime(value = "2021-11-17")))
+            requestedPeriod = listOf(
+                Period(
+                    start = DateTime(value = "2021-11-15"),
+                    end = DateTime(value = "2021-11-17")
+                )
+            )
         )
         val resourceList: List<FHIRResource> = listOf(
             practitioner1,
@@ -1372,7 +1387,12 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             patient,
             appointment
         )
-        assertTrue(allRoninResourcesNull("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr", "${idPrefix}12345")))
+        assertTrue(
+            allRoninResourcesNull(
+                "Practitioner",
+                listOf("${idPrefix}cmjones", "${idPrefix}rallyr", "${idPrefix}12345")
+            )
+        )
         assertTrue(allRoninResourcesNull("Patient", listOf("${idPrefix}12345")))
         assertTrue(allRoninResourcesNull("Appointment", listOf("${idPrefix}12345")))
 
