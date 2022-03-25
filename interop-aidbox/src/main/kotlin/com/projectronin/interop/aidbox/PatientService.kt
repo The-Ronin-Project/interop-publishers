@@ -13,10 +13,14 @@ import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import io.ktor.client.call.receive
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
 @Service
-class PatientService(private val aidboxClient: AidboxClient) {
+class PatientService(
+    private val aidboxClient: AidboxClient,
+    @Value("\${aidbox.batchSize:100}") private val batchSize: Int
+) {
     private val logger = KotlinLogging.logger { }
 
     /**
@@ -27,10 +31,37 @@ class PatientService(private val aidboxClient: AidboxClient) {
     fun <K> getPatientFHIRIds(tenantMnemonic: String, identifiers: Map<K, SystemValue>): Map<K, String> {
         logger.info { "Retrieving Patient FHIR IDs from Aidbox" }
 
+        // Split out the identifiers into batches.
+        val collectedPatients = identifiers.values.chunked(batchSize).flatMap { batch ->
+            queryForPatientFHIRIds(tenantMnemonic, batch).data?.patientList ?: emptyList()
+        }
+
+        val identifierToFhirIdMap = collectedPatients.flatMap {
+            it.identifiers.map { identifier -> identifier to it.id }
+        }.toMap()
+
+        return identifiers.mapNotNull {
+            val fhirId = identifierToFhirIdMap[Identifier(system = Uri(it.value.system), value = it.value.value)]
+
+            if (fhirId != null) {
+                it.key to fhirId
+            } else {
+                null
+            }
+        }.toMap()
+    }
+
+    private fun queryForPatientFHIRIds(
+        tenantMnemonic: String,
+        batch: List<SystemValue>
+    ): GraphQLResponse<LimitedPatient> {
         val query = javaClass.getResource("/graphql/AidboxPatientFHIRIDsQuery.graphql")!!.readText()
         val parameters = mapOf(
-            "tenant" to SystemValue(system = CodeSystem.RONIN_TENANT.uri.value, value = tenantMnemonic).queryString,
-            "identifiers" to identifiers.values.joinToString(separator = ",") { it.queryString }
+            "tenant" to SystemValue(
+                system = CodeSystem.RONIN_TENANT.uri.value,
+                value = tenantMnemonic
+            ).queryString,
+            "identifiers" to batch.joinToString(separator = ",") { it.queryString }
         )
 
         val response: GraphQLResponse<LimitedPatient> = runBlocking {
@@ -42,20 +73,7 @@ class PatientService(private val aidboxClient: AidboxClient) {
                 respondToGraphQLException(e)
             }
         }
-
-        val identifierToFhirIdMap = response.data?.patientList?.flatMap {
-            it.identifiers.map { identifier -> identifier to it.id }
-        }?.toMap() ?: mapOf()
-
-        return identifiers.mapNotNull {
-            val fhirId = identifierToFhirIdMap[Identifier(system = Uri(it.value.system), value = it.value.value)]
-
-            if (fhirId != null) {
-                it.key to fhirId
-            } else {
-                null
-            }
-        }.toMap()
+        return response
     }
 }
 

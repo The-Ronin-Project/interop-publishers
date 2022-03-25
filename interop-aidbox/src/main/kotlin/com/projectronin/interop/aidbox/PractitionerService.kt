@@ -13,10 +13,14 @@ import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import io.ktor.client.call.receive
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
 @Service
-class PractitionerService(private val aidboxClient: AidboxClient) {
+class PractitionerService(
+    private val aidboxClient: AidboxClient,
+    @Value("\${aidbox.batchSize:100}") private val batchSize: Int
+) {
     private val logger = KotlinLogging.logger { }
 
     /**
@@ -79,25 +83,13 @@ class PractitionerService(private val aidboxClient: AidboxClient) {
     fun <K> getPractitionerFHIRIds(tenantMnemonic: String, identifiers: Map<K, SystemValue>): Map<K, String> {
         logger.info { "Retrieving Practitioner FHIR IDs from Aidbox" }
 
-        val query = javaClass.getResource("/graphql/AidboxPractitionerFHIRIDsQuery.graphql")!!.readText()
-        val parameters = mapOf(
-            "tenant" to SystemValue(system = CodeSystem.RONIN_TENANT.uri.value, value = tenantMnemonic).queryString,
-            "identifiers" to identifiers.values.joinToString(separator = ",") { it.queryString }
-        )
-
-        val response: GraphQLResponse<LimitedPractitionersFHIR> = runBlocking {
-            try {
-                val httpResponse = aidboxClient.queryGraphQL(query, parameters)
-                httpResponse.receive()
-            } catch (e: Exception) {
-                logger.warn(e) { "Encountered exception when requesting Practitioner FHIR IDs from Aidbox" }
-                respondToGraphQLException(e)
-            }
+        val collectedPractitioners = identifiers.values.chunked(batchSize).flatMap { batch ->
+            queryPractitionerFHIRIds(tenantMnemonic, batch).data?.practitionerList ?: emptyList()
         }
 
-        val identifierToFhirIdMap = response.data?.practitionerList?.flatMap {
+        val identifierToFhirIdMap = collectedPractitioners.flatMap {
             it.identifiers.map { identifier -> identifier to it.id }
-        }?.toMap() ?: mapOf()
+        }.toMap()
 
         return identifiers.mapNotNull {
             val fhirId = identifierToFhirIdMap[Identifier(system = Uri(it.value.system), value = it.value.value)]
@@ -108,6 +100,30 @@ class PractitionerService(private val aidboxClient: AidboxClient) {
                 null
             }
         }.toMap()
+    }
+
+    private fun queryPractitionerFHIRIds(
+        tenantMnemonic: String,
+        batch: List<SystemValue>
+    ): GraphQLResponse<LimitedPractitionersFHIR> {
+        val query = javaClass.getResource("/graphql/AidboxPractitionerFHIRIDsQuery.graphql")!!.readText()
+        val parameters = mapOf(
+            "tenant" to SystemValue(
+                system = CodeSystem.RONIN_TENANT.uri.value,
+                value = tenantMnemonic
+            ).queryString,
+            "identifiers" to batch.joinToString(separator = ",") { it.queryString }
+        )
+        val response: GraphQLResponse<LimitedPractitionersFHIR> = runBlocking {
+            try {
+                val httpResponse = aidboxClient.queryGraphQL(query, parameters)
+                httpResponse.receive()
+            } catch (e: Exception) {
+                logger.warn(e) { "Encountered exception when requesting Practitioner FHIR IDs from Aidbox" }
+                respondToGraphQLException(e)
+            }
+        }
+        return response
     }
 
     /**

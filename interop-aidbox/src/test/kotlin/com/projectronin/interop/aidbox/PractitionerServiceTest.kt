@@ -85,7 +85,7 @@ class PractitionerServiceTest {
         )
     )
     private val aidboxClient = mockk<AidboxClient>()
-    private val practitionerService = PractitionerService(aidboxClient)
+    private val practitionerService = PractitionerService(aidboxClient, 2)
     private val query = javaClass.getResource("/graphql/AidboxLimitedPractitionerIDsQuery.graphql")!!.readText()
     private val practitionerListQuery = javaClass.getResource("/graphql/PractitionerListQuery.graphql")!!.readText()
 
@@ -646,5 +646,68 @@ class PractitionerServiceTest {
         val actual = practitionerService.getPractitionersByTenant(tenantMnemonic)
 
         assertEquals(mutableMapOf<String, List<Identifier>>(), actual)
+    }
+
+    @Test
+    fun `getFHIRIDs returns all batched practitioners`() {
+        val practitionerSystemValue3 = SystemValue(system = CodeSystem.NPI.uri.value, value = "01113")
+        val practitionerIdentifier3 = Identifier(system = CodeSystem.NPI.uri, value = "01113")
+
+        val mockPractitionerIdentifiers3 = LimitedPractitionerFHIRIdentifiers(
+            id = "roninPractitioner01Test",
+            identifiers = listOf(
+                tenantIdentifier,
+                practitionerIdentifier3
+            )
+        )
+
+        val response1 = GraphQLResponse(
+            data = LimitedPractitionersFHIR(listOf(mockPractitionerIdentifiers1, mockPractitionerIdentifiers2))
+        )
+        val mockHttpResponse1 = mockk<HttpResponse>()
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = queryFHIR,
+                parameters = mapOf(
+                    "tenant" to tenantQueryString,
+                    "identifiers" to listOf(
+                        practitionerSystemValue1,
+                        practitionerSystemValue2
+                    ).joinToString(separator = ",") {
+                        it.queryString
+                    }
+                )
+            )
+        } returns mockHttpResponse1
+        coEvery<GraphQLResponse<LimitedPractitionersFHIR>> { mockHttpResponse1.receive() } returns response1
+
+        val response2 = GraphQLResponse(
+            data = LimitedPractitionersFHIR(listOf(mockPractitionerIdentifiers3))
+        )
+        val mockHttpResponse2 = mockk<HttpResponse>()
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = queryFHIR,
+                parameters = mapOf(
+                    "tenant" to tenantQueryString,
+                    "identifiers" to listOf(
+                        practitionerSystemValue3
+                    ).joinToString(separator = ",") {
+                        it.queryString
+                    }
+                )
+            )
+        } returns mockHttpResponse2
+        coEvery<GraphQLResponse<LimitedPractitionersFHIR>> { mockHttpResponse2.receive() } returns response2
+
+        val actualMap = practitionerService.getPractitionerFHIRIds(
+            tenantMnemonic,
+            mapOf("1" to practitionerSystemValue1, "2" to practitionerSystemValue2, "3" to practitionerSystemValue3)
+        )
+
+        assertEquals(3, actualMap.size)
+        assertEquals(mockPractitionerIdentifiers1.id, actualMap["1"])
+        assertEquals(mockPractitionerIdentifiers2.id, actualMap["2"])
+        assertEquals(mockPractitionerIdentifiers3.id, actualMap["3"])
     }
 }

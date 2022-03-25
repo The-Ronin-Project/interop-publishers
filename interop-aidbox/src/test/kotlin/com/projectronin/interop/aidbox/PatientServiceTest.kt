@@ -21,7 +21,7 @@ import org.junit.jupiter.api.assertThrows
 
 class PatientServiceTest {
     private val aidboxClient = mockk<AidboxClient>()
-    private val patientService = PatientService(aidboxClient)
+    private val patientService = PatientService(aidboxClient, 2)
     private val query = javaClass.getResource("/graphql/AidboxPatientFHIRIDsQuery.graphql")!!.readText()
 
     private val tenantMnemonic = "mdaoc"
@@ -71,7 +71,8 @@ class PatientServiceTest {
         } returns mockHttpResponse
         coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse.receive() } returns response
 
-        val actualMap = patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
+        val actualMap =
+            patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
 
         assertEquals(2, actualMap.size)
         assertEquals(mockPatientIdentifiers1.id, actualMap["1"])
@@ -97,7 +98,8 @@ class PatientServiceTest {
         } returns mockHttpResponse
         coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse.receive() } returns response
 
-        val actualMap = patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
+        val actualMap =
+            patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
 
         assertEquals(1, actualMap.size)
         assertEquals(mockPatientIdentifiers1.id, actualMap["1"])
@@ -123,7 +125,8 @@ class PatientServiceTest {
         } returns mockHttpResponse
         coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse.receive() } returns response
 
-        val actualMap = patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
+        val actualMap =
+            patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
 
         assertEquals(0, actualMap.size)
     }
@@ -147,7 +150,8 @@ class PatientServiceTest {
         } returns mockHttpResponse
         coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse.receive() } returns response
 
-        val actualMap = patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
+        val actualMap =
+            patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
 
         assertEquals(0, actualMap.size)
     }
@@ -169,7 +173,8 @@ class PatientServiceTest {
             )
         } throws ResponseException(mockHttpResponse, "Unauthorized")
 
-        val actualMap = patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
+        val actualMap =
+            patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
 
         assertEquals(0, actualMap.size)
     }
@@ -278,5 +283,65 @@ class PatientServiceTest {
         val deserializedLimitedPatient = objectMapper.readValue<LimitedPatient>(actualJson)
 
         assertEquals(deserializedLimitedPatient.patientList.size, 2)
+    }
+
+    @Test
+    fun `getFHIRIDs returns all patients in batches`() {
+        val mrnSystemValue3 = SystemValue(system = CodeSystem.MRN.uri.value, value = "01113")
+        val mrnIdentifier3 = Identifier(system = CodeSystem.MRN.uri, value = "01113")
+
+        val mockPatientIdentifiers3 = LimitedPatientIdentifiers(
+            id = "roninPatient03Test",
+            identifiers = listOf(
+                tenantIdentifier,
+                mrnIdentifier3
+            )
+        )
+        val response1 = GraphQLResponse(
+            data = LimitedPatient(listOf(mockPatientIdentifiers1, mockPatientIdentifiers2))
+        )
+
+        val mockHttpResponse1 = mockk<HttpResponse>()
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = query,
+                parameters = mapOf(
+                    "tenant" to tenantQueryString,
+                    "identifiers" to listOf(mrnSystemValue1, mrnSystemValue2).joinToString(separator = ",") {
+                        it.queryString
+                    }
+                )
+            )
+        } returns mockHttpResponse1
+        coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse1.receive() } returns response1
+
+        val response2 = GraphQLResponse(
+            data = LimitedPatient(listOf(mockPatientIdentifiers3))
+        )
+
+        val mockHttpResponse2 = mockk<HttpResponse>()
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = query,
+                parameters = mapOf(
+                    "tenant" to tenantQueryString,
+                    "identifiers" to listOf(mrnSystemValue3).joinToString(separator = ",") {
+                        it.queryString
+                    }
+                )
+            )
+        } returns mockHttpResponse2
+        coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse2.receive() } returns response2
+
+        val actualMap =
+            patientService.getPatientFHIRIds(
+                tenantMnemonic,
+                mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2, "3" to mrnSystemValue3)
+            )
+
+        assertEquals(3, actualMap.size)
+        assertEquals(mockPatientIdentifiers1.id, actualMap["1"])
+        assertEquals(mockPatientIdentifiers2.id, actualMap["2"])
+        assertEquals(mockPatientIdentifiers3.id, actualMap["3"])
     }
 }
