@@ -23,7 +23,6 @@ import io.ktor.http.isSuccess
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.codec.binary.Base64
 import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.Network
 import org.testcontainers.utility.DockerImageName
 import java.nio.charset.Charset
 
@@ -39,7 +38,7 @@ import java.nio.charset.Charset
  */
 class AidboxContainer(
     private val databaseContainer: AidboxDatabaseContainer,
-    private val version: String = "2112", // "latest",
+    private val version: String = "latest",
     private val fhirVersion: String = "4.0.0",
     val aidboxClientId: String = "test-client",
     val aidboxClientSecret: String = "testclientsecret"
@@ -89,7 +88,7 @@ class AidboxContainer(
     }
 
     override fun configure() {
-        withNetwork(Network.SHARED)
+        withNetwork(databaseContainer.network)
         addExposedPort(internalPort)
 
         withEnv(
@@ -104,7 +103,8 @@ class AidboxContainer(
                 "PGPORT" to databaseContainer.port.toString(),
                 "PGUSER" to databaseContainer.user,
                 "PGPASSWORD" to databaseContainer.password,
-                "PGDATABASE" to databaseContainer.schema
+                "PGDATABASE" to databaseContainer.schema,
+                "box_features_validation_skip_reference" to "true"
             )
         )
     }

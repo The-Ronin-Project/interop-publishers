@@ -27,6 +27,7 @@ import com.projectronin.interop.fhir.r4.datatype.LocationPosition
 import com.projectronin.interop.fhir.r4.datatype.Narrative
 import com.projectronin.interop.fhir.r4.datatype.NotAvailable
 import com.projectronin.interop.fhir.r4.datatype.Participant
+import com.projectronin.interop.fhir.r4.datatype.PatientLink
 import com.projectronin.interop.fhir.r4.datatype.Period
 import com.projectronin.interop.fhir.r4.datatype.Reference
 import com.projectronin.interop.fhir.r4.datatype.primitive.Base64Binary
@@ -49,6 +50,7 @@ import com.projectronin.interop.fhir.r4.valueset.AppointmentStatus
 import com.projectronin.interop.fhir.r4.valueset.ContactPointSystem
 import com.projectronin.interop.fhir.r4.valueset.ContactPointUse
 import com.projectronin.interop.fhir.r4.valueset.DayOfWeek
+import com.projectronin.interop.fhir.r4.valueset.LinkType
 import com.projectronin.interop.fhir.r4.valueset.LocationMode
 import com.projectronin.interop.fhir.r4.valueset.LocationStatus
 import com.projectronin.interop.fhir.r4.valueset.NarrativeStatus
@@ -64,7 +66,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -591,9 +592,9 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
             contact = listOf(Contact(name = HumanName(text = "Jane Doe"))),
             communication = listOf(Communication(language = CodeableConcept(text = "English"))),
-            generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones"))
-            // managingOrganization = Reference(display = "organization"), // INT-480
-            // link = listOf(PatientLink(other = Reference(), type = LinkType.REPLACES)) // INT-480
+            generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones")),
+            managingOrganization = Reference(display = "organization"),
+            link = listOf(PatientLink(other = Reference(), type = LinkType.REPLACES))
         )
         val appointment = OncologyAppointment(
             id = Id("${idPrefix}12345"),
@@ -617,13 +618,13 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             serviceType = listOf(CodeableConcept(text = "service type")),
             specialty = listOf(CodeableConcept(text = "specialty")),
             reasonCode = listOf(CodeableConcept(text = "reason code")),
-            // reasonReference = listOf(Reference(display = "reason reference")), // INT-480
+            reasonReference = listOf(Reference(display = "reason reference")),
             priority = 1,
             description = "appointment test",
             start = Instant(value = "2017-01-01T00:00:00Z"),
             end = Instant(value = "2017-01-01T01:00:00Z"),
             minutesDuration = 15,
-            // slot = listOf(Reference(display = "slot")), // INT-480
+            slot = listOf(Reference(display = "slot")),
             created = DateTime(value = "2021-11-16"),
             comment = "comment",
             patientInstruction = "patient instruction",
@@ -1040,9 +1041,9 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
             contact = listOf(Contact(name = HumanName(text = "Jane Doe"))),
             communication = listOf(Communication(language = CodeableConcept(text = "English"))),
-            generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones"))
-            // managingOrganization = Reference(display = "organization"), // INT-480
-            // link = listOf(PatientLink(other = Reference(), type = LinkType.REPLACES)) // INT-480
+            generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones")),
+            managingOrganization = Reference(display = "organization"),
+            link = listOf(PatientLink(other = Reference(), type = LinkType.REPLACES))
         )
         val appointment = OncologyAppointment(
             id = Id("${idPrefix}12345"),
@@ -1066,13 +1067,13 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             serviceType = listOf(CodeableConcept(text = "service type")),
             specialty = listOf(CodeableConcept(text = "specialty")),
             reasonCode = listOf(CodeableConcept(text = "reason code")),
-            // reasonReference = listOf(Reference(display = "reason reference")), // INT-480
+            reasonReference = listOf(Reference(display = "reason reference")),
             priority = 1,
             description = "appointment test",
             start = Instant(value = "2017-01-01T00:00:00Z"),
             end = Instant(value = "2017-01-01T01:00:00Z"),
             minutesDuration = 15,
-            // slot = listOf(Reference(display = "slot")), // INT-480
+            slot = listOf(Reference(display = "slot")),
             created = DateTime(value = "2021-11-16"),
             comment = "comment",
             patientInstruction = "patient instruction",
@@ -1137,7 +1138,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     }
 
     @Test
-    fun `cannot publish list of PractitionerRole if even one reference in one PractitionerRole cannot be resolved`() {
+    fun `can publish list of PractitionerRole with reference in one PractitionerRole that cannot be resolved`() {
         // Before
         val idPrefix = "2PRNoRef400-"
         val practitioner1 = OncologyPractitioner(
@@ -1253,16 +1254,24 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             practitionerRole1,
             practitionerRole2
         )
+        assertTrue(allRoninResourcesNull("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr")))
+        assertTrue(allRoninResourcesNull("Location", listOf("${idPrefix}12345")))
         assertTrue(allRoninResourcesNull("PractitionerRole", listOf("${idPrefix}12347", "${idPrefix}12348")))
 
         // Test
         val published = publishService.publish(practitionerRoles)
-        assertFalse(published)
-        assertTrue(allRoninResourcesNull("PractitionerRole", listOf("${idPrefix}12347", "${idPrefix}12348")))
+        assertTrue(published)
+        assertTrue(allRoninResourcesExist("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr")))
+        assertTrue(allRoninResourcesExist("Location", listOf("${idPrefix}12345")))
+        assertTrue(allRoninResourcesExist("PractitionerRole", listOf("${idPrefix}12347", "${idPrefix}12348")))
+
+        deleteAllResources("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr"))
+        deleteAllResources("Location", listOf("${idPrefix}12345"))
+        deleteAllResources("PractitionerRole", listOf("${idPrefix}12347", "${idPrefix}12348"))
     }
 
     @Test
-    fun `cannot publish Appointment if even one reference cannot be resolved`() {
+    fun `can publish Appointment with reference that cannot be resolved`() {
         // Before
         val idPrefix = "1AptNoRef400-"
         val practitioner1 = OncologyPractitioner(
@@ -1324,9 +1333,9 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
             contact = listOf(Contact(name = HumanName(text = "Jane Doe"))),
             communication = listOf(Communication(language = CodeableConcept(text = "English"))),
-            generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones"))
-            // managingOrganization = Reference(display = "organization"), // INT-480
-            // link = listOf(PatientLink(other = Reference(), type = LinkType.REPLACES)) // INT-480
+            generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones")),
+            managingOrganization = Reference(display = "organization"),
+            link = listOf(PatientLink(other = Reference(), type = LinkType.REPLACES))
         )
         val appointment = OncologyAppointment(
             id = Id("${idPrefix}12345"),
@@ -1350,13 +1359,13 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             serviceType = listOf(CodeableConcept(text = "service type")),
             specialty = listOf(CodeableConcept(text = "specialty")),
             reasonCode = listOf(CodeableConcept(text = "reason code")),
-            // reasonReference = listOf(Reference(display = "reason reference")), // INT-480
+            reasonReference = listOf(Reference(display = "reason reference")),
             priority = 1,
             description = "appointment test",
             start = Instant(value = "2017-01-01T00:00:00Z"),
             end = Instant(value = "2017-01-01T01:00:00Z"),
             minutesDuration = 15,
-            // slot = listOf(Reference(display = "slot")), // INT-480
+            slot = listOf(Reference(display = "slot")),
             created = DateTime(value = "2021-11-16"),
             comment = "comment",
             patientInstruction = "patient instruction",
@@ -1398,10 +1407,14 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
 
         // Test
         val published = publishService.publish(resourceList)
-        assertFalse(published)
-        assertTrue(allRoninResourcesNull("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr")))
-        assertTrue(allRoninResourcesNull("Patient", listOf("${idPrefix}12345")))
-        assertTrue(allRoninResourcesNull("Appointment", listOf("${idPrefix}12345")))
+        assertTrue(published)
+        assertTrue(allRoninResourcesExist("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr")))
+        assertTrue(allRoninResourcesExist("Patient", listOf("${idPrefix}12345")))
+        assertTrue(allRoninResourcesExist("Appointment", listOf("${idPrefix}12345")))
+
+        deleteAllResources("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr"))
+        deleteAllResources("Patient", listOf("${idPrefix}12345"))
+        deleteAllResources("Appointment", listOf("${idPrefix}12345"))
     }
 
     @Test

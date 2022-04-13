@@ -58,6 +58,7 @@ class AidboxClient(
                 httpClient.post("$aidboxURLRest/fhir") {
                     headers {
                         append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
+                        append("aidbox-validation-skip", "reference")
                     }
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)

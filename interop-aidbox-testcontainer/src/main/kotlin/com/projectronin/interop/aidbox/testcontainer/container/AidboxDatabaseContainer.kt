@@ -29,8 +29,10 @@ class AidboxDatabaseContainer(version: String = "13.2", val port: Int = 5432) :
      */
     internal val schema = "devbox"
 
+    internal val network = Network.newNetwork()
+
     override fun configure() {
-        withNetwork(Network.SHARED)
+        withNetwork(network)
         withNetworkAliases(host)
 
         addExposedPorts(port)
