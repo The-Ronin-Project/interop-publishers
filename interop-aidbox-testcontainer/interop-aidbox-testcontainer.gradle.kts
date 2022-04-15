@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    api(platform("org.testcontainers:testcontainers-bom:1.16.0"))
+    api(platform(libs.testcontainers.bom))
     implementation("org.testcontainers:junit-jupiter")
-    implementation("commons-codec:commons-codec:1.15")
+    implementation(libs.commons.codec)
 }

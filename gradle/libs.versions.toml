@@ -1,0 +1,6 @@
+[libraries]
+commons-codec = "commons-codec:commons-codec:1.15"
+interop-common = "com.projectronin.interop:interop-common:1.0.0-SNAPSHOT"
+interop-commonJackson = "com.projectronin.interop:interop-common-jackson:1.0.0-SNAPSHOT"
+interop-fhir = "com.projectronin.interop.fhir:interop-fhir:1.0.0-SNAPSHOT"
+testcontainers-bom = "org.testcontainers:testcontainers-bom:1.17.1"
