@@ -11,6 +11,11 @@ on:
         description: 'Specific version to release as. Leave unset if discoverable'
         type: string
         required: false
+      skip_publish:
+        description: 'Skip publishing (use if changelog failed)'
+        type: boolean
+        required: false
+        default: false
 
 env:
   ronin.release: true
@@ -32,6 +37,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Execute build
+        if: ${{ github.event.inputs.skip_publish == 'false' }}
         run: ./gradlew build
 
       - name: Get version
@@ -47,6 +53,7 @@ jobs:
 
       - name: Axion Release
         id: release
+        if: ${{ github.event.inputs.skip_publish == 'false' }}
         run: |
           ./gradlew release \
              -Prelease.forceVersion=${{ steps.get-version.outputs.version }} \
@@ -73,6 +80,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Publish
+        if: ${{ github.event.inputs.skip_publish == 'false' }}
         run: ./gradlew publish
         env:
           NEXUS_USER: ${{ secrets.NEXUS_MAVEN_USER }}
@@ -80,7 +88,7 @@ jobs:
 
       - name: Generate Changelog
         id: changelog
-        uses: gandarez/changelog-action@v1.0.4
+        uses: gandarez/changelog-action@v1.2.0
 
       - name: Generate Release
         uses: ncipollo/release-action@v1
