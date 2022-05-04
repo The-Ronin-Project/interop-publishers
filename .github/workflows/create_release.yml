@@ -39,6 +39,9 @@ jobs:
       - name: Execute build
         if: ${{ github.event.inputs.skip_publish == 'false' }}
         run: ./gradlew build
+        env:
+          AIDBOX_LICENSE_ID: ${{ secrets.ORG_AIDBOX_LICENSE_ID }}
+          AIDBOX_LICENSE_KEY: ${{ secrets.ORG_AIDBOX_LICENSE_KEY }}
 
       - name: Get version
         id: get-version
