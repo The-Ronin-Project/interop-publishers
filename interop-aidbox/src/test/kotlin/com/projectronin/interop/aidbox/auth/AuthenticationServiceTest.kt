@@ -1,15 +1,17 @@
 package com.projectronin.interop.aidbox.auth
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.DeserializationFeature
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.toByteArray
-import io.ktor.client.features.ServerResponseException
-import io.ktor.client.features.json.JacksonSerializer
-import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.plugins.ServerResponseException
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
+import io.ktor.serialization.jackson.jackson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -85,8 +87,12 @@ class AuthenticationServiceTest {
                 )
             }
         ) {
-            install(JsonFeature) {
-                serializer = JacksonSerializer()
+            install(ContentNegotiation) {
+                jackson {
+                    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+                }
             }
+            expectSuccess = true
         }
 }

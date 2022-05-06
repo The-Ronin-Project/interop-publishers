@@ -2,12 +2,12 @@ package com.projectronin.interop.aidbox.testcontainer.extension
 
 import com.projectronin.interop.aidbox.testcontainer.AidboxData
 import com.projectronin.interop.aidbox.testcontainer.container.AidboxContainer
-import io.ktor.client.call.receive
+import io.ktor.client.call.body
 import io.ktor.client.request.accept
 import io.ktor.client.request.delete
 import io.ktor.client.request.headers
 import io.ktor.client.request.put
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.TextContent
@@ -189,20 +189,19 @@ class AidboxExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback,
     ) {
         val data = readFiles(files)
         runBlocking {
-            val response = aidboxContainer.ktorClient.put<HttpResponse>("${aidboxContainer.baseUrl()}/") {
+            val response = aidboxContainer.ktorClient.put("${aidboxContainer.baseUrl()}/") {
                 headers {
                     append(HttpHeaders.Authorization, "Bearer ${aidboxContainer.accessToken()}")
                 }
                 accept(ContentType.Application.Json)
-
-                body = TextContent(data, contentType = ContentType("text", "yaml"))
+                setBody(TextContent(data, contentType = ContentType("text", "yaml")))
             }
 
             if (!response.status.isSuccess()) {
-                throw IllegalStateException("Error while priming test data: ${response.receive<String>()}")
+                throw IllegalStateException("Error while priming test data: ${response.body<String>()}")
             }
 
-            val items = response.receive<List<UpsertedItem>>()
+            val items = response.body<List<UpsertedItem>>()
             items.forEach { resourceIds.computeIfAbsent(it.resourceType) { mutableSetOf() }.add(it.id) }
         }
     }
@@ -215,14 +214,14 @@ class AidboxExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback,
             val aidboxUrl = aidboxContainer.baseUrl()
             for ((resource, ids) in resourceIds) {
                 for (id in ids) {
-                    val response = aidboxContainer.ktorClient.delete<HttpResponse>("$aidboxUrl/$resource/$id") {
+                    val response = aidboxContainer.ktorClient.delete("$aidboxUrl/$resource/$id") {
                         headers {
                             append(HttpHeaders.Authorization, "Bearer ${aidboxContainer.accessToken()}")
                         }
                     }
 
                     if (!response.status.isSuccess()) {
-                        throw IllegalStateException("Error while purging test data: ${response.receive<String>()}")
+                        throw IllegalStateException("Error while purging test data: ${response.body<String>()}")
                     }
                 }
             }

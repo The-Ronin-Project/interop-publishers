@@ -8,8 +8,8 @@ import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
-import io.ktor.client.call.receive
-import io.ktor.client.features.ResponseException
+import io.ktor.client.call.body
+import io.ktor.client.plugins.ResponseException
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
@@ -69,7 +69,7 @@ class PatientServiceTest {
                 )
             )
         } returns mockHttpResponse
-        coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse.receive() } returns response
+        coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse.body() } returns response
 
         val actualMap =
             patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
@@ -96,7 +96,7 @@ class PatientServiceTest {
                 )
             )
         } returns mockHttpResponse
-        coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse.receive() } returns response
+        coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse.body() } returns response
 
         val actualMap =
             patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
@@ -123,7 +123,7 @@ class PatientServiceTest {
                 )
             )
         } returns mockHttpResponse
-        coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse.receive() } returns response
+        coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse.body() } returns response
 
         val actualMap =
             patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
@@ -148,7 +148,7 @@ class PatientServiceTest {
                 )
             )
         } returns mockHttpResponse
-        coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse.receive() } returns response
+        coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse.body() } returns response
 
         val actualMap =
             patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
@@ -160,7 +160,7 @@ class PatientServiceTest {
     fun `getFHIRIDs throws a ResponseException`() {
         val mockHttpResponse = mockk<HttpResponse>()
         every { mockHttpResponse.status } returns HttpStatusCode(401, "Unauthorized")
-        coEvery { mockHttpResponse.receive<String>() } returns "Unauthorized"
+        coEvery { mockHttpResponse.body<String>() } returns "Unauthorized"
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
@@ -313,7 +313,7 @@ class PatientServiceTest {
                 )
             )
         } returns mockHttpResponse1
-        coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse1.receive() } returns response1
+        coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse1.body() } returns response1
 
         val response2 = GraphQLResponse(
             data = LimitedPatient(listOf(mockPatientIdentifiers3))
@@ -331,7 +331,7 @@ class PatientServiceTest {
                 )
             )
         } returns mockHttpResponse2
-        coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse2.receive() } returns response2
+        coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse2.body() } returns response2
 
         val actualMap =
             patientService.getPatientFHIRIds(

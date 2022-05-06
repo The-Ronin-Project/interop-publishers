@@ -1,6 +1,11 @@
 [libraries]
 commons-codec = "commons-codec:commons-codec:1.15"
-interop-common = "com.projectronin.interop:interop-common:1.0.0"
+interop-common = "com.projectronin.interop:interop-common:2.0.0-SNAPSHOT"
 interop-commonJackson = "com.projectronin.interop:interop-common-jackson:1.0.0"
 interop-fhir = "com.projectronin.interop.fhir:interop-fhir:1.0.0"
 testcontainers-bom = "org.testcontainers:testcontainers-bom:1.17.1"
+ktor-client-cio = "io.ktor:ktor-client-cio:2.0.1"
+ktor-client-core = "io.ktor:ktor-client-core:2.0.1"
+ktor-client-content-negotiation = "io.ktor:ktor-client-content-negotiation:2.0.1"
+ktor-serialization-jackson = "io.ktor:ktor-serialization-jackson:2.0.1"
+ktor-client-mock = "io.ktor:ktor-client-mock:2.0.1"

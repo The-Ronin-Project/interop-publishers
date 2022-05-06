@@ -13,7 +13,6 @@ pluginManagement {
     plugins {
         id("com.projectronin.interop.gradle.base") version interopGradleVersion
         id("com.projectronin.interop.gradle.integration") version interopGradleVersion
-        id("com.projectronin.interop.gradle.ktor") version interopGradleVersion
         id("com.projectronin.interop.gradle.mockk") version interopGradleVersion
         id("com.projectronin.interop.gradle.publish") version interopGradleVersion
         id("com.projectronin.interop.gradle.spring") version interopGradleVersion

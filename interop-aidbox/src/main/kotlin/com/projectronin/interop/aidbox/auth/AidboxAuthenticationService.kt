@@ -2,8 +2,9 @@ package com.projectronin.interop.aidbox.auth
 
 import com.projectronin.interop.common.auth.Authentication
 import io.ktor.client.HttpClient
-import io.ktor.client.call.receive
+import io.ktor.client.call.body
 import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
@@ -35,9 +36,9 @@ class AidboxAuthenticationService(
                 logger.info { "Retrieving authorization from $authUrl" }
                 val httpResponse: HttpResponse = httpClient.post(authUrl) {
                     contentType(ContentType.Application.Json)
-                    body = aidboxCredentials
+                    setBody(aidboxCredentials)
                 }
-                httpResponse.receive<AidboxAuthentication>()
+                httpResponse.body<AidboxAuthentication>()
             } catch (e: Exception) {
                 logger.error(e) { "Authentication for $authUrl failed with exception" }
                 throw e

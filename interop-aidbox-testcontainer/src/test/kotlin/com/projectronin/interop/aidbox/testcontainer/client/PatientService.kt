@@ -3,8 +3,8 @@ package com.projectronin.interop.aidbox.testcontainer.client
 import com.projectronin.interop.aidbox.testcontainer.client.graphql.GraphQLError
 import com.projectronin.interop.aidbox.testcontainer.client.graphql.GraphQLResponse
 import com.projectronin.interop.aidbox.testcontainer.client.model.AidboxPatientList
-import io.ktor.client.call.receive
-import io.ktor.client.features.ResponseException
+import io.ktor.client.call.body
+import io.ktor.client.plugins.ResponseException
 import kotlinx.coroutines.runBlocking
 
 class PatientService(private val aidboxClient: AidboxClient) {
@@ -28,7 +28,7 @@ class PatientService(private val aidboxClient: AidboxClient) {
         val graphQLResponse = runBlocking {
             try {
                 val httpResponse = aidboxClient.query(patientQuery, aidboxAuthString, parameters)
-                httpResponse.receive<GraphQLResponse<AidboxPatientList>>()
+                httpResponse.body<GraphQLResponse<AidboxPatientList>>()
             } catch (e: Exception) {
                 respondToException<AidboxPatientList>(e)
             }
@@ -45,7 +45,7 @@ class PatientService(private val aidboxClient: AidboxClient) {
         }
 
         val graphQLError =
-            GraphQLError("Error communicating with Aidbox. Received status code ${httpResponse.status} with message \"${httpResponse.receive<String>()}\"")
+            GraphQLError("Error communicating with Aidbox. Received status code ${httpResponse.status} with message \"${httpResponse.body<String>()}\"")
         return GraphQLResponse(errors = listOf(graphQLError))
     }
 }

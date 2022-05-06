@@ -10,7 +10,7 @@ import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
-import io.ktor.client.call.receive
+import io.ktor.client.call.body
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
@@ -34,7 +34,7 @@ class PractitionerService(
         val response: GraphQLResponse<LimitedPractitioner> = runBlocking {
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
-                httpResponse.receive()
+                httpResponse.body()
             } catch (e: Exception) {
                 logger.warn(e) {
                     "Encountered exception when requesting Practitioner Identifiers from Aidbox using FHIR ID"
@@ -117,7 +117,7 @@ class PractitionerService(
         val response: GraphQLResponse<LimitedPractitionersFHIR> = runBlocking {
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
-                httpResponse.receive()
+                httpResponse.body()
             } catch (e: Exception) {
                 logger.warn(e) { "Encountered exception when requesting Practitioner FHIR IDs from Aidbox" }
                 respondToGraphQLException(e)
@@ -138,7 +138,7 @@ class PractitionerService(
         val response: GraphQLResponse<PractitionerList> = runBlocking {
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
-                httpResponse.receive()
+                httpResponse.body()
             } catch (e: Exception) {
                 logger.error(e) {
                     "Exception occurred while retrieving Practitioners for $tenantMnemonic"

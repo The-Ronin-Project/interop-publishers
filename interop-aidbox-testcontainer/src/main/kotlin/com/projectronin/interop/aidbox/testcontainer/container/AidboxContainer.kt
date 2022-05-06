@@ -6,20 +6,20 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.github.dockerjava.api.command.InspectContainerResponse
 import io.ktor.client.HttpClient
-import io.ktor.client.call.receive
+import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.features.json.JacksonSerializer
-import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.accept
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.put
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.TextContent
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import io.ktor.serialization.jackson.jackson
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.codec.binary.Base64
 import org.testcontainers.containers.GenericContainer
@@ -57,12 +57,13 @@ class AidboxContainer(
      * Ktor Client used by the AidboxContainer. It is also available for use by any consumers of the container.
      */
     val ktorClient = HttpClient(CIO) {
-        install(JsonFeature) {
-            serializer = JacksonSerializer {
+        install(ContentNegotiation) {
+            jackson {
                 disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
             }
         }
+        expectSuccess = true
     }
 
     /**
@@ -133,46 +134,48 @@ class AidboxContainer(
         val rootAuthString = getBasicAuthString(rootClientId, rootClientSecret)
 
         val clientCreateResponse =
-            ktorClient.put<HttpResponse>("http://localhost:${port()}/Client/$aidboxClientId") {
+            ktorClient.put("http://localhost:${port()}/Client/$aidboxClientId") {
                 headers {
                     append(HttpHeaders.Authorization, "Basic $rootAuthString")
                 }
                 accept(ContentType.Application.Json)
-
-                body = TextContent(
-                    """
-                    |secret: $aidboxClientSecret
-                    |grant_types:
-                    |  - client_credentials
-                    """.trimMargin(),
-                    contentType = ContentType("text", "yaml")
+                setBody(
+                    TextContent(
+                        """
+                        |secret: $aidboxClientSecret
+                        |grant_types:
+                        |  - client_credentials
+                        """.trimMargin(),
+                        contentType = ContentType("text", "yaml")
+                    )
                 )
             }
 
         if (!clientCreateResponse.status.isSuccess()) {
-            throw IllegalStateException("Error while creating test client for Aidbox: ${clientCreateResponse.receive<String>()}")
+            throw IllegalStateException("Error while creating test client for Aidbox: ${clientCreateResponse.body<String>()}")
         }
 
         val accessPolicyResponse =
-            ktorClient.put<HttpResponse>("http://localhost:${port()}/AccessPolicy/$aidboxClientId") {
+            ktorClient.put("http://localhost:${port()}/AccessPolicy/$aidboxClientId") {
                 headers {
                     append(HttpHeaders.Authorization, "Basic $rootAuthString")
                 }
                 accept(ContentType.Application.Json)
-
-                body = TextContent(
-                    """
-                    |engine: allow
-                    |link:
-                    |  - id: $aidboxClientId
-                    |    resourceType: Client
-                    """.trimMargin(),
-                    contentType = ContentType("text", "yaml")
+                setBody(
+                    TextContent(
+                        """
+                        |engine: allow
+                        |link:
+                        |  - id: $aidboxClientId
+                        |    resourceType: Client
+                        """.trimMargin(),
+                        contentType = ContentType("text", "yaml")
+                    )
                 )
             }
 
         if (!accessPolicyResponse.status.isSuccess()) {
-            throw IllegalStateException("Error while creating access policy for Aidbox test client: ${clientCreateResponse.receive<String>()}")
+            throw IllegalStateException("Error while creating access policy for Aidbox test client: ${clientCreateResponse.body<String>()}")
         }
     }
 
@@ -181,21 +184,20 @@ class AidboxContainer(
      */
     private suspend fun getAuthToken(): AuthToken {
         val tokenResponse =
-            ktorClient.post<HttpResponse>("http://localhost:${port()}/auth/token") {
+            ktorClient.post("http://localhost:${port()}/auth/token") {
                 headers {
                     append(HttpHeaders.Authorization, "Basic ${getBasicAuthString(aidboxClientId, aidboxClientSecret)}")
                 }
                 contentType(ContentType.Application.FormUrlEncoded)
                 accept(ContentType.Application.Json)
-
-                body = "grant_type=client_credentials"
+                setBody("grant_type=client_credentials")
             }
 
         if (!tokenResponse.status.isSuccess()) {
-            throw IllegalStateException("Error retrieving auth token: ${tokenResponse.receive<String>()}")
+            throw IllegalStateException("Error retrieving auth token: ${tokenResponse.body<String>()}")
         }
 
-        return tokenResponse.receive()
+        return tokenResponse.body()
     }
 
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)

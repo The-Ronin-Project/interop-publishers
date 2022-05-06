@@ -10,7 +10,7 @@ import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
-import io.ktor.client.call.receive
+import io.ktor.client.call.body
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
@@ -67,7 +67,7 @@ class PatientService(
         val response: GraphQLResponse<LimitedPatient> = runBlocking {
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
-                httpResponse.receive()
+                httpResponse.body()
             } catch (e: Exception) {
                 logger.warn(e) { "Encountered exception when requesting Patient FHIR IDs from Aidbox" }
                 respondToGraphQLException(e)

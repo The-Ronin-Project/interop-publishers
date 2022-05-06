@@ -5,12 +5,13 @@ import com.projectronin.interop.aidbox.model.GraphQLPostRequest
 import com.projectronin.interop.aidbox.utils.makeBundleForBatchUpsert
 import com.projectronin.interop.fhir.FHIRResource
 import io.ktor.client.HttpClient
-import io.ktor.client.features.ClientRequestException
-import io.ktor.client.features.RedirectResponseException
-import io.ktor.client.features.ServerResponseException
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.RedirectResponseException
+import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.accept
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -62,7 +63,7 @@ class AidboxClient(
                     }
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
-                    body = bundle
+                    setBody(bundle)
                 }
             } catch (e: Exception) {
                 logger.error(e) { "Exception during Aidbox batch upsert" }
@@ -90,8 +91,7 @@ class AidboxClient(
             }
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
-
-            body = GraphQLPostRequest(query = query, variables = parameters.toSortedMap())
+            setBody(GraphQLPostRequest(query = query, variables = parameters.toSortedMap()))
         }
 
         logger.debug { "Aidbox query returned ${response.status}" }

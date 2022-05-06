@@ -1,9 +1,9 @@
 package com.projectronin.interop.aidbox.utils
 
-import io.ktor.client.call.receive
-import io.ktor.client.features.ClientRequestException
-import io.ktor.client.features.RedirectResponseException
-import io.ktor.client.features.ServerResponseException
+import io.ktor.client.call.body
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.RedirectResponseException
+import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
@@ -19,9 +19,10 @@ class AidboxUtilsTest {
     @Test
     fun `respondToException handles RedirectResponseException`() {
         val httpResponse = mockk<HttpResponse>()
+        every { httpResponse.call.request.method.value } returns "Method"
         every { httpResponse.call.request.url } returns Url("http://localhost")
         every { httpResponse.status } returns HttpStatusCode.MovedPermanently
-        coEvery { httpResponse.receive<String>() } returns "Moved to http://localhost:9000"
+        coEvery { httpResponse.body<String>() } returns "Moved to http://localhost:9000"
 
         val exception = RedirectResponseException(httpResponse, "Error")
         val response = runBlocking {
@@ -34,9 +35,10 @@ class AidboxUtilsTest {
     @Test
     fun `respondToException handles ClientRequestException`() {
         val httpResponse = mockk<HttpResponse>()
+        every { httpResponse.call.request.method.value } returns "Method"
         every { httpResponse.call.request.url } returns Url("http://localhost")
         every { httpResponse.status } returns HttpStatusCode.Unauthorized
-        coEvery { httpResponse.receive<String>() } returns "Unauthorized"
+        coEvery { httpResponse.body<String>() } returns "Unauthorized"
 
         val exception = ClientRequestException(httpResponse, "Error")
         val response = runBlocking {
@@ -49,9 +51,10 @@ class AidboxUtilsTest {
     @Test
     fun `respondToException handles ServerResponseException`() {
         val httpResponse = mockk<HttpResponse>()
+        every { httpResponse.call.request.method.value } returns "Method"
         every { httpResponse.call.request.url } returns Url("http://localhost")
         every { httpResponse.status } returns HttpStatusCode.InternalServerError
-        coEvery { httpResponse.receive<String>() } returns "Server Error"
+        coEvery { httpResponse.body<String>() } returns "Server Error"
 
         val exception = ServerResponseException(httpResponse, "Error")
         val response = runBlocking {

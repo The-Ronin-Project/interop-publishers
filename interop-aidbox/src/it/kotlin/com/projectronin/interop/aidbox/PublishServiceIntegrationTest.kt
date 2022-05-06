@@ -55,12 +55,11 @@ import com.projectronin.interop.fhir.r4.valueset.LocationMode
 import com.projectronin.interop.fhir.r4.valueset.LocationStatus
 import com.projectronin.interop.fhir.r4.valueset.NarrativeStatus
 import com.projectronin.interop.fhir.r4.valueset.ParticipationStatus
-import io.ktor.client.call.receive
-import io.ktor.client.features.ClientRequestException
+import io.ktor.client.call.body
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
@@ -1428,7 +1427,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         return runBlocking {
             val aidboxUrl = aidbox.baseUrl()
             val response = try {
-                aidbox.ktorClient.get<HttpResponse>("$aidboxUrl/$resourceType/$id") {
+                aidbox.ktorClient.get("$aidboxUrl/$resourceType/$id") {
                     headers {
                         append(HttpHeaders.Authorization, "Bearer ${aidbox.accessToken()}")
                     }
@@ -1438,7 +1437,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             }
 
             if (response.status.isSuccess()) {
-                val objectNode = response.receive<ObjectNode>()
+                val objectNode = response.body<ObjectNode>()
                 // Remove meta since Aidbox sets it.
                 objectNode.remove("meta")
 
@@ -1446,7 +1445,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             } else if (response.status == HttpStatusCode.NotFound) {
                 null
             } else {
-                throw IllegalStateException("Error while purging test data: ${response.receive<String>()}")
+                throw IllegalStateException("Error while purging test data: ${response.body<String>()}")
             }
         }
     }
@@ -1455,7 +1454,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         return runBlocking {
             val aidboxUrl = aidbox.baseUrl()
             val response = try {
-                aidbox.ktorClient.get<HttpResponse>("$aidboxUrl/$resourceType/$id") {
+                aidbox.ktorClient.get("$aidboxUrl/$resourceType/$id") {
                     headers {
                         append(HttpHeaders.Authorization, "Bearer ${aidbox.accessToken()}")
                     }
@@ -1465,7 +1464,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             }
 
             if (response.status.isSuccess()) {
-                val objectNode = response.receive<ObjectNode>()
+                val objectNode = response.body<ObjectNode>()
                 // Remove meta since Aidbox sets it.
                 objectNode.remove("meta")
 
@@ -1480,7 +1479,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         return runBlocking {
             val aidboxUrl = aidbox.baseUrl()
             val response = try {
-                aidbox.ktorClient.get<HttpResponse>("$aidboxUrl/$resourceType/$id") {
+                aidbox.ktorClient.get("$aidboxUrl/$resourceType/$id") {
                     headers {
                         append(HttpHeaders.Authorization, "Bearer ${aidbox.accessToken()}")
                     }
@@ -1490,7 +1489,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             }
 
             if (response.status.isSuccess()) {
-                val objectNode = response.receive<ObjectNode>()
+                val objectNode = response.body<ObjectNode>()
                 // Remove meta since Aidbox sets it.
                 objectNode.remove("meta")
 
@@ -1505,7 +1504,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         return runBlocking {
             val aidboxUrl = aidbox.baseUrl()
             try {
-                aidbox.ktorClient.delete<HttpResponse>("$aidboxUrl/$resourceType/$id") {
+                aidbox.ktorClient.delete("$aidboxUrl/$resourceType/$id") {
                     headers {
                         append(HttpHeaders.Authorization, "Bearer ${aidbox.accessToken()}")
                     }
