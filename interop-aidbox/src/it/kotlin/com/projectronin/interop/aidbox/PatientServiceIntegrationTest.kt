@@ -74,4 +74,10 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
         val fhirIds = patientService.getPatientFHIRIds("newtenant", identifiers)
         assertTrue(fhirIds.isEmpty())
     }
+
+    @Test
+    fun `return and deserialize full patient`() {
+        val patient = patientService.getOncologyPatient("mdaoc-12345678901")
+        assertEquals(patient.id?.value, "mdaoc-12345678901")
+    }
 }

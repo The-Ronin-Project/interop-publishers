@@ -10,6 +10,7 @@ import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
+import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPractitioner
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.statement.HttpResponse
@@ -709,5 +710,15 @@ class PractitionerServiceTest {
         assertEquals(mockPractitionerIdentifiers1.id, actualMap["1"])
         assertEquals(mockPractitionerIdentifiers2.id, actualMap["2"])
         assertEquals(mockPractitionerIdentifiers3.id, actualMap["3"])
+    }
+
+    @Test
+    fun `get full practitioner test`() {
+        val httpMock = mockk<HttpResponse>()
+        val practitionerMock = mockk<OncologyPractitioner>()
+        coEvery { httpMock.body<OncologyPractitioner>() } returns practitionerMock
+        coEvery { aidboxClient.getResource("Practitioner", "123") } returns httpMock
+        val actual = practitionerService.getOncologyPractitioner("123")
+        assertEquals(practitionerMock, actual)
     }
 }

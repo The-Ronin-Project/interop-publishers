@@ -163,6 +163,12 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
         )
     }
 
+    @Test
+    fun `return and deserialize full practitioner`() {
+        val practitioner = practitionerService.getOncologyPractitioner("mdaoc-ef9TegF2nfECi-0Skirbvpg3")
+        assertEquals(practitioner.id?.value, "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
+    }
+
     private fun createIdentifier(system: String, value: String, typeText: String) =
         Identifier(type = CodeableConcept(text = typeText), system = Uri(system), value = value)
 }

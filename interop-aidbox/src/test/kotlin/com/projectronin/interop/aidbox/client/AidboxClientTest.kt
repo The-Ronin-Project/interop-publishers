@@ -242,6 +242,15 @@ class AidboxClientTest {
     }
 
     @Test
+    fun `resource retrieve test`() {
+        val aidboxClient = createClient("", "$urlRest/fhir/Patient/123")
+        val actual: HttpResponse = runBlocking {
+            aidboxClient.getResource("Patient", "123")
+        }
+        assertEquals(actual.status, HttpStatusCode.OK)
+    }
+
+    @Test
     fun `aidbox batch upsert of 2 Practitioner (RoninResource), response 200`() {
         val expectedResponseStatus = HttpStatusCode.OK
         val aidboxClient = createClient(expectedUrl = urlBatchUpsert, responseStatus = expectedResponseStatus)

@@ -9,6 +9,7 @@ import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.RedirectResponseException
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.accept
+import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -96,6 +97,24 @@ class AidboxClient(
 
         logger.debug { "Aidbox query returned ${response.status}" }
 
+        return response
+    }
+
+    /**
+     * Fetches a full FHIR resource from Aidbox based on the Fhir ID.
+     * @param resourceType [String] the type of FHIR resource, i.e. "Patient" (case sensitive)
+     * @param resourceFHIRID [String] the FHIR ID of the resource ("id" json element)
+     * @return [HttpResponse] containing the raw data from the server. Use HttpResponse.recieve<T>() to deserialize.
+     */
+    suspend fun getResource(resourceType: String, resourceFHIRID: String): HttpResponse {
+        val authentication = authenticationBroker.getAuthentication()
+        val response: HttpResponse = httpClient.get("$aidboxURLRest/fhir/$resourceType/$resourceFHIRID") {
+            headers {
+                append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
+            }
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)
+        }
         return response
     }
 }

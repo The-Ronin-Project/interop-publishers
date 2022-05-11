@@ -8,6 +8,7 @@ import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
+import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPatient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.statement.HttpResponse
@@ -343,5 +344,15 @@ class PatientServiceTest {
         assertEquals(mockPatientIdentifiers1.id, actualMap["1"])
         assertEquals(mockPatientIdentifiers2.id, actualMap["2"])
         assertEquals(mockPatientIdentifiers3.id, actualMap["3"])
+    }
+
+    @Test
+    fun `get full patient test`() {
+        val httpMock = mockk<HttpResponse>()
+        val patientMock = mockk<OncologyPatient>()
+        coEvery { httpMock.body<OncologyPatient>() } returns patientMock
+        coEvery { aidboxClient.getResource("Patient", "123") } returns httpMock
+        val actual = patientService.getOncologyPatient("123")
+        assertEquals(patientMock, actual)
     }
 }

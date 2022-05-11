@@ -10,6 +10,7 @@ import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
+import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPatient
 import io.ktor.client.call.body
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -74,6 +75,18 @@ class PatientService(
             }
         }
         return response
+    }
+
+    /**
+     * Fetches an OncologyPatient object from Aidbox based on the Patient's FHIR ID.
+     * @param patientFHIRID [String] the patient's FHIR ID.
+     * @return [OncologyPatient]
+     */
+    fun getOncologyPatient(patientFHIRID: String): OncologyPatient {
+        return runBlocking {
+            val httpResponse = aidboxClient.getResource("Patient", patientFHIRID)
+            httpResponse.body()
+        }
     }
 }
 
