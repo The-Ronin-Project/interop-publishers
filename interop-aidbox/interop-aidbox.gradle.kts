@@ -1,6 +1,4 @@
 plugins {
-    id("com.projectronin.interop.gradle.jackson")
-    id("com.projectronin.interop.gradle.mockk")
     id("com.projectronin.interop.gradle.spring")
     id("com.projectronin.interop.gradle.integration")
 }
@@ -15,6 +13,7 @@ dependencies {
 
     testImplementation(libs.interop.commonJackson)
     testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.mockk)
 
     itImplementation(project(":interop-aidbox-testcontainer"))
     itImplementation("org.testcontainers:junit-jupiter")
