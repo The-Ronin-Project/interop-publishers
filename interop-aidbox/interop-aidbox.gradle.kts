@@ -18,4 +18,5 @@ dependencies {
     itImplementation(project(":interop-aidbox-testcontainer"))
     itImplementation("org.testcontainers:junit-jupiter")
     itImplementation("org.springframework:spring-test")
+    itImplementation(libs.interop.commonHttp)
 }
