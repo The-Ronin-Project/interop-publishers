@@ -12,10 +12,13 @@ import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPatient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -161,7 +164,9 @@ class PatientServiceTest {
     fun `getFHIRIDs throws a ResponseException`() {
         val mockHttpResponse = mockk<HttpResponse>()
         every { mockHttpResponse.status } returns HttpStatusCode(401, "Unauthorized")
-        coEvery { mockHttpResponse.body<String>() } returns "Unauthorized"
+
+        mockkStatic("io.ktor.client.statement.HttpResponseKt")
+        coEvery { mockHttpResponse.bodyAsText() } returns "Unauthorized"
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
@@ -178,6 +183,8 @@ class PatientServiceTest {
             patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
 
         assertEquals(0, actualMap.size)
+
+        unmockkStatic("io.ktor.client.statement.HttpResponseKt")
     }
 
     @Test

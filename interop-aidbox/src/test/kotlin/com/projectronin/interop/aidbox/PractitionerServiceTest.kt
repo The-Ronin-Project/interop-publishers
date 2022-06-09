@@ -14,11 +14,16 @@ import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPractitioner
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -120,6 +125,16 @@ class PractitionerServiceTest {
         )
     )
 
+    @BeforeEach
+    fun setup() {
+        mockkStatic("io.ktor.client.statement.HttpResponseKt")
+    }
+
+    @AfterEach
+    fun tearDown() {
+        unmockkStatic("io.ktor.client.statement.HttpResponseKt")
+    }
+
     @Test
     fun `getPractitionerIdentifiers - happy`() {
         val response = GraphQLResponse(data = mockPractitioner1)
@@ -182,7 +197,7 @@ class PractitionerServiceTest {
     fun `getPractitionerIdentifiers - response exception`() {
         val mockHttpResponse = mockk<HttpResponse>()
         every { mockHttpResponse.status } returns HttpStatusCode(401, "Unauthorized")
-        coEvery { mockHttpResponse.body<String>() } returns "Unauthorized"
+        coEvery { mockHttpResponse.bodyAsText() } returns "Unauthorized"
         val fhirID = "roninMDAPractitioner01Test"
         coEvery {
             aidboxClient.queryGraphQL(
@@ -201,7 +216,7 @@ class PractitionerServiceTest {
     fun `getPractitionerIdentifiers - other exception`() {
         val mockHttpResponse = mockk<HttpResponse>()
         every { mockHttpResponse.status } returns HttpStatusCode(401, "Unauthorized")
-        coEvery { mockHttpResponse.body<String>() } returns "Unauthorized"
+        coEvery { mockHttpResponse.bodyAsText() } returns "Unauthorized"
         val fhirID = "roninMDAPractitioner01Test"
         coEvery { aidboxClient.queryGraphQL(query = query, parameters = mapOf("id" to fhirID)) } throws Exception()
 
@@ -408,7 +423,7 @@ class PractitionerServiceTest {
     fun `getFHIRIDs throws a ResponseException`() {
         val mockHttpResponse = mockk<HttpResponse>()
         every { mockHttpResponse.status } returns HttpStatusCode(401, "Unauthorized")
-        coEvery { mockHttpResponse.body<String>() } returns "Unauthorized"
+        coEvery { mockHttpResponse.bodyAsText() } returns "Unauthorized"
         coEvery {
             aidboxClient.queryGraphQL(
                 query = queryFHIR,
@@ -617,7 +632,7 @@ class PractitionerServiceTest {
     fun `getPractitionersByTenant - exception`() {
         val mockHttpResponse = mockk<HttpResponse>()
         every { mockHttpResponse.status } returns HttpStatusCode(401, "Unauthorized")
-        coEvery { mockHttpResponse.body<String>() } returns "Unauthorized"
+        coEvery { mockHttpResponse.bodyAsText() } returns "Unauthorized"
 
         val tenantMnemonic = "tenant-id"
         coEvery {
@@ -635,7 +650,7 @@ class PractitionerServiceTest {
     fun `getPractitionersByTenant - response exception`() {
         val mockHttpResponse = mockk<HttpResponse>()
         every { mockHttpResponse.status } returns HttpStatusCode(401, "Unauthorized")
-        coEvery { mockHttpResponse.body<String>() } returns "Unauthorized"
+        coEvery { mockHttpResponse.bodyAsText() } returns "Unauthorized"
         val tenantMnemonic = "tenant-id"
         coEvery {
             aidboxClient.queryGraphQL(

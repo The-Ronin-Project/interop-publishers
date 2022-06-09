@@ -9,9 +9,9 @@ import com.projectronin.interop.fhir.r4.datatype.BundleRequest
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.valueset.BundleType
 import com.projectronin.interop.fhir.r4.valueset.HttpVerb
-import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import mu.KotlinLogging
 
 /**
@@ -42,7 +42,7 @@ suspend fun <T> respondToGraphQLException(exception: Exception): GraphQLResponse
     }
 
     val graphQLError =
-        GraphQLError("Error communicating with Aidbox. Received status code ${httpResponse.status} with message \"${httpResponse.body<String>()}\"")
+        GraphQLError("Error communicating with Aidbox. Received status code ${httpResponse.status} with message \"${httpResponse.bodyAsText()}\"")
     return GraphQLResponse(errors = listOf(graphQLError))
 }
 

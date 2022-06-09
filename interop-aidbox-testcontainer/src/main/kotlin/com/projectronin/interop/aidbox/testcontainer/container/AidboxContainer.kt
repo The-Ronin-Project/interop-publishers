@@ -14,6 +14,7 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.TextContent
@@ -152,7 +153,7 @@ class AidboxContainer(
             }
 
         if (!clientCreateResponse.status.isSuccess()) {
-            throw IllegalStateException("Error while creating test client for Aidbox: ${clientCreateResponse.body<String>()}")
+            throw IllegalStateException("Error while creating test client for Aidbox: ${clientCreateResponse.bodyAsText()}")
         }
 
         val accessPolicyResponse =
@@ -175,7 +176,7 @@ class AidboxContainer(
             }
 
         if (!accessPolicyResponse.status.isSuccess()) {
-            throw IllegalStateException("Error while creating access policy for Aidbox test client: ${clientCreateResponse.body<String>()}")
+            throw IllegalStateException("Error while creating access policy for Aidbox test client: ${clientCreateResponse.bodyAsText()}")
         }
     }
 
@@ -194,7 +195,7 @@ class AidboxContainer(
             }
 
         if (!tokenResponse.status.isSuccess()) {
-            throw IllegalStateException("Error retrieving auth token: ${tokenResponse.body<String>()}")
+            throw IllegalStateException("Error retrieving auth token: ${tokenResponse.bodyAsText()}")
         }
 
         return tokenResponse.body()

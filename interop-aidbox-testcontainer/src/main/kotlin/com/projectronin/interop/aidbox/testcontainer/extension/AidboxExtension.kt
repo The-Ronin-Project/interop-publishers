@@ -8,6 +8,7 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.headers
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.TextContent
@@ -198,7 +199,7 @@ class AidboxExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback,
             }
 
             if (!response.status.isSuccess()) {
-                throw IllegalStateException("Error while priming test data: ${response.body<String>()}")
+                throw IllegalStateException("Error while priming test data: ${response.bodyAsText()}")
             }
 
             val items = response.body<List<UpsertedItem>>()
@@ -221,7 +222,7 @@ class AidboxExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback,
                     }
 
                     if (!response.status.isSuccess()) {
-                        throw IllegalStateException("Error while purging test data: ${response.body<String>()}")
+                        throw IllegalStateException("Error while purging test data: ${response.bodyAsText()}")
                     }
                 }
             }

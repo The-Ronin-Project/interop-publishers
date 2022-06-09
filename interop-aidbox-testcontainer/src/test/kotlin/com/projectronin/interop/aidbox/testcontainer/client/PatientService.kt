@@ -5,6 +5,7 @@ import com.projectronin.interop.aidbox.testcontainer.client.graphql.GraphQLRespo
 import com.projectronin.interop.aidbox.testcontainer.client.model.AidboxPatientList
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
 
 class PatientService(private val aidboxClient: AidboxClient) {
@@ -45,7 +46,7 @@ class PatientService(private val aidboxClient: AidboxClient) {
         }
 
         val graphQLError =
-            GraphQLError("Error communicating with Aidbox. Received status code ${httpResponse.status} with message \"${httpResponse.body<String>()}\"")
+            GraphQLError("Error communicating with Aidbox. Received status code ${httpResponse.status} with message \"${httpResponse.bodyAsText()}\"")
         return GraphQLResponse(errors = listOf(graphQLError))
     }
 }

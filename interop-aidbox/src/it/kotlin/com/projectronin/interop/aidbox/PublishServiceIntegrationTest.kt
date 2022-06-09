@@ -60,6 +60,7 @@ import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
@@ -1445,7 +1446,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             } else if (response.status == HttpStatusCode.NotFound) {
                 null
             } else {
-                throw IllegalStateException("Error while purging test data: ${response.body<String>()}")
+                throw IllegalStateException("Error while purging test data: ${response.bodyAsText()}")
             }
         }
     }
