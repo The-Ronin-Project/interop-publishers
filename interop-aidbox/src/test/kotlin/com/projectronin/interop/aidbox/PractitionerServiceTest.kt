@@ -2,6 +2,7 @@ package com.projectronin.interop.aidbox
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.projectronin.interop.aidbox.client.AidboxClient
+import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
@@ -29,31 +30,35 @@ import org.junit.jupiter.api.assertThrows
 
 class PractitionerServiceTest {
     private val mockPractitioner1 = LimitedPractitioner(
-        practitioner = LimitedPractitionerIdentifiers(
-            identifier = listOf(
-                Identifier(
-                    value = "tenant-id", type = CodeableConcepts.RONIN_TENANT
-                ),
-                Identifier(
-                    value = "22221", type = CodeableConcepts.SER
-                ),
-                Identifier(
-                    value = "9988776655"
+        practitionerList = listOf(
+            LimitedPractitionerIdentifiers(
+                identifier = listOf(
+                    Identifier(
+                        value = "tenant-id", type = CodeableConcepts.RONIN_TENANT
+                    ),
+                    Identifier(
+                        value = "22221", type = CodeableConcepts.SER
+                    ),
+                    Identifier(
+                        value = "9988776655"
+                    )
                 )
             )
         )
     )
     private val mockPractitioner2 = LimitedPractitioner(
-        practitioner = LimitedPractitionerIdentifiers(
-            identifier = listOf(
-                Identifier(
-                    value = "mdaoc", type = CodeableConcepts.RONIN_TENANT
-                ),
-                Identifier(
-                    value = "22222", type = CodeableConcepts.SER
-                ),
-                Identifier(
-                    value = "2281376654"
+        practitionerList = listOf(
+            LimitedPractitionerIdentifiers(
+                identifier = listOf(
+                    Identifier(
+                        value = "mdaoc", type = CodeableConcepts.RONIN_TENANT
+                    ),
+                    Identifier(
+                        value = "22222", type = CodeableConcepts.SER
+                    ),
+                    Identifier(
+                        value = "2281376654"
+                    )
                 )
             )
         )
@@ -143,34 +148,116 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
-                parameters = mapOf("id" to fhirID)
+                parameters = mapOf("id" to fhirID, "tenant" to tenantQueryString)
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
 
-        val actual = practitionerService.getPractitionerIdentifiers(fhirID)
+        val actual = practitionerService.getPractitionerIdentifiers(tenantMnemonic, fhirID)
 
-        val expected = response.data?.practitioner?.identifier
+        val expected = response.data?.practitionerList?.firstOrNull()?.identifier
+        assertEquals(actual, expected)
+    }
+
+    @Test
+    fun `getPractitionerIdentifiers - empty identifier list`() {
+        val response =
+            GraphQLResponse(
+                data = LimitedPractitioner(
+                    practitionerList = listOf(
+                        LimitedPractitionerIdentifiers(
+                            identifier = listOf()
+                        )
+                    )
+                )
+            )
+        val mockHttpResponse = mockk<HttpResponse>()
+        val fhirID = "roninMDAPractitioner01Test"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = query,
+                parameters = mapOf("id" to fhirID, "tenant" to tenantQueryString)
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
+
+        val actual = practitionerService.getPractitionerIdentifiers(tenantMnemonic, fhirID)
+
+        val expected = listOf<Identifier>()
+        assertEquals(actual, expected)
+    }
+
+    @Test
+    fun `getPractitionerIdentifiers - empty practitioner list`() {
+        val response =
+            GraphQLResponse(
+                data = LimitedPractitioner(
+                    practitionerList = listOf()
+                )
+            )
+        val mockHttpResponse = mockk<HttpResponse>()
+        val fhirID = "roninMDAPractitioner01Test"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = query,
+                parameters = mapOf("id" to fhirID, "tenant" to tenantQueryString)
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
+
+        val actual = practitionerService.getPractitionerIdentifiers(tenantMnemonic, fhirID)
+
+        val expected = listOf<Identifier>()
         assertEquals(actual, expected)
     }
 
     @Test
     fun `getPractitionerIdentifiers - no data`() {
         val response =
-            GraphQLResponse(data = LimitedPractitioner(practitioner = LimitedPractitionerIdentifiers(identifier = listOf())))
+            GraphQLResponse<LimitedPractitioner>(
+                data = null
+            )
         val mockHttpResponse = mockk<HttpResponse>()
         val fhirID = "roninMDAPractitioner01Test"
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
-                parameters = mapOf("id" to fhirID)
+                parameters = mapOf("id" to fhirID, "tenant" to tenantQueryString)
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
 
-        val actual = practitionerService.getPractitionerIdentifiers(fhirID)
+        val actual = practitionerService.getPractitionerIdentifiers(tenantMnemonic, fhirID)
 
-        val expected = response.data?.practitioner?.identifier
+        val expected = listOf<Identifier>()
+        assertEquals(actual, expected)
+    }
+
+    @Test
+    fun `getPractitionerIdentifiers - different tenant`() {
+        val response =
+            GraphQLResponse(
+                data = LimitedPractitioner(
+                    practitionerList = listOf(
+                        LimitedPractitionerIdentifiers(
+                            identifier = listOf()
+                        )
+                    )
+                )
+            )
+        val mockHttpResponse = mockk<HttpResponse>()
+        val fhirID = "roninMDAPractitioner01Test"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = query,
+                parameters = mapOf("id" to fhirID, "tenant" to "${CodeSystem.RONIN_TENANT.uri.value}|wrongTenant")
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
+
+        val actual = practitionerService.getPractitionerIdentifiers("wrongTenant", fhirID)
+
+        val expected = listOf<Identifier>()
         assertEquals(actual, expected)
     }
 
@@ -182,12 +269,12 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
-                parameters = mapOf("id" to fhirID)
+                parameters = mapOf("id" to fhirID, "tenant" to tenantQueryString)
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
 
-        val actual = practitionerService.getPractitionerIdentifiers(fhirID)
+        val actual = practitionerService.getPractitionerIdentifiers(tenantMnemonic, fhirID)
 
         val expected = listOf<Identifier>() // return empty list on graphQL error
         assertEquals(actual, expected)
@@ -202,11 +289,11 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
-                parameters = mapOf("id" to fhirID)
+                parameters = mapOf("id" to fhirID, "tenant" to tenantQueryString)
             )
         } throws ResponseException(mockHttpResponse, "Response Text")
 
-        val actual = practitionerService.getPractitionerIdentifiers(fhirID)
+        val actual = practitionerService.getPractitionerIdentifiers(tenantMnemonic, fhirID)
 
         val expected = listOf<Identifier>() // return empty list on graphQL error
         assertEquals(actual, expected)
@@ -218,9 +305,14 @@ class PractitionerServiceTest {
         every { mockHttpResponse.status } returns HttpStatusCode(401, "Unauthorized")
         coEvery { mockHttpResponse.bodyAsText() } returns "Unauthorized"
         val fhirID = "roninMDAPractitioner01Test"
-        coEvery { aidboxClient.queryGraphQL(query = query, parameters = mapOf("id" to fhirID)) } throws Exception()
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = query,
+                parameters = mapOf("id" to fhirID, "tenant" to tenantQueryString)
+            )
+        } throws Exception()
 
-        assertThrows<Exception> { practitionerService.getPractitionerIdentifiers(fhirID) }
+        assertThrows<Exception> { practitionerService.getPractitionerIdentifiers(tenantMnemonic, fhirID) }
     }
 
     @Test
@@ -231,12 +323,12 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
-                parameters = mapOf("id" to fhirID)
+                parameters = mapOf("id" to fhirID, "tenant" to tenantQueryString)
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
 
-        val actual = practitionerService.getSpecificPractitionerIdentifier(fhirID, CodeableConcepts.SER)
+        val actual = practitionerService.getSpecificPractitionerIdentifier(tenantMnemonic, fhirID, CodeableConcepts.SER)
 
         val expected = Identifier(
             value = "22221", type = CodeableConcepts.SER
@@ -252,12 +344,12 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
-                parameters = mapOf("id" to fhirID)
+                parameters = mapOf("id" to fhirID, "tenant" to tenantQueryString)
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
 
-        val actual = practitionerService.getSpecificPractitionerIdentifier(fhirID, CodeableConcepts.MRN)
+        val actual = practitionerService.getSpecificPractitionerIdentifier(tenantMnemonic, fhirID, CodeableConcepts.MRN)
 
         val expected = null
         assertEquals(actual, expected)
@@ -275,22 +367,22 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
-                parameters = mapOf("id" to fhirID1)
+                parameters = mapOf("id" to fhirID1, "tenant" to tenantQueryString)
             )
         } returns mockHttpResponse1
         coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse1.body() } returns response1
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
-                parameters = mapOf("id" to fhirID2)
+                parameters = mapOf("id" to fhirID2, "tenant" to tenantQueryString)
             )
         } returns mockHttpResponse2
         coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse2.body() } returns response2
 
-        val actual = practitionerService.getPractitionersIdentifiers(listOf(fhirID1, fhirID2))
+        val actual = practitionerService.getPractitionersIdentifiers(tenantMnemonic, listOf(fhirID1, fhirID2))
 
-        val expected1 = response1.data?.practitioner?.identifier
-        val expected2 = response2.data?.practitioner?.identifier
+        val expected1 = response1.data?.practitionerList?.firstOrNull()?.identifier
+        val expected2 = response2.data?.practitionerList?.firstOrNull()?.identifier
         assertEquals(actual[fhirID1], expected1)
         assertEquals(actual[fhirID2], expected2)
     }
@@ -589,6 +681,7 @@ class PractitionerServiceTest {
         assertEquals(deserializedLimitedPractitioner.practitionerList.size, 2)
     }
 
+    @Test
     fun getPractitionersByTenant() {
         val response = GraphQLResponse(data = mockPractitionerList)
         val mockHttpResponse = mockk<HttpResponse>()
@@ -731,9 +824,30 @@ class PractitionerServiceTest {
     fun `get full practitioner test`() {
         val httpMock = mockk<HttpResponse>()
         val practitionerMock = mockk<OncologyPractitioner>()
+        every { practitionerMock.identifier } returns listOf(
+            Identifier(
+                system = CodeSystem.RONIN_TENANT.uri,
+                value = tenantMnemonic
+            )
+        )
         coEvery { httpMock.body<OncologyPractitioner>() } returns practitionerMock
         coEvery { aidboxClient.getResource("Practitioner", "123") } returns httpMock
-        val actual = practitionerService.getOncologyPractitioner("123")
+        val actual = practitionerService.getOncologyPractitioner(tenantMnemonic, "123")
         assertEquals(practitionerMock, actual)
+    }
+
+    @Test
+    fun `get full practitioner fails with non-matching tenant`() {
+        val httpMock = mockk<HttpResponse>()
+        val practitionerMock = mockk<OncologyPractitioner>()
+        every { practitionerMock.identifier } returns listOf(
+            Identifier(
+                system = CodeSystem.RONIN_TENANT.uri,
+                value = tenantMnemonic
+            )
+        )
+        coEvery { httpMock.body<OncologyPractitioner>() } returns practitionerMock
+        coEvery { aidboxClient.getResource("Practitioner", "123") } returns httpMock
+        assertThrows<InvalidTenantAccessException> { practitionerService.getOncologyPractitioner("newTenant", "123") }
     }
 }

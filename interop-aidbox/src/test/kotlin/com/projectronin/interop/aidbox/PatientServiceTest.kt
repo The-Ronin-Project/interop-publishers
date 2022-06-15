@@ -357,9 +357,15 @@ class PatientServiceTest {
     fun `get full patient test`() {
         val httpMock = mockk<HttpResponse>()
         val patientMock = mockk<OncologyPatient>()
+        every { patientMock.identifier } returns listOf(
+            Identifier(
+                system = CodeSystem.RONIN_TENANT.uri,
+                value = tenantMnemonic
+            )
+        )
         coEvery { httpMock.body<OncologyPatient>() } returns patientMock
         coEvery { aidboxClient.getResource("Patient", "123") } returns httpMock
-        val actual = patientService.getOncologyPatient("123")
+        val actual = patientService.getOncologyPatient(tenantMnemonic, "123")
         assertEquals(patientMock, actual)
     }
 }

@@ -11,6 +11,7 @@ import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
@@ -38,13 +39,13 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
 
     @Test
     fun `get identifiers for unknown practitioner FHIR ID`() {
-        val identifiers = practitionerService.getPractitionerIdentifiers("mdaoc-unknown-fhir-id")
+        val identifiers = practitionerService.getPractitionerIdentifiers("mdaoc", "mdaoc-unknown-fhir-id")
         assertTrue(identifiers.isEmpty())
     }
 
     @Test
     fun `get identifiers for known practitioner FHIR ID`() {
-        val identifiers = practitionerService.getPractitionerIdentifiers("mdaoc-ef9TegF2nfECi-0Skirbvpg3")
+        val identifiers = practitionerService.getPractitionerIdentifiers("mdaoc", "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
         assertEquals(10, identifiers.size)
 
         val identifier1 = createIdentifier("http://projectronin.com/id/tenantId", "mdaoc", "Tenant ID")
@@ -67,6 +68,12 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
         assertTrue(identifier9 in identifiers)
         val identifier10 = createIdentifier("urn:oid:1.2.840.114350.1.13.0.1.7.2.836982", "E1003", "EXTERNAL")
         assertTrue(identifier10 in identifiers)
+    }
+
+    @Test
+    fun `get identifiers does not return known practitioner from different tenant`() {
+        val identifiers = practitionerService.getPractitionerIdentifiers("newtenant", "mdaoc-unknown-fhir-id")
+        assertTrue(identifiers.isEmpty())
     }
 
     @Test
@@ -165,8 +172,15 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
 
     @Test
     fun `return and deserialize full practitioner`() {
-        val practitioner = practitionerService.getOncologyPractitioner("mdaoc-ef9TegF2nfECi-0Skirbvpg3")
+        val practitioner = practitionerService.getOncologyPractitioner("mdaoc", "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
         assertEquals(practitioner.id?.value, "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
+    }
+
+    @Test
+    fun `practitioner from a different tenant throws exception`() {
+        assertThrows<Exception> {
+            practitionerService.getOncologyPractitioner("newTenant", "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
+        }
     }
 
     private fun createIdentifier(system: String, value: String, typeText: String) =

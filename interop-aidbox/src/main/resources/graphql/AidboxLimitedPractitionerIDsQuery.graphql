@@ -1,5 +1,5 @@
-query Practitioner($id:string) {
-    Practitioner(id:$id) {
+query Practitioner($tenant:string, $id:string) {
+    PractitionerList(_id:$id, identifier: $tenant) {
         identifier{
             system
             type{

@@ -1,11 +1,14 @@
 package com.projectronin.interop.aidbox.utils
 
+import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.fhir.datatype.BundleEntry
 import com.projectronin.interop.aidbox.model.fhir.resource.Bundle
 import com.projectronin.interop.fhir.FHIRResource
+import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.BundleRequest
+import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.valueset.BundleType
 import com.projectronin.interop.fhir.r4.valueset.HttpVerb
@@ -72,4 +75,14 @@ fun makeBundleEntry(aidboxURLRest: String, method: HttpVerb, resource: FHIRResou
         request = BundleRequest(method = method, url = Uri(fullReference)),
         resource = resource
     )
+}
+
+/**
+ * Validates a Ronin Tenant identifier matches the provided [tenantMnemonic] on the [identifiers],
+ * throws [InvalidTenantAccessException] with the supplied [errorMessage] if failed.
+ */
+fun validateTenantIdentifier(tenantMnemonic: String, identifiers: List<Identifier>, errorMessage: String) {
+    if (identifiers.none { it.value == tenantMnemonic && it.system == CodeSystem.RONIN_TENANT.uri }) {
+        throw InvalidTenantAccessException(errorMessage)
+    }
 }
