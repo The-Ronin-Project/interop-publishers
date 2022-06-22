@@ -55,7 +55,7 @@ class PractitionerService(
             logger.error {
                 "Encountered errors while requesting Practitioner Identifiers from Aidbox using FHIR ID: $it"
             }
-            return listOf()
+            return emptyList()
         }
         logger.info { "Completed retrieving Practitioner Identifiers from Aidbox using FHIR ID" }
         // Practitioner list will have at most 1 practitioner due to direct id reference.
@@ -198,13 +198,13 @@ class PractitionerService(
     }
 }
 
-data class LimitedPractitioner(@JsonProperty("PractitionerList") val practitionerList: List<LimitedPractitionerIdentifiers>)
+data class LimitedPractitioner(@JsonProperty("PractitionerList") val practitionerList: List<LimitedPractitionerIdentifiers>?)
 data class LimitedPractitionerIdentifiers(val identifier: List<Identifier>)
 
-data class PractitionerList(@JsonProperty("PractitionerList") val practitionerList: List<PartialPractitioner>)
+data class PractitionerList(@JsonProperty("PractitionerList") val practitionerList: List<PartialPractitioner>?)
 data class PartialPractitioner(val identifier: List<Identifier>, val id: Id)
 
-data class LimitedPractitionersFHIR(@JsonProperty("PractitionerList") val practitionerList: List<LimitedPractitionerFHIRIdentifiers>)
+data class LimitedPractitionersFHIR(@JsonProperty("PractitionerList") val practitionerList: List<LimitedPractitionerFHIRIdentifiers>?)
 data class LimitedPractitionerFHIRIdentifiers(
     val id: String,
     @JsonProperty("identifier") val identifiers: List<Identifier>

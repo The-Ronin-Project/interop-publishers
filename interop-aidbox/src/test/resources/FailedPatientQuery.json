@@ -1,0 +1,19 @@
+{
+  "data": {
+    "PatientList": null
+  },
+  "errors": [{
+    "message": "Access Denied.",
+    "locations": [{
+      "line": 4,
+      "column": 5
+    }],
+    "path": ["PatientList"],
+    "extensions": {
+      "code": 403,
+      "arguments": {
+        "identifier": "$identifier"
+      }
+    }
+  }]
+}

@@ -1,0 +1,19 @@
+{
+  "data": {
+    "PractitionerList": null
+  },
+  "errors": [{
+    "message": "Access Denied.",
+    "locations": [{
+      "line": 4,
+      "column": 5
+    }],
+    "path": ["PractitionerList"],
+    "extensions": {
+      "code": 403,
+      "arguments": {
+        "identifier": "$identifier"
+      }
+    }
+  }]
+}

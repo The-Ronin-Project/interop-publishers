@@ -678,7 +678,7 @@ class PractitionerServiceTest {
         val deserializedLimitedPractitioner =
             JacksonManager.objectMapper.readValue<LimitedPractitionersFHIR>(actualJson)
 
-        assertEquals(deserializedLimitedPractitioner.practitionerList.size, 2)
+        assertEquals(deserializedLimitedPractitioner.practitionerList?.size, 2)
     }
 
     @Test
@@ -849,5 +849,78 @@ class PractitionerServiceTest {
         coEvery { httpMock.body<OncologyPractitioner>() } returns practitionerMock
         coEvery { aidboxClient.getResource("Practitioner", "123") } returns httpMock
         assertThrows<InvalidTenantAccessException> { practitionerService.getOncologyPractitioner("newTenant", "123") }
+    }
+
+    @Test
+    fun `graphql errors are properly parsed for getPractitionersByTenant`() {
+        val mockHttpResponse = mockk<HttpResponse>()
+        val data = this::class.java.getResource("/FailedPractitionerQuery.json")!!.readText()
+        val response = JacksonManager.objectMapper.readValue<GraphQLResponse<PractitionerList>>(data)
+
+        val tenantMnemonic = "tenant-id"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = practitionerListQuery,
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse.body() } returns response
+
+        val actual = practitionerService.getPractitionersByTenant(tenantMnemonic)
+        assertEquals(emptyMap<String, List<Identifier>>(), actual)
+    }
+
+    @Test
+    fun `graphql errors are properly parsed for getPractitionerIdentifiers`() {
+        val mockHttpResponse = mockk<HttpResponse>()
+        val data = this::class.java.getResource("/FailedPractitionerQuery.json")!!.readText()
+        val response = JacksonManager.objectMapper.readValue<GraphQLResponse<LimitedPractitioner>>(data)
+
+        val tenantMnemonic = "tenant-id"
+        val fhirID = "fhirId"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = query,
+                parameters = mapOf(
+                    "id" to fhirID,
+                    "tenant" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic"
+                )
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
+
+        val actual = practitionerService.getPractitionerIdentifiers(tenantMnemonic, fhirID)
+        assertEquals(emptyList<Identifier>(), actual)
+    }
+
+    @Test
+    fun `graphql errors are properly parsed for getPractitionerFHIRIds`() {
+        val mockHttpResponse = mockk<HttpResponse>()
+        val data = this::class.java.getResource("/FailedPractitionerQuery.json")!!.readText()
+        val response = JacksonManager.objectMapper.readValue<GraphQLResponse<LimitedPractitionersFHIR>>(data)
+
+        val tenantMnemonic = "mdaoc"
+
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = queryFHIR,
+                parameters = mapOf(
+                    "tenant" to tenantQueryString,
+                    "identifiers" to listOf(
+                        practitionerSystemValue1,
+                        practitionerSystemValue2
+                    ).joinToString(separator = ",") {
+                        it.queryString
+                    }
+                )
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<LimitedPractitionersFHIR>> { mockHttpResponse.body() } returns response
+
+        val actualMap = practitionerService.getPractitionerFHIRIds(
+            tenantMnemonic,
+            mapOf("1" to practitionerSystemValue1, "2" to practitionerSystemValue2)
+        )
+        assertEquals(emptyMap<String, String>(), actualMap)
     }
 }

@@ -101,5 +101,5 @@ class PatientService(
 }
 
 @JsonNaming(PropertyNamingStrategies.UpperCamelCaseStrategy::class)
-data class LimitedPatient(val patientList: List<LimitedPatientIdentifiers>)
+data class LimitedPatient(val patientList: List<LimitedPatientIdentifiers>?)
 data class LimitedPatientIdentifiers(val id: String, @JsonProperty("identifier") val identifiers: List<Identifier>)
