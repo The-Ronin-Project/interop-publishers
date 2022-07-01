@@ -125,7 +125,7 @@ class BundleEntryTest {
         alias = listOf("Guest Room"),
         description = "Sun Room",
         type = type,
-        telecom = listOf(ContactPoint(value = "8675309")),
+        telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "8675309")),
         address = Address(country = "USA"),
         physicalType = physicalType,
         position = LocationPosition(longitude = Decimal(13.81531), latitude = Decimal(66.077132)),
@@ -215,6 +215,7 @@ class BundleEntryTest {
                   "text" : "Diagnostic"
                 } ],
                 "telecom" : [ {
+                  "system" : "phone",
                   "value" : "8675309"
                 } ],
                 "address" : {

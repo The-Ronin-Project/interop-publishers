@@ -29,6 +29,7 @@ import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.resource.Location
 import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPractitioner
 import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPractitionerRole
+import com.projectronin.interop.fhir.r4.valueset.ContactPointSystem
 import com.projectronin.interop.fhir.r4.valueset.DayOfWeek
 import com.projectronin.interop.fhir.r4.valueset.LocationMode
 import com.projectronin.interop.fhir.r4.valueset.LocationStatus
@@ -116,7 +117,7 @@ class AidboxClientTest {
                 )
             )
         ),
-        telecom = listOf(ContactPoint(value = "8675309")),
+        telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "8675309")),
         address = Address(country = "USA"),
         physicalType = CodeableConcept(
             text = "Room",
@@ -167,7 +168,7 @@ class AidboxClientTest {
                 )
             )
         ),
-        telecom = listOf(ContactPoint(value = "123-456-7890")),
+        telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "123-456-7890")),
         address = Address(country = "USA"),
         physicalType = CodeableConcept(
             text = "Room",
