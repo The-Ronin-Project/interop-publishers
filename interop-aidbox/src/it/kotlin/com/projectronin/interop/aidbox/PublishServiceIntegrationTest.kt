@@ -216,7 +216,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(value = "8675309")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "8675309")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -266,7 +266,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(value = "123-456-7890")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "123-456-7890")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -401,7 +401,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(value = "8675309")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "8675309")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -451,7 +451,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(value = "123-456-7890")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "123-456-7890")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -594,7 +594,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             communication = listOf(Communication(language = CodeableConcept(text = "English"))),
             generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones")),
             managingOrganization = Reference(display = "organization"),
-            link = listOf(PatientLink(other = Reference(), type = LinkType.REPLACES))
+            link = listOf(PatientLink(other = Reference(display = "Patient"), type = LinkType.REPLACES))
         )
         val appointment = OncologyAppointment(
             id = Id("${idPrefix}12345"),
@@ -736,7 +736,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(value = "8675309")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "8675309")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -786,7 +786,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(value = "123-456-7890")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "123-456-7890")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -940,7 +940,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(value = "8675309")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "8675309")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -990,7 +990,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(value = "123-456-7890")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "123-456-7890")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -1043,7 +1043,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             communication = listOf(Communication(language = CodeableConcept(text = "English"))),
             generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones")),
             managingOrganization = Reference(display = "organization"),
-            link = listOf(PatientLink(other = Reference(), type = LinkType.REPLACES))
+            link = listOf(PatientLink(other = Reference(display = "Patient"), type = LinkType.REPLACES))
         )
         val appointment = OncologyAppointment(
             id = Id("${idPrefix}12345"),
@@ -1190,7 +1190,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(value = "8675309")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "8675309")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -1335,7 +1335,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             communication = listOf(Communication(language = CodeableConcept(text = "English"))),
             generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones")),
             managingOrganization = Reference(display = "organization"),
-            link = listOf(PatientLink(other = Reference(), type = LinkType.REPLACES))
+            link = listOf(PatientLink(other = Reference(display = "Patient"), type = LinkType.REPLACES))
         )
         val appointment = OncologyAppointment(
             id = Id("${idPrefix}12345"),
@@ -1428,7 +1428,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         return runBlocking {
             val aidboxUrl = aidbox.baseUrl()
             val response = try {
-                aidbox.ktorClient.get("$aidboxUrl/$resourceType/$id") {
+                aidbox.ktorClient.get("$aidboxUrl/fhir/$resourceType/$id") {
                     headers {
                         append(HttpHeaders.Authorization, "Bearer ${aidbox.accessToken()}")
                     }
@@ -1455,7 +1455,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         return runBlocking {
             val aidboxUrl = aidbox.baseUrl()
             val response = try {
-                aidbox.ktorClient.get("$aidboxUrl/$resourceType/$id") {
+                aidbox.ktorClient.get("$aidboxUrl/fhir/$resourceType/$id") {
                     headers {
                         append(HttpHeaders.Authorization, "Bearer ${aidbox.accessToken()}")
                     }
@@ -1480,7 +1480,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         return runBlocking {
             val aidboxUrl = aidbox.baseUrl()
             val response = try {
-                aidbox.ktorClient.get("$aidboxUrl/$resourceType/$id") {
+                aidbox.ktorClient.get("$aidboxUrl/fhir/$resourceType/$id") {
                     headers {
                         append(HttpHeaders.Authorization, "Bearer ${aidbox.accessToken()}")
                     }
@@ -1505,7 +1505,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         return runBlocking {
             val aidboxUrl = aidbox.baseUrl()
             try {
-                aidbox.ktorClient.delete("$aidboxUrl/$resourceType/$id") {
+                aidbox.ktorClient.delete("$aidboxUrl/fhir/$resourceType/$id") {
                     headers {
                         append(HttpHeaders.Authorization, "Bearer ${aidbox.accessToken()}")
                     }
