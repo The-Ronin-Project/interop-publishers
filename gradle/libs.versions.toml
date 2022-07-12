@@ -1,9 +1,9 @@
 [libraries]
 commons-codec = "commons-codec:commons-codec:1.15"
-interop-common = "com.projectronin.interop:interop-common:2.0.1-SNAPSHOT"
-interop-commonHttp = "com.projectronin.interop:interop-common-http:2.0.0"
-interop-commonJackson = "com.projectronin.interop:interop-common-jackson:2.0.0"
-interop-fhir = "com.projectronin.interop.fhir:interop-fhir:1.1.1-SNAPSHOT"
+interop-common = "com.projectronin.interop:interop-common:2.1.0"
+interop-commonHttp = "com.projectronin.interop:interop-common-http:2.1.0"
+interop-commonJackson = "com.projectronin.interop:interop-common-jackson:2.1.0"
+interop-fhir = "com.projectronin.interop.fhir:interop-fhir:1.2.1-SNAPSHOT"
 testcontainers-bom = "org.testcontainers:testcontainers-bom:1.17.3"
 ktor-client-cio = "io.ktor:ktor-client-cio:2.0.3"
 ktor-client-core = "io.ktor:ktor-client-core:2.0.3"

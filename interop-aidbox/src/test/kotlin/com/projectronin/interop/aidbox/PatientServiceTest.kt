@@ -2,12 +2,15 @@ package com.projectronin.interop.aidbox
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.projectronin.interop.aidbox.client.AidboxClient
+import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.fhir.r4.CodeSystem
+import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.Identifier
+import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPatient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
@@ -19,7 +22,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -27,6 +32,7 @@ class PatientServiceTest {
     private val aidboxClient = mockk<AidboxClient>()
     private val patientService = PatientService(aidboxClient, 2)
     private val query = javaClass.getResource("/graphql/AidboxPatientFHIRIDsQuery.graphql")!!.readText()
+    private val patientListQuery = javaClass.getResource("/graphql/PatientListQuery.graphql")!!.readText()
 
     private val tenantMnemonic = "mdaoc"
     private val mrn1 = "01111"
@@ -55,9 +61,39 @@ class PatientServiceTest {
             mrnIdentifier2
         )
     )
+    private val mockPatientList = PatientList(
+        patientList = listOf(
+            PartialPatient(
+                identifier = listOf(
+                    Identifier(value = "mdaoc", type = CodeableConcepts.RONIN_TENANT),
+                    Identifier(value = "22221", type = CodeableConcepts.SER),
+                    Identifier(value = "9988776655")
+                ),
+                id = Id("mdaoc-123"),
+            ),
+            PartialPatient(
+                identifier = listOf(
+                    Identifier(value = "mdaoc", type = CodeableConcepts.RONIN_TENANT),
+                    Identifier(value = "22222", type = CodeableConcepts.SER),
+                    Identifier(value = "2281376654")
+                ),
+                id = Id("mdaoc-456"),
+            )
+        )
+    )
+
+    @BeforeEach
+    fun setup() {
+        mockkStatic("io.ktor.client.statement.HttpResponseKt")
+    }
+
+    @AfterEach
+    fun tearDown() {
+        unmockkStatic("io.ktor.client.statement.HttpResponseKt")
+    }
 
     @Test
-    fun `getFHIRIDs returns all patients`() {
+    fun `getPatientFHIRIds returns all patients`() {
         val response = GraphQLResponse(
             data = LimitedPatient(listOf(mockPatientIdentifiers1, mockPatientIdentifiers2))
         )
@@ -84,7 +120,7 @@ class PatientServiceTest {
     }
 
     @Test
-    fun `getFHIRIDs returns some patients`() {
+    fun `getPatientFHIRIds returns some patients`() {
         val response = GraphQLResponse(
             data = LimitedPatient(listOf(mockPatientIdentifiers1))
         )
@@ -110,7 +146,7 @@ class PatientServiceTest {
     }
 
     @Test
-    fun `getFHIRIDs returns no patients`() {
+    fun `getPatientFHIRIds returns no patients`() {
         val response = GraphQLResponse(
             data = LimitedPatient(listOf())
         )
@@ -136,7 +172,7 @@ class PatientServiceTest {
     }
 
     @Test
-    fun `getFHIRIDs returns GraphQL errors`() {
+    fun `getPatientFHIRIds returns GraphQL errors`() {
         val response = GraphQLResponse<LimitedPatient>(
             errors = listOf(GraphQLError("GraphQL Error"))
         )
@@ -161,7 +197,7 @@ class PatientServiceTest {
     }
 
     @Test
-    fun `getFHIRIDs throws a ResponseException`() {
+    fun `getPatientFHIRIds throws a ResponseException`() {
         val mockHttpResponse = mockk<HttpResponse>()
         every { mockHttpResponse.status } returns HttpStatusCode(401, "Unauthorized")
 
@@ -188,7 +224,7 @@ class PatientServiceTest {
     }
 
     @Test
-    fun `getFHIRIDs throws a non-response exception`() {
+    fun `getPatientFHIRIds throws a non-response exception`() {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
@@ -294,7 +330,83 @@ class PatientServiceTest {
     }
 
     @Test
-    fun `getFHIRIDs returns all patients in batches`() {
+    fun `getPatientsByTenant - success`() {
+        val response = GraphQLResponse(data = mockPatientList)
+        val mockHttpResponse = mockk<HttpResponse>()
+
+        val tenantMnemonic = "tenant-id"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = patientListQuery,
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
+
+        val actual = patientService.getPatientsByTenant(tenantMnemonic)
+        val fhirIds = response.data?.patientList?.map {
+            it.id.value
+        }
+        assertEquals(fhirIds, actual.keys.toList())
+    }
+
+    @Test
+    fun `getPatientsByTenant - no data`() {
+        val response = GraphQLResponse(data = PatientList(listOf()))
+        val mockHttpResponse = mockk<HttpResponse>()
+
+        val tenantMnemonic = "tenant-id"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = patientListQuery,
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
+
+        val actual = patientService.getPatientsByTenant(tenantMnemonic)
+
+        assertEquals(mutableMapOf<String, List<Identifier>>(), actual)
+    }
+
+    @Test
+    fun `getPatientsByTenant - exception`() {
+        val mockHttpResponse = mockk<HttpResponse>()
+        every { mockHttpResponse.status } returns HttpStatusCode(401, "Unauthorized")
+        coEvery { mockHttpResponse.bodyAsText() } returns "Unauthorized"
+
+        val tenantMnemonic = "tenant-id"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = patientListQuery,
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } throws Exception()
+
+        assertThrows<Exception> { patientService.getPatientsByTenant(tenantMnemonic) }
+    }
+
+    @Test
+    fun `getPatientsByTenant - response exception`() {
+        val mockHttpResponse = mockk<HttpResponse>()
+        every { mockHttpResponse.status } returns HttpStatusCode(401, "Unauthorized")
+        coEvery { mockHttpResponse.bodyAsText() } returns "Unauthorized"
+        val tenantMnemonic = "tenant-id"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = patientListQuery,
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+            )
+        } throws ResponseException(mockHttpResponse, "Response text")
+
+        val actual = patientService.getPatientsByTenant(tenantMnemonic)
+
+        assertEquals(mutableMapOf<String, List<Identifier>>(), actual)
+    }
+
+    @Test
+    fun `getPatientFHIRIds returns all batched patients`() {
         val mrnSystemValue3 = SystemValue(system = CodeSystem.MRN.uri.value, value = "01113")
         val mrnIdentifier3 = Identifier(system = CodeSystem.MRN.uri, value = "01113")
 
@@ -354,7 +466,7 @@ class PatientServiceTest {
     }
 
     @Test
-    fun `get full patient test`() {
+    fun `getOncologyPatient - success`() {
         val httpMock = mockk<HttpResponse>()
         val patientMock = mockk<OncologyPatient>()
         every { patientMock.identifier } returns listOf(
@@ -370,7 +482,41 @@ class PatientServiceTest {
     }
 
     @Test
-    fun `getFHIRIDs parses graphQL errors correctly`() {
+    fun `getOncologyPatient - fails with non-matching tenant`() {
+        val httpMock = mockk<HttpResponse>()
+        val patientMock = mockk<OncologyPatient>()
+        every { patientMock.identifier } returns listOf(
+            Identifier(
+                system = CodeSystem.RONIN_TENANT.uri,
+                value = tenantMnemonic
+            )
+        )
+        coEvery { httpMock.body<OncologyPatient>() } returns patientMock
+        coEvery { aidboxClient.getResource("Patient", "123") } returns httpMock
+        assertThrows<InvalidTenantAccessException> { patientService.getOncologyPatient("newTenant", "123") }
+    }
+
+    @Test
+    fun `graphql errors are properly parsed for getPatientsByTenant`() {
+        val mockHttpResponse = mockk<HttpResponse>()
+        val data = this::class.java.getResource("/FailedPatientQuery.json")!!.readText()
+        val response = objectMapper.readValue<GraphQLResponse<PatientList>>(data)
+
+        val tenantMnemonic = "tenant-id"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = patientListQuery,
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
+
+        val actual = patientService.getPatientsByTenant(tenantMnemonic)
+        assertEquals(emptyMap<String, List<Identifier>>(), actual)
+    }
+
+    @Test
+    fun `graphql errors are properly parsed for getPatientFHIRIds`() {
         val mockHttpResponse = mockk<HttpResponse>()
         val data = this::class.java.getResource("/FailedPatientQuery.json")!!.readText()
         val response2 = objectMapper.readValue<GraphQLResponse<LimitedPatient>>(data)
@@ -419,5 +565,80 @@ class PatientServiceTest {
         assertEquals(2, actualMap.size)
         assertEquals(mockPatientIdentifiers1.id, actualMap["1"])
         assertEquals(mockPatientIdentifiers2.id, actualMap["2"])
+    }
+
+    @Test
+    fun `getFHIRIdsForTenant - success`() {
+        val response = GraphQLResponse(data = mockPatientList)
+        val mockHttpResponse = mockk<HttpResponse>()
+
+        val tenantMnemonic = "tenant-id"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = patientListQuery,
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
+
+        val expected = listOf("mdaoc-123", "mdaoc-456")
+        val actual = patientService.getPatientFHIRIdsByTenant(tenantMnemonic)
+
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `getFHIRIdsForTenant - no data`() {
+        val response = GraphQLResponse(data = PatientList(listOf()))
+        val mockHttpResponse = mockk<HttpResponse>()
+
+        val tenantMnemonic = "tenant-id"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = patientListQuery,
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
+
+        val actual = patientService.getPatientFHIRIdsByTenant(tenantMnemonic)
+
+        assertEquals(emptyList<String>(), actual)
+    }
+
+    @Test
+    fun `getFHIRIdsForTenant - exception`() {
+        val mockHttpResponse = mockk<HttpResponse>()
+        every { mockHttpResponse.status } returns HttpStatusCode(401, "Unauthorized")
+        coEvery { mockHttpResponse.bodyAsText() } returns "Unauthorized"
+
+        val tenantMnemonic = "tenant-id"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = patientListQuery,
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } throws Exception()
+
+        assertThrows<Exception> { patientService.getPatientFHIRIdsByTenant(tenantMnemonic) }
+    }
+
+    @Test
+    fun `getFHIRIdsForTenant - response exception`() {
+        val mockHttpResponse = mockk<HttpResponse>()
+        every { mockHttpResponse.status } returns HttpStatusCode(401, "Unauthorized")
+        coEvery { mockHttpResponse.bodyAsText() } returns "Unauthorized"
+        val tenantMnemonic = "tenant-id"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = patientListQuery,
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+            )
+        } throws ResponseException(mockHttpResponse, "Response text")
+
+        val actual = patientService.getPatientFHIRIdsByTenant(tenantMnemonic)
+
+        assertEquals(emptyList<String>(), actual)
     }
 }

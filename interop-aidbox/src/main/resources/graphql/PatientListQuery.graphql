@@ -1,0 +1,14 @@
+query PatientList(
+    $identifier: string,
+    ){
+    PatientList(identifier: $identifier) {
+        identifier{
+            system
+            type{
+                text
+            }
+            value
+        },
+        id
+    }
+}

@@ -146,9 +146,9 @@ class PractitionerService(
     }
 
     /**
-     * Returns a [Map] of String to [List] of practitioner [Identifier] for a [String] representing a given tenant mnemonic.
-     * @param tenantMnemonic a tenant mnemonic
-     * @return a [Map] of String to [List] of practitioner [Identifier]
+     * This method finds all Practitioners in Aidbox for the tenant mnemonic, and returns a [Map].
+     * Each [Map] key is the FHIR ID for a Practitioner in Aidbox and
+     * each [Map] value is the list of [Identifier]s for that Practitioner.
      */
     fun getPractitionersByTenant(tenantMnemonic: String): Map<String, List<Identifier>> {
         logger.info { "Retrieving Practitioners for $tenantMnemonic" }

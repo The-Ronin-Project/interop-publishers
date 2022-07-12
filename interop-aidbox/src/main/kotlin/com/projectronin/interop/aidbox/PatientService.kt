@@ -10,6 +10,7 @@ import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.aidbox.utils.validateTenantIdentifier
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
+import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPatient
 import io.ktor.client.call.body
@@ -79,6 +80,44 @@ class PatientService(
     }
 
     /**
+     * This method finds all Patients in Aidbox for the tenant mnemonic, and returns a [Map].
+     * Each [Map] key is the FHIR ID for a Patient in Aidbox and
+     * each [Map] value is the list of [Identifier]s for that Patient.
+     */
+    fun getPatientsByTenant(tenantMnemonic: String): Map<String, List<Identifier>> {
+        logger.info { "Retrieving Patients for $tenantMnemonic" }
+        val query = javaClass.getResource("/graphql/PatientListQuery.graphql")!!.readText()
+        val parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+        val response: GraphQLResponse<PatientList> = runBlocking {
+            try {
+                val httpResponse = aidboxClient.queryGraphQL(query, parameters)
+                httpResponse.body()
+            } catch (e: Exception) {
+                logger.error(e) {
+                    "Exception occurred while retrieving Patients for $tenantMnemonic"
+                }
+                respondToGraphQLException(e)
+            }
+        }
+        response.errors?.let {
+            logger.error {
+                "Encounters errors while retrieving Patients for $tenantMnemonic: $it"
+            }
+            return emptyMap()
+        }
+        val idMap = response.data?.patientList?.associate { it.id.value to it.identifier } ?: emptyMap()
+        logger.info { "Completed retrieving Patients from Aidbox for $tenantMnemonic" }
+        return idMap
+    }
+
+    /**
+     * Returns a [List] of all patient FHIR IDs in Aidbox for the tenant mnemonic.
+     */
+    fun getPatientFHIRIdsByTenant(tenantMnemonic: String): List<String> {
+        return getPatientsByTenant(tenantMnemonic).keys.toList()
+    }
+
+    /**
      * Fetches an OncologyPatient object from Aidbox based on the Patient's FHIR ID.
      * @param tenantMnemonic the mnemonic of the tenant represented by this call.
      * @param patientFHIRID [String] the patient's FHIR ID.
@@ -103,3 +142,6 @@ class PatientService(
 @JsonNaming(PropertyNamingStrategies.UpperCamelCaseStrategy::class)
 data class LimitedPatient(val patientList: List<LimitedPatientIdentifiers>?)
 data class LimitedPatientIdentifiers(val id: String, @JsonProperty("identifier") val identifiers: List<Identifier>)
+
+data class PatientList(@JsonProperty("PatientList") val patientList: List<PartialPatient>?)
+data class PartialPatient(val identifier: List<Identifier>, val id: Id)

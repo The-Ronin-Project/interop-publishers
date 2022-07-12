@@ -4,6 +4,10 @@ import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.aidbox.spring.AidboxIntegrationConfig
 import com.projectronin.interop.aidbox.testcontainer.AidboxData
 import com.projectronin.interop.aidbox.testcontainer.BaseAidboxTest
+import com.projectronin.interop.fhir.r4.CodeSystem
+import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
+import com.projectronin.interop.fhir.r4.datatype.Identifier
+import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -74,6 +78,76 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
         )
         val fhirIds = patientService.getPatientFHIRIds("newtenant", identifiers)
         assertTrue(fhirIds.isEmpty())
+    }
+
+    @Test
+    fun `returns an empty map when retrieving all patients for an unknown tenant`() {
+        val identifiersByFHIRId = patientService.getPatientsByTenant("unknown")
+        assertTrue(identifiersByFHIRId.isEmpty())
+    }
+
+    @Test
+    fun `retrieves all patients for a tenant`() {
+        val identifiersByFHIRId = patientService.getPatientsByTenant("mdaoc")
+        assertEquals(2, identifiersByFHIRId.size)
+
+        val tenantIdentifier =
+            Identifier(
+                type = CodeableConcept(text = "Tenant ID"),
+                system = CodeSystem.RONIN_TENANT.uri,
+                value = "mdaoc"
+            )
+        assertEquals(
+            listOf(
+                tenantIdentifier,
+                Identifier(
+                    type = CodeableConcept(text = "MRN"),
+                    system = Uri("http://projectronin.com/id/mrn"),
+                    value = "1234"
+                ),
+                Identifier(
+                    type = CodeableConcept(text = "FHIR STU3"),
+                    system = Uri("http://projectronin.com/id/fhir"),
+                    value = "12345678901"
+                )
+            ),
+            identifiersByFHIRId["mdaoc-12345678901"]
+        )
+        assertEquals(
+            listOf(
+                tenantIdentifier,
+                Identifier(
+                    type = CodeableConcept(text = "MRN"),
+                    system = Uri("http://projectronin.com/id/mrn"),
+                    value = "5678"
+                ),
+                Identifier(
+                    type = CodeableConcept(text = "FHIR STU3"),
+                    system = Uri("http://projectronin.com/id/fhir"),
+                    value = "12345678902"
+                ),
+                Identifier(
+                    system = Uri("my-own-system"),
+                    value = "abcdef"
+                )
+            ),
+            identifiersByFHIRId["mdaoc-12345678902"]
+        )
+    }
+
+    @Test
+    fun `getFHIRIdsForTenant - success`() {
+        val fhirIds = patientService.getPatientFHIRIdsByTenant("mdaoc")
+        assertEquals(2, fhirIds.size)
+        assertEquals("mdaoc-12345678901", fhirIds.get(0))
+        assertEquals("mdaoc-12345678902", fhirIds.get(1))
+    }
+
+    @Test
+    fun `getFHIRIdsForTenant - no data`() {
+        val fhirIds = patientService.getPatientFHIRIdsByTenant("tenant")
+        assertEquals(0, fhirIds.size)
+        assertEquals(emptyList<String>(), fhirIds)
     }
 
     @Test
