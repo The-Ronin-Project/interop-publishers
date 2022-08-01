@@ -71,6 +71,7 @@ class AidboxClient(
                 throw e
             }
         }
+        throwExceptionFromHttpStatus(response)
 
         return response
     }
@@ -94,6 +95,7 @@ class AidboxClient(
             accept(ContentType.Application.Json)
             setBody(GraphQLPostRequest(query = query, variables = parameters.toSortedMap()))
         }
+        throwExceptionFromHttpStatus(response)
 
         logger.debug { "Aidbox query returned ${response.status}" }
 
@@ -115,6 +117,18 @@ class AidboxClient(
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
         }
+        throwExceptionFromHttpStatus(response)
         return response
+    }
+
+    /**
+     * Throws an exception if the [HttpResponse]'s status is a 4xx or 5xx.  Mimics the exceptions used by
+     * Ktor if the expectSuccess flag is set.
+     */
+    private fun throwExceptionFromHttpStatus(response: HttpResponse) {
+        when (response.status.value) {
+            in 400..499 -> throw ClientRequestException(response, "Bad client request")
+            in 500..599 -> throw ServerResponseException(response, "Bad server response")
+        }
     }
 }

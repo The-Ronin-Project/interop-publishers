@@ -3,10 +3,12 @@ package com.projectronin.interop.aidbox.auth
 import com.projectronin.interop.common.auth.Authentication
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -38,6 +40,12 @@ class AidboxAuthenticationService(
                     contentType(ContentType.Application.Json)
                     setBody(aidboxCredentials)
                 }
+
+                // Check response status and throw exception if necessary
+                if (httpResponse.status != HttpStatusCode.OK) {
+                    throw ServerResponseException(httpResponse, "Bad response from server")
+                }
+
                 httpResponse.body<AidboxAuthentication>()
             } catch (e: Exception) {
                 logger.error(e) { "Authentication for $authUrl failed with exception" }

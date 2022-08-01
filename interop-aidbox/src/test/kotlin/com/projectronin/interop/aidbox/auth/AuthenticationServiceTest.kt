@@ -29,7 +29,8 @@ class AuthenticationServiceTest {
         val responseContent = """{
             |  "token_type" : "Bearer",
             |  "access_token": "abcd1234"
-            |}""".trimMargin()
+            |}
+        """.trimMargin()
 
         val httpClient = makeClient(expectedBody, responseContent, HttpStatusCode.OK)
         val service = AidboxAuthenticationService(httpClient, baseUrl, AidboxCredentials("client-id", "client-secret"))
@@ -51,7 +52,8 @@ class AuthenticationServiceTest {
             |  "expires_in": 3600,
             |  "scope": "local",
             |  "refresh_token": "efgh5678"
-            |}""".trimMargin()
+            |}
+        """.trimMargin()
 
         val httpClient = makeClient(expectedBody, responseContent, HttpStatusCode.OK)
         val service = AidboxAuthenticationService(httpClient, baseUrl, AidboxCredentials("client-id", "client-secret"))
@@ -93,6 +95,5 @@ class AuthenticationServiceTest {
                     setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
                 }
             }
-            expectSuccess = true
         }
 }

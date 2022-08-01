@@ -39,7 +39,6 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.toByteArray
 import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.RedirectResponseException
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.statement.HttpResponse
@@ -337,18 +336,6 @@ class AidboxClientTest {
     }
 
     @Test
-    fun `aidbox batch upsert of 2 Practitioner resources, response 3xx exception`() {
-        val expectedResponseStatus = HttpStatusCode.TemporaryRedirect
-        val aidboxClient = createClient(expectedUrl = urlBatchUpsert, responseStatus = expectedResponseStatus)
-        val exception = assertThrows(RedirectResponseException::class.java) {
-            runBlocking {
-                aidboxClient.batchUpsert(practitioners)
-            }
-        }
-        assertEquals(exception.response.status, expectedResponseStatus)
-    }
-
-    @Test
     fun `aidbox batch upsert of 2 Practitioner resources, response 4xx exception`() {
         val expectedResponseStatus = HttpStatusCode.Unauthorized
         val aidboxClient = createClient(expectedUrl = urlBatchUpsert, responseStatus = expectedResponseStatus)
@@ -405,7 +392,6 @@ class AidboxClientTest {
                     setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
                 }
             }
-            expectSuccess = true
         }
 
         return AidboxClient(httpClient, baseUrl, authenticationBroker)
