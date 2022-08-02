@@ -1,7 +1,7 @@
 name: Interop Aidbox Testcontainer Tests
 on:
   push:
-    branches: [ master ]
+    branches: [ master, refactor ]
 
   pull_request:
 
