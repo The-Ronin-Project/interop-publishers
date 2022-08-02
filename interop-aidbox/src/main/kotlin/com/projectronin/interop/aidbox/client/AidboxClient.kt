@@ -3,7 +3,7 @@ package com.projectronin.interop.aidbox.client
 import com.projectronin.interop.aidbox.auth.AidboxAuthenticationBroker
 import com.projectronin.interop.aidbox.model.GraphQLPostRequest
 import com.projectronin.interop.aidbox.utils.makeBundleForBatchUpsert
-import com.projectronin.interop.fhir.FHIRResource
+import com.projectronin.interop.fhir.r4.resource.Resource
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.RedirectResponseException
@@ -46,7 +46,7 @@ class AidboxClient(
      * @throws [ClientRequestException] for a 4xx response.
      * @throws [ServerResponseException] for a 5xx response.
      */
-    suspend fun batchUpsert(resourceCollection: List<FHIRResource>): HttpResponse {
+    suspend fun batchUpsert(resourceCollection: List<Resource<*>>): HttpResponse {
         val arrayLength = resourceCollection.size
         val showArray = when (arrayLength) {
             1 -> "resource"

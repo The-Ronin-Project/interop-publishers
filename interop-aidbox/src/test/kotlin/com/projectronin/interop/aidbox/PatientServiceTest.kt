@@ -11,7 +11,7 @@ import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
-import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPatient
+import com.projectronin.interop.fhir.r4.resource.Patient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.statement.HttpResponse
@@ -468,32 +468,32 @@ class PatientServiceTest {
     @Test
     fun `getOncologyPatient - success`() {
         val httpMock = mockk<HttpResponse>()
-        val patientMock = mockk<OncologyPatient>()
+        val patientMock = mockk<Patient>()
         every { patientMock.identifier } returns listOf(
             Identifier(
                 system = CodeSystem.RONIN_TENANT.uri,
                 value = tenantMnemonic
             )
         )
-        coEvery { httpMock.body<OncologyPatient>() } returns patientMock
+        coEvery { httpMock.body<Patient>() } returns patientMock
         coEvery { aidboxClient.getResource("Patient", "123") } returns httpMock
-        val actual = patientService.getOncologyPatient(tenantMnemonic, "123")
+        val actual = patientService.getPatient(tenantMnemonic, "123")
         assertEquals(patientMock, actual)
     }
 
     @Test
-    fun `getOncologyPatient - fails with non-matching tenant`() {
+    fun `getPatient - fails with non-matching tenant`() {
         val httpMock = mockk<HttpResponse>()
-        val patientMock = mockk<OncologyPatient>()
+        val patientMock = mockk<Patient>()
         every { patientMock.identifier } returns listOf(
             Identifier(
                 system = CodeSystem.RONIN_TENANT.uri,
                 value = tenantMnemonic
             )
         )
-        coEvery { httpMock.body<OncologyPatient>() } returns patientMock
+        coEvery { httpMock.body<Patient>() } returns patientMock
         coEvery { aidboxClient.getResource("Patient", "123") } returns httpMock
-        assertThrows<InvalidTenantAccessException> { patientService.getOncologyPatient("newTenant", "123") }
+        assertThrows<InvalidTenantAccessException> { patientService.getPatient("newTenant", "123") }
     }
 
     @Test

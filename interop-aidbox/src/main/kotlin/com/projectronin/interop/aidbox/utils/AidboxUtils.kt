@@ -3,13 +3,13 @@ package com.projectronin.interop.aidbox.utils
 import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
-import com.projectronin.interop.aidbox.model.fhir.datatype.BundleEntry
-import com.projectronin.interop.aidbox.model.fhir.resource.Bundle
-import com.projectronin.interop.fhir.FHIRResource
 import com.projectronin.interop.fhir.r4.CodeSystem
+import com.projectronin.interop.fhir.r4.datatype.BundleEntry
 import com.projectronin.interop.fhir.r4.datatype.BundleRequest
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
+import com.projectronin.interop.fhir.r4.resource.Bundle
+import com.projectronin.interop.fhir.r4.resource.Resource
 import com.projectronin.interop.fhir.r4.valueset.BundleType
 import com.projectronin.interop.fhir.r4.valueset.HttpVerb
 import io.ktor.client.plugins.ResponseException
@@ -54,7 +54,7 @@ suspend fun <T> respondToGraphQLException(exception: Exception): GraphQLResponse
  * @param aidboxURLRest The root URL for Aidbox FHIR REST calls.
  * @param resources The FHIR resources for the bundle.
  */
-fun makeBundleForBatchUpsert(aidboxURLRest: String, resources: List<FHIRResource>): Bundle {
+fun makeBundleForBatchUpsert(aidboxURLRest: String, resources: List<Resource<*>>): Bundle {
     return Bundle(
         id = null,
         type = BundleType.TRANSACTION,
@@ -68,7 +68,7 @@ fun makeBundleForBatchUpsert(aidboxURLRest: String, resources: List<FHIRResource
  * @param method The HTTP verb for the entry, i.e. PUT, DELETE, etc.
  * @param resource The FHIR resource for the entry. The id and resourceType values must be present.
  */
-fun makeBundleEntry(aidboxURLRest: String, method: HttpVerb, resource: FHIRResource): BundleEntry {
+fun makeBundleEntry(aidboxURLRest: String, method: HttpVerb, resource: Resource<*>): BundleEntry {
     val fullReference = "/${resource.resourceType}/${resource.id?.value}"
     return BundleEntry(
         fullUrl = Uri("$aidboxURLRest$fullReference"),

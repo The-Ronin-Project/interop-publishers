@@ -152,12 +152,12 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
 
     @Test
     fun `return and deserialize full patient`() {
-        val patient = patientService.getOncologyPatient("mdaoc", "mdaoc-12345678901")
+        val patient = patientService.getPatient("mdaoc", "mdaoc-12345678901")
         assertEquals(patient.id?.value, "mdaoc-12345678901")
     }
 
     @Test
     fun `patient from a different tenant throws exception`() {
-        assertThrows<Exception> { patientService.getOncologyPatient("newTenant", "mdaoc-12345678901") }
+        assertThrows<Exception> { patientService.getPatient("newTenant", "mdaoc-12345678901") }
     }
 }

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.projectronin.interop.aidbox.auth.AidboxAuthenticationBroker
 import com.projectronin.interop.aidbox.model.GraphQLPostRequest
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
-import com.projectronin.interop.fhir.FHIRResource
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.Address
@@ -27,8 +26,9 @@ import com.projectronin.interop.fhir.r4.datatype.primitive.Decimal
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.resource.Location
-import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPractitioner
-import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPractitionerRole
+import com.projectronin.interop.fhir.r4.resource.Practitioner
+import com.projectronin.interop.fhir.r4.resource.PractitionerRole
+import com.projectronin.interop.fhir.r4.resource.Resource
 import com.projectronin.interop.fhir.r4.valueset.ContactPointSystem
 import com.projectronin.interop.fhir.r4.valueset.DayOfWeek
 import com.projectronin.interop.fhir.r4.valueset.LocationMode
@@ -56,7 +56,7 @@ import org.junit.jupiter.api.Test
 class AidboxClientTest {
     private val urlRest = "http://localhost/8888"
     private val urlBatchUpsert = "$urlRest/fhir"
-    private val practitioner1 = OncologyPractitioner(
+    private val practitioner1 = Practitioner(
         id = Id("cmjones"),
         identifier = listOf(
             Identifier(
@@ -67,7 +67,7 @@ class AidboxClientTest {
         ),
         name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May"))),
     )
-    private val practitioner2 = OncologyPractitioner(
+    private val practitioner2 = Practitioner(
         id = Id("rallyr"),
         identifier = listOf(
             Identifier(
@@ -78,7 +78,7 @@ class AidboxClientTest {
         ),
         name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne"))),
     )
-    private val practitioner3 = OncologyPractitioner(
+    private val practitioner3 = Practitioner(
         id = Id("gwalsh"),
         identifier = listOf(
             Identifier(
@@ -182,7 +182,7 @@ class AidboxClientTest {
         availabilityExceptions = "By appointment",
         endpoint = listOf(Reference(reference = "Endpoint/4322"))
     )
-    private val practitionerRole1 = OncologyPractitionerRole(
+    private val practitionerRole1 = PractitionerRole(
         id = Id("12347"),
         identifier = listOf(
             Identifier(
@@ -201,7 +201,7 @@ class AidboxClientTest {
         availabilityExceptions = "exceptions",
         endpoint = listOf(Reference(reference = "Endpoint/1357"))
     )
-    private val practitionerRole2 = OncologyPractitionerRole(
+    private val practitionerRole2 = PractitionerRole(
         id = Id("12348"),
         identifier = listOf(
             Identifier(
@@ -223,9 +223,9 @@ class AidboxClientTest {
     private val practitioners = listOf(practitioner1, practitioner2)
     private val locations = listOf(location1, location2)
     private val practitionerRoles = listOf(practitionerRole1, practitionerRole2)
-    private val oneMissingTargetRoles: List<FHIRResource> = practitioners + listOf(location1) + practitionerRoles
-    private val fullRoles: List<FHIRResource> = practitioners + locations + practitionerRoles
-    private val unrelatedResourceInList: List<FHIRResource> =
+    private val oneMissingTargetRoles: List<Resource<*>> = practitioners + listOf(location1) + practitionerRoles
+    private val fullRoles: List<Resource<*>> = practitioners + locations + practitionerRoles
+    private val unrelatedResourceInList: List<Resource<*>> =
         listOf(practitioner3) + practitioners + locations + practitionerRoles
 
     @Test
