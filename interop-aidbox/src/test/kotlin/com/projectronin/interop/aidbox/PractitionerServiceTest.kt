@@ -11,7 +11,7 @@ import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
-import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPractitioner
+import com.projectronin.interop.fhir.r4.resource.Practitioner
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.statement.HttpResponse
@@ -823,14 +823,14 @@ class PractitionerServiceTest {
     @Test
     fun `get full practitioner test`() {
         val httpMock = mockk<HttpResponse>()
-        val practitionerMock = mockk<OncologyPractitioner>()
+        val practitionerMock = mockk<Practitioner>()
         every { practitionerMock.identifier } returns listOf(
             Identifier(
                 system = CodeSystem.RONIN_TENANT.uri,
                 value = tenantMnemonic
             )
         )
-        coEvery { httpMock.body<OncologyPractitioner>() } returns practitionerMock
+        coEvery { httpMock.body<Practitioner>() } returns practitionerMock
         coEvery { aidboxClient.getResource("Practitioner", "123") } returns httpMock
         val actual = practitionerService.getOncologyPractitioner(tenantMnemonic, "123")
         assertEquals(practitionerMock, actual)
@@ -839,14 +839,14 @@ class PractitionerServiceTest {
     @Test
     fun `get full practitioner fails with non-matching tenant`() {
         val httpMock = mockk<HttpResponse>()
-        val practitionerMock = mockk<OncologyPractitioner>()
+        val practitionerMock = mockk<Practitioner>()
         every { practitionerMock.identifier } returns listOf(
             Identifier(
                 system = CodeSystem.RONIN_TENANT.uri,
                 value = tenantMnemonic
             )
         )
-        coEvery { httpMock.body<OncologyPractitioner>() } returns practitionerMock
+        coEvery { httpMock.body<Practitioner>() } returns practitionerMock
         coEvery { aidboxClient.getResource("Practitioner", "123") } returns httpMock
         assertThrows<InvalidTenantAccessException> { practitionerService.getOncologyPractitioner("newTenant", "123") }
     }

@@ -1,13 +1,13 @@
 package com.projectronin.interop.aidbox
 
 import com.projectronin.interop.aidbox.client.AidboxClient
-import com.projectronin.interop.fhir.FHIRResource
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.HumanName
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
-import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPractitioner
+import com.projectronin.interop.fhir.r4.resource.Practitioner
+import com.projectronin.interop.fhir.r4.resource.Resource
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import io.mockk.coEvery
@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test
 
 class PublishServiceTest {
     private val collection = listOf(
-        OncologyPractitioner(
+        Practitioner(
             id = Id("cmjones"),
             identifier = listOf(
                 Identifier(system = CodeSystem.RONIN_TENANT.uri, type = CodeableConcepts.RONIN_TENANT, value = "third")
@@ -28,7 +28,7 @@ class PublishServiceTest {
                 HumanName(family = "Jones", given = listOf("Cordelia", "May"))
             )
         ),
-        OncologyPractitioner(
+        Practitioner(
             id = Id("rallyr"),
             identifier = listOf(
                 Identifier(system = CodeSystem.RONIN_TENANT.uri, type = CodeableConcepts.RONIN_TENANT, value = "second")
@@ -58,7 +58,7 @@ class PublishServiceTest {
     @Test
     fun `empty list, return true`() {
         val httpResponse = mockk<HttpResponse>()
-        val collection = listOf<FHIRResource>()
+        val collection = listOf<Resource<*>>()
         coEvery { httpResponse.status } returns HttpStatusCode.OK
         coEvery { aidboxClient.batchUpsert(collection) } returns httpResponse
         val actualSuccess: Boolean = runBlocking {

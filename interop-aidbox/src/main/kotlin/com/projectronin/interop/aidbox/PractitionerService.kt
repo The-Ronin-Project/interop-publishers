@@ -11,7 +11,7 @@ import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
-import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPractitioner
+import com.projectronin.interop.fhir.r4.resource.Practitioner
 import io.ktor.client.call.body
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -180,10 +180,10 @@ class PractitionerService(
      * Fetches an OncologyPractitioner object from Aidbox based on the Practitioner's FHIR ID.
      * @param tenantMnemonic the mnemonic of the tenant represented by this call.
      * @param practitionerFHIRID [String] the Practitioner's FHIR ID.
-     * @return [OncologyPractitioner]
+     * @return [Practitioner]
      */
-    fun getOncologyPractitioner(tenantMnemonic: String, practitionerFHIRID: String): OncologyPractitioner {
-        val oncologyPractitioner: OncologyPractitioner = runBlocking {
+    fun getOncologyPractitioner(tenantMnemonic: String, practitionerFHIRID: String): Practitioner {
+        val oncologyPractitioner: Practitioner = runBlocking {
             val httpResponse = aidboxClient.getResource("Practitioner", practitionerFHIRID)
             httpResponse.body()
         }

@@ -5,7 +5,7 @@ import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.HumanName
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
-import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPractitioner
+import com.projectronin.interop.fhir.r4.resource.Practitioner
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -19,7 +19,7 @@ class PublishServiceTest {
     private lateinit var service: PublishService
 
     private val roninDomainResources = listOf(
-        OncologyPractitioner(
+        Practitioner(
             id = Id("cmjones"),
             identifier = listOf(
                 Identifier(system = CodeSystem.RONIN_TENANT.uri, type = CodeableConcepts.RONIN_TENANT, value = "third")
@@ -28,7 +28,7 @@ class PublishServiceTest {
                 HumanName(family = "Jones", given = listOf("Cordelia", "May"))
             )
         ),
-        OncologyPractitioner(
+        Practitioner(
             id = Id("rallyr"),
             identifier = listOf(
                 Identifier(system = CodeSystem.RONIN_TENANT.uri, type = CodeableConcepts.RONIN_TENANT, value = "second")
