@@ -6,7 +6,6 @@ import com.projectronin.interop.aidbox.spring.AidboxIntegrationConfig
 import com.projectronin.interop.aidbox.testcontainer.AidboxData
 import com.projectronin.interop.aidbox.testcontainer.BaseAidboxTest
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
-import com.projectronin.interop.fhir.FHIRResource
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.Address
@@ -38,13 +37,12 @@ import com.projectronin.interop.fhir.r4.datatype.primitive.Decimal
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Instant
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
+import com.projectronin.interop.fhir.r4.resource.Appointment
 import com.projectronin.interop.fhir.r4.resource.Location
+import com.projectronin.interop.fhir.r4.resource.Patient
+import com.projectronin.interop.fhir.r4.resource.Practitioner
+import com.projectronin.interop.fhir.r4.resource.PractitionerRole
 import com.projectronin.interop.fhir.r4.resource.Resource
-import com.projectronin.interop.fhir.r4.ronin.resource.OncologyAppointment
-import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPatient
-import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPractitioner
-import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPractitionerRole
-import com.projectronin.interop.fhir.r4.ronin.resource.RoninResource
 import com.projectronin.interop.fhir.r4.valueset.AdministrativeGender
 import com.projectronin.interop.fhir.r4.valueset.AppointmentStatus
 import com.projectronin.interop.fhir.r4.valueset.ContactPointSystem
@@ -98,10 +96,10 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     @Test
     fun `can publish a new resource`() {
         // Verify that the resource does not exist.
-        val initialResource = getResource<OncologyPractitioner>("Practitioner", "mdaoc-new-resource")
+        val initialResource = getResource<Practitioner>("Practitioner", "mdaoc-new-resource")
         assertNull(initialResource)
 
-        val practitioner = OncologyPractitioner(
+        val practitioner = Practitioner(
             id = Id("mdaoc-new-resource"),
             identifier = listOf(
                 Identifier(
@@ -115,14 +113,14 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val published = publishService.publish(listOf(practitioner))
         assertTrue(published)
 
-        val resource = getResource<OncologyPractitioner>("Practitioner", "mdaoc-new-resource")
+        val resource = getResource<Practitioner>("Practitioner", "mdaoc-new-resource")
         assertEquals(practitioner, resource)
     }
 
     @Test
     @AidboxData("/aidbox/publish/PractitionerToUpdate.yaml")
     fun `can publish an updated resource`() {
-        val practitioner = OncologyPractitioner(
+        val practitioner = Practitioner(
             id = Id("mdaoc-existing-resource"),
             identifier = listOf(
                 Identifier(
@@ -135,7 +133,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         )
 
         // Verify that the resource does exist.
-        val initialResource = getResource<OncologyPractitioner>("Practitioner", "mdaoc-existing-resource")
+        val initialResource = getResource<Practitioner>("Practitioner", "mdaoc-existing-resource")
         assertNotNull(initialResource)
         // And that it isn't what we are about to make it.
         assertNotEquals(practitioner, initialResource)
@@ -143,7 +141,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val published = publishService.publish(listOf(practitioner))
         assertTrue(published)
 
-        val resource = getResource<OncologyPractitioner>("Practitioner", "mdaoc-existing-resource")
+        val resource = getResource<Practitioner>("Practitioner", "mdaoc-existing-resource")
         assertEquals(practitioner, resource)
     }
 
@@ -151,7 +149,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     fun `can publish multiple resources of the same resourceType (both RoninResource)`() {
         // Before
         val idPrefix = "2P200-"
-        val practitioner1 = OncologyPractitioner(
+        val practitioner1 = Practitioner(
             id = Id("${idPrefix}cmjones"),
             identifier = listOf(
                 Identifier(
@@ -162,7 +160,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
         )
-        val practitioner2 = OncologyPractitioner(
+        val practitioner2 = Practitioner(
             id = Id("${idPrefix}rallyr"),
             identifier = listOf(
                 Identifier(
@@ -294,7 +292,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
 
     @Test
     fun `can publish multiple resources of different resourceTypes (both RoninResource)`() {
-        val practitioner = OncologyPractitioner(
+        val practitioner = Practitioner(
             id = Id("mdaoc-practitioner"),
             identifier = listOf(
                 Identifier(
@@ -305,7 +303,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             name = listOf(HumanName(family = "Doctor", given = listOf("Bob")))
         )
-        val patient = OncologyPatient(
+        val patient = Patient(
             id = Id("mdaoc-patient"),
             identifier = listOf(
                 Identifier(type = CodeableConcepts.RONIN_TENANT, system = CodeSystem.RONIN_TENANT.uri, value = "mdaoc"),
@@ -341,10 +339,10 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val published = publishService.publish(listOf(practitioner, patient))
         assertTrue(published)
 
-        val resource1 = getResource<OncologyPractitioner>("Practitioner", "mdaoc-practitioner")
+        val resource1 = getResource<Practitioner>("Practitioner", "mdaoc-practitioner")
         assertEquals(practitioner, resource1)
 
-        val resource2 = getResource<OncologyPatient>("Patient", "mdaoc-patient")
+        val resource2 = getResource<Patient>("Patient", "mdaoc-patient")
         assertEquals(patient, resource2)
     }
 
@@ -352,7 +350,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     fun `can publish resources with all references provided (RoninResource, R4Resource) - PractitionerRole, Practitioner, Location`() {
         // Before
         val idPrefix = "2PRAllRef200-"
-        val practitioner1 = OncologyPractitioner(
+        val practitioner1 = Practitioner(
             id = Id("${idPrefix}cmjones"),
             identifier = listOf(
                 Identifier(
@@ -363,7 +361,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
         )
-        val practitioner2 = OncologyPractitioner(
+        val practitioner2 = Practitioner(
             id = Id("${idPrefix}rallyr"),
             identifier = listOf(
                 Identifier(
@@ -465,7 +463,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             hoursOfOperation = listOf(LocationHoursOfOperation(daysOfWeek = listOf(DayOfWeek.TUESDAY), allDay = true)),
             availabilityExceptions = "By appointment"
         )
-        val practitionerRole1 = OncologyPractitionerRole(
+        val practitionerRole1 = PractitionerRole(
             id = Id("${idPrefix}12347"),
             identifier = listOf(
                 Identifier(
@@ -482,7 +480,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             notAvailable = listOf(NotAvailable(description = "Not available now")),
             availabilityExceptions = "exceptions"
         )
-        val practitionerRole2 = OncologyPractitionerRole(
+        val practitionerRole2 = PractitionerRole(
             id = Id("${idPrefix}12348"),
             identifier = listOf(
                 Identifier(
@@ -499,7 +497,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             notAvailable = listOf(NotAvailable(description = "Available now")),
             availabilityExceptions = "No exceptions"
         )
-        val fullRoles: List<FHIRResource> = listOf(
+        val fullRoles: List<Resource<*>> = listOf(
             location1,
             location2,
             practitioner1,
@@ -533,7 +531,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     fun `can publish resources with all references provided (RoninResource) - Appointment, Practitioner, Patient`() {
         // Before
         val idPrefix = "1AptAllRef200-"
-        val practitioner1 = OncologyPractitioner(
+        val practitioner1 = Practitioner(
             id = Id("${idPrefix}cmjones"),
             identifier = listOf(
                 Identifier(
@@ -544,7 +542,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
         )
-        val practitioner2 = OncologyPractitioner(
+        val practitioner2 = Practitioner(
             id = Id("${idPrefix}rallyr"),
             identifier = listOf(
                 Identifier(
@@ -555,7 +553,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne")))
         )
-        val patient = OncologyPatient(
+        val patient = Patient(
             id = Id("${idPrefix}12345"),
             identifier = listOf(
                 Identifier(
@@ -596,7 +594,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             managingOrganization = Reference(display = "organization"),
             link = listOf(PatientLink(other = Reference(display = "Patient"), type = LinkType.REPLACES))
         )
-        val appointment = OncologyAppointment(
+        val appointment = Appointment(
             id = Id("${idPrefix}12345"),
             extension = listOf(
                 Extension(
@@ -649,7 +647,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                 )
             )
         )
-        val fullAppointment: List<FHIRResource> = listOf(
+        val fullAppointment: List<Resource<*>> = listOf(
             practitioner1,
             practitioner2,
             patient,
@@ -676,7 +674,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     fun `can publish PractitionerRole with all references provided, plus an extra resource (RoninResource and R4Resource)`() {
         // Before
         val idPrefix = "2PRAllRefPlusUnrelatedP200-"
-        val practitioner1 = OncologyPractitioner(
+        val practitioner1 = Practitioner(
             id = Id("${idPrefix}cmjones"),
             identifier = listOf(
                 Identifier(
@@ -687,7 +685,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
         )
-        val practitioner2 = OncologyPractitioner(
+        val practitioner2 = Practitioner(
             id = Id("${idPrefix}rallyr"),
             identifier = listOf(
                 Identifier(
@@ -698,7 +696,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne")))
         )
-        val practitioner3 = OncologyPractitioner(
+        val practitioner3 = Practitioner(
             id = Id("${idPrefix}gwalsh"),
             identifier = listOf(
                 Identifier(
@@ -800,7 +798,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             hoursOfOperation = listOf(LocationHoursOfOperation(daysOfWeek = listOf(DayOfWeek.TUESDAY), allDay = true)),
             availabilityExceptions = "By appointment"
         )
-        val practitionerRole1 = OncologyPractitionerRole(
+        val practitionerRole1 = PractitionerRole(
             id = Id("${idPrefix}12347"),
             identifier = listOf(
                 Identifier(
@@ -817,7 +815,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             notAvailable = listOf(NotAvailable(description = "Not available now")),
             availabilityExceptions = "exceptions"
         )
-        val practitionerRole2 = OncologyPractitionerRole(
+        val practitionerRole2 = PractitionerRole(
             id = Id("${idPrefix}12348"),
             identifier = listOf(
                 Identifier(
@@ -834,7 +832,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             notAvailable = listOf(NotAvailable(description = "Available now")),
             availabilityExceptions = "No exceptions"
         )
-        val unrelatedResourceInList: List<FHIRResource> = listOf(
+        val unrelatedResourceInList: List<Resource<*>> = listOf(
             location1,
             location2,
             practitioner1,
@@ -880,7 +878,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     fun `can publish Appointment with all references provided, plus extra resources (RoninResource and R4Resource)`() {
         // Before
         val idPrefix = "1AptAllRefPlusUnrelatedP200-"
-        val practitioner1 = OncologyPractitioner(
+        val practitioner1 = Practitioner(
             id = Id("${idPrefix}cmjones"),
             identifier = listOf(
                 Identifier(
@@ -891,7 +889,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
         )
-        val practitioner2 = OncologyPractitioner(
+        val practitioner2 = Practitioner(
             id = Id("${idPrefix}rallyr"),
             identifier = listOf(
                 Identifier(
@@ -902,7 +900,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne")))
         )
-        val practitioner3 = OncologyPractitioner(
+        val practitioner3 = Practitioner(
             id = Id("${idPrefix}gwalsh"),
             identifier = listOf(
                 Identifier(
@@ -1004,7 +1002,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             hoursOfOperation = listOf(LocationHoursOfOperation(daysOfWeek = listOf(DayOfWeek.TUESDAY), allDay = true)),
             availabilityExceptions = "By appointment"
         )
-        val patient = OncologyPatient(
+        val patient = Patient(
             id = Id("${idPrefix}12345"),
             identifier = listOf(
                 Identifier(
@@ -1045,7 +1043,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             managingOrganization = Reference(display = "organization"),
             link = listOf(PatientLink(other = Reference(display = "Patient"), type = LinkType.REPLACES))
         )
-        val appointment = OncologyAppointment(
+        val appointment = Appointment(
             id = Id("${idPrefix}12345"),
             extension = listOf(
                 Extension(
@@ -1098,7 +1096,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                 )
             )
         )
-        val unrelatedResourceInList: List<FHIRResource> = listOf(
+        val unrelatedResourceInList: List<Resource<*>> = listOf(
             location1,
             location2,
             practitioner1,
@@ -1141,7 +1139,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     fun `can publish list of PractitionerRole with reference in one PractitionerRole that cannot be resolved`() {
         // Before
         val idPrefix = "2PRNoRef400-"
-        val practitioner1 = OncologyPractitioner(
+        val practitioner1 = Practitioner(
             id = Id("${idPrefix}cmjones"),
             identifier = listOf(
                 Identifier(
@@ -1152,7 +1150,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
         )
-        val practitioner2 = OncologyPractitioner(
+        val practitioner2 = Practitioner(
             id = Id("${idPrefix}rallyr"),
             identifier = listOf(
                 Identifier(
@@ -1213,7 +1211,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             availabilityExceptions = "Call for details"
         )
-        val practitionerRole1 = OncologyPractitionerRole(
+        val practitionerRole1 = PractitionerRole(
             id = Id("${idPrefix}12347"),
             identifier = listOf(
                 Identifier(
@@ -1230,7 +1228,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             notAvailable = listOf(NotAvailable(description = "Not available now")),
             availabilityExceptions = "exceptions"
         )
-        val practitionerRole2 = OncologyPractitionerRole(
+        val practitionerRole2 = PractitionerRole(
             id = Id("${idPrefix}12348"),
             identifier = listOf(
                 Identifier(
@@ -1247,7 +1245,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             notAvailable = listOf(NotAvailable(description = "Available now")),
             availabilityExceptions = "No exceptions"
         )
-        val practitionerRoles: List<FHIRResource> = listOf(
+        val practitionerRoles: List<Resource<*>> = listOf(
             practitioner1,
             practitioner2,
             location1,
@@ -1274,7 +1272,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     fun `can publish Appointment with reference that cannot be resolved`() {
         // Before
         val idPrefix = "1AptNoRef400-"
-        val practitioner1 = OncologyPractitioner(
+        val practitioner1 = Practitioner(
             id = Id("${idPrefix}cmjones"),
             identifier = listOf(
                 Identifier(
@@ -1285,7 +1283,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
         )
-        val practitioner2 = OncologyPractitioner(
+        val practitioner2 = Practitioner(
             id = Id("${idPrefix}rallyr"),
             identifier = listOf(
                 Identifier(
@@ -1296,7 +1294,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             ),
             name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne")))
         )
-        val patient = OncologyPatient(
+        val patient = Patient(
             id = Id("${idPrefix}12345"),
             identifier = listOf(
                 Identifier(
@@ -1337,7 +1335,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             managingOrganization = Reference(display = "organization"),
             link = listOf(PatientLink(other = Reference(display = "Patient"), type = LinkType.REPLACES))
         )
-        val appointment = OncologyAppointment(
+        val appointment = Appointment(
             id = Id("${idPrefix}12345"),
             extension = listOf(
                 Extension(
@@ -1390,7 +1388,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                 )
             )
         )
-        val resourceList: List<FHIRResource> = listOf(
+        val resourceList: List<Resource<*>> = listOf(
             practitioner1,
             practitioner2,
             patient,
@@ -1419,12 +1417,12 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
 
     @Test
     fun `empty list of resources does not error`() {
-        val collection = listOf<FHIRResource>()
+        val collection = listOf<Resource<*>>()
         val published = publishService.publish(collection)
         assertTrue(published)
     }
 
-    private inline fun <reified T : FHIRResource> getResource(resourceType: String, id: String): T? {
+    private inline fun <reified T : Resource<T>> getResource(resourceType: String, id: String): T? {
         return runBlocking {
             val aidboxUrl = aidbox.baseUrl()
             val response = try {
@@ -1451,7 +1449,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         }
     }
 
-    private inline fun <reified T : RoninResource> getRoninResource(resourceType: String, id: String): T? {
+    private inline fun <reified T : Resource<T>> getRoninResource(resourceType: String, id: String): T? {
         return runBlocking {
             val aidboxUrl = aidbox.baseUrl()
             val response = try {
@@ -1476,7 +1474,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         }
     }
 
-    private inline fun <reified T : Resource> getR4Resource(resourceType: String, id: String): T? {
+    private inline fun <reified T : Resource<T>> getR4Resource(resourceType: String, id: String): T? {
         return runBlocking {
             val aidboxUrl = aidbox.baseUrl()
             val response = try {
@@ -1523,7 +1521,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
 
     private fun allRoninResourcesExist(resourceType: String, ids: List<String>): Boolean {
         ids.forEach {
-            if (getRoninResource<RoninResource>(resourceType, it) == null) {
+            if (getRoninResource<Resource<*>>(resourceType, it) == null) {
                 return false
             }
         }
@@ -1532,7 +1530,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
 
     private fun allRoninResourcesNull(resourceType: String, ids: List<String>): Boolean {
         ids.forEach {
-            if (getRoninResource<RoninResource>(resourceType, it) != null) {
+            if (getRoninResource<Resource<*>>(resourceType, it) != null) {
                 return false
             }
         }
@@ -1541,7 +1539,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
 
     private fun allR4ResourcesExist(resourceType: String, ids: List<String>): Boolean {
         ids.forEach {
-            if (getR4Resource<Resource>(resourceType, it) == null) {
+            if (getR4Resource<Resource<*>>(resourceType, it) == null) {
                 return false
             }
         }
@@ -1550,7 +1548,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
 
     private fun allR4ResourcesNull(resourceType: String, ids: List<String>): Boolean {
         ids.forEach {
-            if (getR4Resource<Resource>(resourceType, it) != null) {
+            if (getR4Resource<Resource<*>>(resourceType, it) != null) {
                 return false
             }
         }
