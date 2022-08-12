@@ -1,0 +1,28 @@
+name: Interop Datalake Tests
+on:
+  push:
+    branches: [ master, refactor ]
+
+  pull_request:
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          java-version: 17
+          distribution: 'zulu'
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Gradlew Test
+        run: ./gradlew :interop-datalake:test
+      - name: Upload Code Coverage
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          file: ./interop-datalake/codecov/test/jacocoTestReport.xml
+          flags: datalake
