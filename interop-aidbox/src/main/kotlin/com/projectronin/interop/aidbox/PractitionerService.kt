@@ -6,6 +6,7 @@ import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.aidbox.utils.validateTenantIdentifier
+import com.projectronin.interop.common.exceptions.LogMarkingException
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
@@ -44,19 +45,14 @@ class PractitionerService(
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
                 httpResponse.body()
-            } catch (e: Exception) {
-                logger.warn(e) {
-                    "Encountered exception when requesting Practitioner Identifiers from Aidbox using FHIR ID"
+            } catch (e: LogMarkingException) {
+                logger.warn(e.logMarker) {
+                    "Encountered exception when requesting Practitioner Identifiers from Aidbox using FHIR ID: ${e.message}"
                 }
                 respondToGraphQLException(e)
             }
         }
-        response.errors?.let {
-            logger.error {
-                "Encountered errors while requesting Practitioner Identifiers from Aidbox using FHIR ID: $it"
-            }
-            return emptyList()
-        }
+        response.errors?.let { return emptyList() }
         logger.info { "Completed retrieving Practitioner Identifiers from Aidbox using FHIR ID" }
         // Practitioner list will have at most 1 practitioner due to direct id reference.
         return response.data?.practitionerList?.firstOrNull()?.identifier ?: listOf()
@@ -137,8 +133,8 @@ class PractitionerService(
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
                 httpResponse.body()
-            } catch (e: Exception) {
-                logger.warn(e) { "Encountered exception when requesting Practitioner FHIR IDs from Aidbox" }
+            } catch (e: LogMarkingException) {
+                logger.warn(e.logMarker) { "Encountered exception when requesting Practitioner FHIR IDs from Aidbox: ${e.message}" }
                 respondToGraphQLException(e)
             }
         }
@@ -158,19 +154,14 @@ class PractitionerService(
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
                 httpResponse.body()
-            } catch (e: Exception) {
-                logger.error(e) {
-                    "Exception occurred while retrieving Practitioners for $tenantMnemonic"
+            } catch (e: LogMarkingException) {
+                logger.warn(e.logMarker) {
+                    "Exception occurred while retrieving Practitioners for $tenantMnemonic: ${e.message}"
                 }
                 respondToGraphQLException(e)
             }
         }
-        response.errors?.let {
-            logger.error {
-                "Encounters errors while retrieving Practitioners for $tenantMnemonic: $it"
-            }
-            return emptyMap()
-        }
+        response.errors?.let { return emptyMap() }
         val idMap = response.data?.practitionerList?.associate { it.id.value to it.identifier } ?: emptyMap()
         logger.info { "Completed retrieving Practitioners from Aidbox for $tenantMnemonic" }
         return idMap

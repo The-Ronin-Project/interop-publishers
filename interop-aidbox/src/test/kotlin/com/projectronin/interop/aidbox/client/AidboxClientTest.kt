@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.projectronin.interop.aidbox.auth.AidboxAuthenticationBroker
 import com.projectronin.interop.aidbox.model.GraphQLPostRequest
+import com.projectronin.interop.common.http.exceptions.ClientAuthenticationException
+import com.projectronin.interop.common.http.exceptions.ClientFailureException
+import com.projectronin.interop.common.http.exceptions.ServiceUnavailableException
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.CodeableConcepts
@@ -38,8 +41,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.toByteArray
-import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpHeaders
@@ -294,24 +295,22 @@ class AidboxClientTest {
     fun `aidbox batch upsert of PractitionerRole with all reference targets missing, response 422`() {
         val expectedResponseStatus = HttpStatusCode.UnprocessableEntity
         val aidboxClient = createClient(expectedUrl = urlBatchUpsert, responseStatus = expectedResponseStatus)
-        val exception = assertThrows(ClientRequestException::class.java) {
+        assertThrows(ClientFailureException::class.java) {
             runBlocking {
                 aidboxClient.batchUpsert(practitionerRoles)
             }
         }
-        assertEquals(expectedResponseStatus, exception.response.status)
     }
 
     @Test
     fun `aidbox batch upsert of PractitionerRole with only 1 reference target missing, response 422`() {
         val expectedResponseStatus = HttpStatusCode.UnprocessableEntity
         val aidboxClient = createClient(expectedUrl = urlBatchUpsert, responseStatus = expectedResponseStatus)
-        val exception = assertThrows(ClientRequestException::class.java) {
+        assertThrows(ClientFailureException::class.java) {
             runBlocking {
                 aidboxClient.batchUpsert(oneMissingTargetRoles)
             }
         }
-        assertEquals(expectedResponseStatus, exception.response.status)
     }
 
     @Test
@@ -339,24 +338,22 @@ class AidboxClientTest {
     fun `aidbox batch upsert of 2 Practitioner resources, response 4xx exception`() {
         val expectedResponseStatus = HttpStatusCode.Unauthorized
         val aidboxClient = createClient(expectedUrl = urlBatchUpsert, responseStatus = expectedResponseStatus)
-        val exception = assertThrows(ClientRequestException::class.java) {
+        assertThrows(ClientAuthenticationException::class.java) {
             runBlocking {
                 aidboxClient.batchUpsert(practitioners)
             }
         }
-        assertEquals(expectedResponseStatus, exception.response.status)
     }
 
     @Test
     fun `aidbox batch upsert of 2 Practitioner resources, response 5xx exception`() {
         val expectedResponseStatus = HttpStatusCode.ServiceUnavailable
-        val exception = assertThrows(ServerResponseException::class.java) {
+        assertThrows(ServiceUnavailableException::class.java) {
             val aidboxClient = createClient(expectedUrl = urlBatchUpsert, responseStatus = expectedResponseStatus)
             runBlocking {
                 aidboxClient.batchUpsert(practitioners)
             }
         }
-        assertEquals(exception.response.status, expectedResponseStatus)
     }
 
     private fun createClient(

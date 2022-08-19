@@ -6,6 +6,7 @@ import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
+import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.jackson.JacksonManager
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.CodeableConcepts
@@ -13,7 +14,6 @@ import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import io.ktor.client.call.body
-import io.ktor.client.plugins.ResponseException
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -291,7 +291,7 @@ class PractitionerServiceTest {
                 query = query,
                 parameters = mapOf("id" to fhirID, "tenant" to tenantQueryString)
             )
-        } throws ResponseException(mockHttpResponse, "Response Text")
+        } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 
         val actual = practitionerService.getPractitionerIdentifiers(tenantMnemonic, fhirID)
 
@@ -529,7 +529,7 @@ class PractitionerServiceTest {
                     }
                 )
             )
-        } throws ResponseException(mockHttpResponse, "Unauthorized")
+        } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 
         val actualMap = practitionerService.getPractitionerFHIRIds(
             tenantMnemonic,
@@ -750,7 +750,7 @@ class PractitionerServiceTest {
                 query = practitionerListQuery,
                 parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
-        } throws ResponseException(mockHttpResponse, "Response text")
+        } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 
         val actual = practitionerService.getPractitionersByTenant(tenantMnemonic)
 

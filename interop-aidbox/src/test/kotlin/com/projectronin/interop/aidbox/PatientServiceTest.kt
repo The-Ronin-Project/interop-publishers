@@ -6,6 +6,7 @@ import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
+import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.CodeableConcepts
@@ -13,7 +14,6 @@ import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.resource.Patient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.ResponseException
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -213,7 +213,7 @@ class PatientServiceTest {
                     }
                 )
             )
-        } throws ResponseException(mockHttpResponse, "Unauthorized")
+        } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 
         val actualMap =
             patientService.getPatientFHIRIds(tenantMnemonic, mapOf("1" to mrnSystemValue1, "2" to mrnSystemValue2))
@@ -398,7 +398,7 @@ class PatientServiceTest {
                 query = patientListQuery,
                 parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
-        } throws ResponseException(mockHttpResponse, "Response text")
+        } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 
         val actual = patientService.getPatientsByTenant(tenantMnemonic)
 
@@ -635,7 +635,7 @@ class PatientServiceTest {
                 query = patientListQuery,
                 parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
-        } throws ResponseException(mockHttpResponse, "Response text")
+        } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 
         val actual = patientService.getPatientFHIRIdsByTenant(tenantMnemonic)
 

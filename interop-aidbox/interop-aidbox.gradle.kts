@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     implementation(libs.interop.common)
+    implementation(libs.interop.commonHttp)
     implementation(libs.interop.fhir)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)

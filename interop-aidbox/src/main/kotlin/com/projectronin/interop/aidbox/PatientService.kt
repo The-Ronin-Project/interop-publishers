@@ -8,6 +8,7 @@ import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.aidbox.utils.validateTenantIdentifier
+import com.projectronin.interop.common.exceptions.LogMarkingException
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
@@ -71,8 +72,8 @@ class PatientService(
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
                 httpResponse.body()
-            } catch (e: Exception) {
-                logger.warn(e) { "Encountered exception when requesting Patient FHIR IDs from Aidbox" }
+            } catch (e: LogMarkingException) {
+                logger.warn(e.logMarker) { "Encountered exception when requesting Patient FHIR IDs from Aidbox: ${e.message}" }
                 respondToGraphQLException(e)
             }
         }
@@ -92,19 +93,12 @@ class PatientService(
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
                 httpResponse.body()
-            } catch (e: Exception) {
-                logger.error(e) {
-                    "Exception occurred while retrieving Patients for $tenantMnemonic"
-                }
+            } catch (e: LogMarkingException) {
+                logger.warn(e.logMarker) { "Exception occurred while retrieving Patients for $tenantMnemonic: ${e.message}" }
                 respondToGraphQLException(e)
             }
         }
-        response.errors?.let {
-            logger.error {
-                "Encounters errors while retrieving Patients for $tenantMnemonic: $it"
-            }
-            return emptyMap()
-        }
+        response.errors?.let { return emptyMap() }
         val idMap = response.data?.patientList?.associate { it.id.value to it.identifier } ?: emptyMap()
         logger.info { "Completed retrieving Patients from Aidbox for $tenantMnemonic" }
         return idMap

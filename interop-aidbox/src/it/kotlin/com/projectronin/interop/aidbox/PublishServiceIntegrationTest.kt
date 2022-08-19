@@ -1471,7 +1471,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
 
     private fun allResourcesExist(resourceType: String, ids: List<String>): Boolean {
         ids.forEach {
-            if (getResource<Resource<Nothing>>(resourceType, it) == null) {
+            if (!doesResourceExist(resourceType, it)) {
                 return false
             }
         }
@@ -1480,10 +1480,33 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
 
     private fun allResourcesNull(resourceType: String, ids: List<String>): Boolean {
         ids.forEach {
-            if (getResource<Resource<Nothing>>(resourceType, it) != null) {
+            if (doesResourceExist(resourceType, it)) {
                 return false
             }
         }
         return true
+    }
+
+    private fun doesResourceExist(resourceType: String, id: String): Boolean {
+        return runBlocking {
+            val aidboxUrl = aidbox.baseUrl()
+            val response = try {
+                aidbox.ktorClient.get("$aidboxUrl/fhir/$resourceType/$id") {
+                    headers {
+                        append(HttpHeaders.Authorization, "Bearer ${aidbox.accessToken()}")
+                    }
+                }
+            } catch (e: ClientRequestException) {
+                e.response
+            }
+
+            if (response.status.isSuccess()) {
+                true
+            } else if (response.status == HttpStatusCode.NotFound) {
+                false
+            } else {
+                throw IllegalStateException("Error while purging test data: ${response.bodyAsText()}")
+            }
+        }
     }
 }
