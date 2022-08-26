@@ -3,11 +3,9 @@ package com.projectronin.interop.aidbox.client
 import com.projectronin.interop.aidbox.auth.AidboxAuthenticationBroker
 import com.projectronin.interop.aidbox.model.GraphQLPostRequest
 import com.projectronin.interop.aidbox.utils.makeBundleForBatchUpsert
-import com.projectronin.interop.fhir.FHIRResource
+import com.projectronin.interop.common.http.ktor.throwExceptionFromHttpStatus
+import com.projectronin.interop.fhir.r4.resource.Resource
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.RedirectResponseException
-import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
@@ -42,11 +40,8 @@ class AidboxClient(
      * The transaction bundle is all-or-nothing: Every resource in the bundle must succeed to return a 200 response.
      * @param resourceCollection List of FHIR resources to publish. May be a mixed List with different resourceTypes.
      * @return [HttpResponse] from the Aidbox FHIR transaction bundle REST API.
-     * @throws [RedirectResponseException] for a 3xx response.
-     * @throws [ClientRequestException] for a 4xx response.
-     * @throws [ServerResponseException] for a 5xx response.
      */
-    suspend fun batchUpsert(resourceCollection: List<FHIRResource>): HttpResponse {
+    suspend fun batchUpsert(resourceCollection: List<Resource<*>>): HttpResponse {
         val arrayLength = resourceCollection.size
         val showArray = when (arrayLength) {
             1 -> "resource"
@@ -56,22 +51,17 @@ class AidboxClient(
         val bundle = makeBundleForBatchUpsert(aidboxURLRest, resourceCollection)
         val authentication = authenticationBroker.getAuthentication()
         val response: HttpResponse = runBlocking {
-            try {
-                httpClient.post("$aidboxURLRest/fhir") {
-                    headers {
-                        append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
-                        append("aidbox-validation-skip", "reference")
-                    }
-                    contentType(ContentType.Application.Json)
-                    accept(ContentType.Application.Json)
-                    setBody(bundle)
+            httpClient.post("$aidboxURLRest/fhir") {
+                headers {
+                    append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
+                    append("aidbox-validation-skip", "reference")
                 }
-            } catch (e: Exception) {
-                logger.error(e) { "Exception during Aidbox batch upsert" }
-                throw e
+                contentType(ContentType.Application.Json)
+                accept(ContentType.Application.Json)
+                setBody(bundle)
             }
         }
-        throwExceptionFromHttpStatus(response)
+        response.throwExceptionFromHttpStatus("Aidbox", "$aidboxURLRest/fhir/")
 
         return response
     }
@@ -95,7 +85,7 @@ class AidboxClient(
             accept(ContentType.Application.Json)
             setBody(GraphQLPostRequest(query = query, variables = parameters.toSortedMap()))
         }
-        throwExceptionFromHttpStatus(response)
+        response.throwExceptionFromHttpStatus("Aidbox", "$aidboxURLRest/graphql")
 
         logger.debug { "Aidbox query returned ${response.status}" }
 
@@ -117,18 +107,8 @@ class AidboxClient(
             contentType(ContentType.Application.Json)
             accept(ContentType.Application.Json)
         }
-        throwExceptionFromHttpStatus(response)
-        return response
-    }
+        response.throwExceptionFromHttpStatus("Aidbox", "$aidboxURLRest/fhir/$resourceType/$resourceFHIRID")
 
-    /**
-     * Throws an exception if the [HttpResponse]'s status is a 4xx or 5xx.  Mimics the exceptions used by
-     * Ktor if the expectSuccess flag is set.
-     */
-    private fun throwExceptionFromHttpStatus(response: HttpResponse) {
-        when (response.status.value) {
-            in 400..499 -> throw ClientRequestException(response, "Bad client request")
-            in 500..599 -> throw ServerResponseException(response, "Bad server response")
-        }
+        return response
     }
 }

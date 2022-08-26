@@ -8,11 +8,12 @@ import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.aidbox.utils.validateTenantIdentifier
+import com.projectronin.interop.common.exceptions.LogMarkingException
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
-import com.projectronin.interop.fhir.r4.ronin.resource.OncologyPatient
+import com.projectronin.interop.fhir.r4.resource.Patient
 import io.ktor.client.call.body
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -71,8 +72,8 @@ class PatientService(
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
                 httpResponse.body()
-            } catch (e: Exception) {
-                logger.warn(e) { "Encountered exception when requesting Patient FHIR IDs from Aidbox" }
+            } catch (e: LogMarkingException) {
+                logger.warn(e.logMarker) { "Encountered exception when requesting Patient FHIR IDs from Aidbox: ${e.message}" }
                 respondToGraphQLException(e)
             }
         }
@@ -92,19 +93,12 @@ class PatientService(
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
                 httpResponse.body()
-            } catch (e: Exception) {
-                logger.error(e) {
-                    "Exception occurred while retrieving Patients for $tenantMnemonic"
-                }
+            } catch (e: LogMarkingException) {
+                logger.warn(e.logMarker) { "Exception occurred while retrieving Patients for $tenantMnemonic: ${e.message}" }
                 respondToGraphQLException(e)
             }
         }
-        response.errors?.let {
-            logger.error {
-                "Encounters errors while retrieving Patients for $tenantMnemonic: $it"
-            }
-            return emptyMap()
-        }
+        response.errors?.let { return emptyMap() }
         val idMap = response.data?.patientList?.associate { it.id.value to it.identifier } ?: emptyMap()
         logger.info { "Completed retrieving Patients from Aidbox for $tenantMnemonic" }
         return idMap
@@ -118,24 +112,21 @@ class PatientService(
     }
 
     /**
-     * Fetches an OncologyPatient object from Aidbox based on the Patient's FHIR ID.
-     * @param tenantMnemonic the mnemonic of the tenant represented by this call.
-     * @param patientFHIRID [String] the patient's FHIR ID.
-     * @return [OncologyPatient]
+     * Fetches a [Patient] from Aidbox for the [tenantMnemonic] and [patientFHIRID]
      */
-    fun getOncologyPatient(tenantMnemonic: String, patientFHIRID: String): OncologyPatient {
-        val oncologyPatient: OncologyPatient = runBlocking {
+    fun getPatient(tenantMnemonic: String, patientFHIRID: String): Patient {
+        val patient = runBlocking<Patient> {
             val httpResponse = aidboxClient.getResource("Patient", patientFHIRID)
             httpResponse.body()
         }
 
         validateTenantIdentifier(
             tenantMnemonic,
-            oncologyPatient.identifier,
+            patient.identifier,
             "Tenant $tenantMnemonic cannot access patient $patientFHIRID"
         )
 
-        return oncologyPatient
+        return patient
     }
 }
 

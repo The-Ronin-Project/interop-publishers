@@ -4,6 +4,7 @@ import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.aidbox.spring.AidboxIntegrationConfig
 import com.projectronin.interop.aidbox.testcontainer.AidboxData
 import com.projectronin.interop.aidbox.testcontainer.BaseAidboxTest
+import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
@@ -152,12 +153,17 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
 
     @Test
     fun `return and deserialize full patient`() {
-        val patient = patientService.getOncologyPatient("mdaoc", "mdaoc-12345678901")
+        val patient = patientService.getPatient("mdaoc", "mdaoc-12345678901")
         assertEquals(patient.id?.value, "mdaoc-12345678901")
     }
 
     @Test
+    fun `patient error`() {
+        assertThrows<ClientFailureException> { patientService.getPatient("mdaoc", "mdaoc-12345") }
+    }
+
+    @Test
     fun `patient from a different tenant throws exception`() {
-        assertThrows<Exception> { patientService.getOncologyPatient("newTenant", "mdaoc-12345678901") }
+        assertThrows<Exception> { patientService.getPatient("newTenant", "mdaoc-12345678901") }
     }
 }

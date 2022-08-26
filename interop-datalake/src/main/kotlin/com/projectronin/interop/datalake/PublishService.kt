@@ -2,7 +2,7 @@ package com.projectronin.interop.datalake
 
 import com.projectronin.interop.common.jackson.JacksonManager
 import com.projectronin.interop.datalake.azure.client.AzureClient
-import com.projectronin.interop.fhir.FHIRResource
+import com.projectronin.interop.fhir.r4.resource.Resource
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -32,7 +32,7 @@ class PublishService(private val azureClient: AzureClient) {
      *                  but expects all of them to have a defined ID
      * @return true for success; success may include no data to publish
      */
-    fun publishFHIRR4(tenantId: String, resources: List<FHIRResource>): Boolean {
+    fun publishFHIRR4(tenantId: String, resources: List<Resource<*>>): Boolean {
         val root = "/fhir-r4"
         logger.info { "Publishing Ronin clinical data to datalake at $root" }
         if (resources.isEmpty()) {

@@ -172,14 +172,14 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
 
     @Test
     fun `return and deserialize full practitioner`() {
-        val practitioner = practitionerService.getOncologyPractitioner("mdaoc", "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
+        val practitioner = practitionerService.getPractitioner("mdaoc", "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
         assertEquals(practitioner.id?.value, "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
     }
 
     @Test
     fun `practitioner from a different tenant throws exception`() {
         assertThrows<Exception> {
-            practitionerService.getOncologyPractitioner("newTenant", "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
+            practitionerService.getPractitioner("newTenant", "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
         }
     }
 

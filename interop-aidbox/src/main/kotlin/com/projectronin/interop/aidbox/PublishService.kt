@@ -1,9 +1,8 @@
 package com.projectronin.interop.aidbox
 
 import com.projectronin.interop.aidbox.client.AidboxClient
-import com.projectronin.interop.aidbox.utils.respondToException
-import com.projectronin.interop.fhir.FHIRResource
-import io.ktor.client.statement.HttpResponse
+import com.projectronin.interop.common.exceptions.LogMarkingException
+import com.projectronin.interop.fhir.r4.resource.Resource
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -23,19 +22,18 @@ class PublishService(private val aidboxClient: AidboxClient) {
      * @param resourceCollection List of FHIR resources to publish. May be a mixed List with different resourceTypes.
      * @return true for success: an HTTP 2xx response, or publish was skipped for an empty list; otherwise false.
      */
-    fun publish(resourceCollection: List<FHIRResource>): Boolean {
+    fun publish(resourceCollection: List<Resource<*>>): Boolean {
         logger.info { "Publishing Ronin clinical data" }
         if (resourceCollection.isEmpty()) {
             return true
         }
-        val response: HttpResponse = runBlocking {
+        return runBlocking {
             try {
-                aidboxClient.batchUpsert(resourceCollection)
-            } catch (e: Exception) {
-                logger.error(e) { "Failed to publish Ronin clinical data" }
-                respondToException<HttpResponse>(e)
+                aidboxClient.batchUpsert(resourceCollection).status.isSuccess()
+            } catch (e: LogMarkingException) {
+                logger.warn(e.logMarker) { "Failed to publish Ronin clinical data" }
+                false
             }
         }
-        return (response.status.isSuccess())
     }
 }
