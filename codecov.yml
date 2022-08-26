@@ -19,6 +19,12 @@ coverage:
         threshold: 1%
         flags:
           - publishers
+      datalake:
+        target: auto
+        threshold: 1%
+        flags:
+          - datalake
+
 
     patch:
       aidbox:
@@ -39,6 +45,12 @@ coverage:
         base: auto
         flags:
           - publishers
+      datalake:
+        target: 80
+        threshold: 1%
+        base: auto
+        flags:
+          - datalake
 
 comment:
   layout: "reach, diff, flags, files"
@@ -61,4 +73,8 @@ flags:
   publishers:
     paths:
       - interop-publishers/
+    carryforward: true
+  datalake:
+    paths:
+      - interop-datalake/
     carryforward: true
