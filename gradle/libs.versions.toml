@@ -1,6 +1,6 @@
 [libraries]
-azure-identity="com.azure:azure-identity:1.5.3"
-azure-storage-blob="com.azure:azure-storage-blob:12.13.0"
+azure-identity="com.azure:azure-identity:1.5.4"
+azure-storage-blob="com.azure:azure-storage-blob:12.19.0"
 commons-codec = "commons-codec:commons-codec:1.15"
 interop-common = "com.projectronin.interop:interop-common:2.1.1"
 interop-commonHttp = "com.projectronin.interop:interop-common-http:2.1.1"
