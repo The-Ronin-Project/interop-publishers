@@ -1,7 +1,10 @@
 package com.projectronin.interop.datalake
 
+import com.projectronin.interop.common.hl7.EventType
+import com.projectronin.interop.common.hl7.MessageType
 import com.projectronin.interop.common.jackson.JacksonManager
 import com.projectronin.interop.datalake.azure.client.AzureClient
+import com.projectronin.interop.datalake.hl7.getMSH9
 import com.projectronin.interop.fhir.r4.resource.Resource
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
@@ -46,7 +49,8 @@ class PublishService(private val azureClient: AzureClient) {
                 ?: throw IllegalStateException(
                     "Attempted to publish a ${it.resourceType} resource without a FHIR ID for tenant $tenantId"
                 )
-            val filePathString = "$root/date=$dateOfExport/tenant_id=$tenantId/resource_type=$resourceType/$resourceId.json"
+            val filePathString =
+                "$root/date=$dateOfExport/tenant_id=$tenantId/resource_type=$resourceType/$resourceId.json"
             logger.debug { "Publishing Ronin clinical data to $filePathString" }
             val serialized = JacksonManager.objectMapper.writeValueAsString(it)
             azureClient.upload(filePathString, serialized)
@@ -99,6 +103,61 @@ class PublishService(private val azureClient: AzureClient) {
         val filePathString = "$root/schema=$schema/date=$dateOfExport/tenant_id=$tenantId/$timeOfExport.json"
         logger.debug { "Publishing Ronin clinical data to $filePathString" }
         azureClient.upload(filePathString, data)
+        return true
+    }
+
+    /**
+     * Publishes HL7v2 data to the Azure datalake.
+     *
+     * publishHL7v2() publishes the HL7v2 data to a file in the datalake container.
+     * The file path supports Data Platform needs for code optimization and bronze directory layout:
+     * "/hl7v2/tenant_id={tenantId}/date={today's date}/message_type={messageType}/message_event={messageEvent}/{millisecond timestamp}.hl7"
+     *
+     * Gets messageType and messageEvent from the HL7v2 message MSH segment.
+     * The file name in the path replaces punctuation in the millisecond timestamp with hyphens.
+     *
+     * @param tenantId The tenant mnemonic
+     * @param messages List of HL7v2 messages to publish. May be a mix of different message types and message events.
+     * @return true for success; success may include no data to publish
+     */
+    fun publishHL7v2(tenantId: String, messages: List<String>): Boolean {
+        val root = "/hl7v2"
+        logger.info { "Publishing Ronin clinical data to datalake at $root" }
+        if (messages.isEmpty()) {
+            logger.debug { "Publishing nothing to datalake because the supplied data is empty" }
+            return true
+        }
+
+        val pathCleanup: Regex = "[^A-Za-z0-9_-]+".toRegex()
+        val dateOfExport = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+        val timeOfExport = LocalTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME)
+            .replace(pathCleanup, "-")
+
+        messages.forEachIndexed { index, message ->
+            if (message.isEmpty()) {
+                logger.debug { "Did not publish HL7v2 message to datalake for tenant $tenantId: the message is empty" }
+                return@forEachIndexed
+            }
+            val forEachTimeOfExport = "$timeOfExport-$index"
+            val messageStructure = getMSH9(tenantId, message)
+            if (messageStructure.count() < 2) {
+                throw IllegalStateException(
+                    "Did not publish HL7v2 message to datalake for tenant $tenantId: the message has invalid structure"
+                )
+            }
+            val messageType = messageStructure[0]
+            val messageEvent = "$messageType${messageStructure[1]}"
+            val filePathString =
+                "$root/date=$dateOfExport/tenant_id=$tenantId/message_type=$messageType/message_event=$messageEvent/$forEachTimeOfExport.json"
+            if ((MessageType.values().find { it.toString() == messageType } == null) ||
+                (EventType.values().find { it.toString() == messageEvent } == null)
+            ) {
+                logger.error { "Did not publish HL7v2 message to datalake at $filePathString for tenant $tenantId: $messageEvent messages are not supported for this action" }
+                return@forEachIndexed
+            }
+            logger.debug { "Publishing Ronin clinical data to $filePathString" }
+            azureClient.upload(filePathString, message)
+        }
         return true
     }
 }
