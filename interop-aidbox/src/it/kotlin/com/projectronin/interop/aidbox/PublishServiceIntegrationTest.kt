@@ -5,9 +5,9 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.projectronin.interop.aidbox.spring.AidboxIntegrationConfig
 import com.projectronin.interop.aidbox.testcontainer.AidboxData
 import com.projectronin.interop.aidbox.testcontainer.BaseAidboxTest
+import com.projectronin.interop.aidbox.util.asCode
+import com.projectronin.interop.aidbox.utils.RONIN_TENANT_SYSTEM
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
-import com.projectronin.interop.fhir.r4.CodeSystem
-import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.Address
 import com.projectronin.interop.fhir.r4.datatype.Attachment
 import com.projectronin.interop.fhir.r4.datatype.AvailableTime
@@ -93,6 +93,20 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     @Autowired
     private lateinit var publishService: PublishService
 
+    private val tenantIdentifier = Identifier(
+        type = CodeableConcept(
+            coding = listOf(
+                Coding(
+                    system = Uri(RONIN_TENANT_SYSTEM),
+                    code = Code("TID"),
+                    display = "Ronin-specified Tenant Identifier"
+                )
+            )
+        ),
+        system = Uri(RONIN_TENANT_SYSTEM),
+        value = "mdaoc"
+    )
+
     @Test
     fun `can publish a new resource`() {
         // Verify that the resource does not exist.
@@ -101,13 +115,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
 
         val practitioner = Practitioner(
             id = Id("mdaoc-new-resource"),
-            identifier = listOf(
-                Identifier(
-                    type = CodeableConcepts.RONIN_TENANT,
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    value = "mdaoc"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Smith", given = listOf("Josh")))
         )
         val published = publishService.publish(listOf(practitioner))
@@ -122,13 +130,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     fun `can publish an updated resource`() {
         val practitioner = Practitioner(
             id = Id("mdaoc-existing-resource"),
-            identifier = listOf(
-                Identifier(
-                    type = CodeableConcepts.RONIN_TENANT,
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    value = "mdaoc"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Doctor", given = listOf("Bob")))
         )
 
@@ -151,24 +153,12 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val idPrefix = "2P200-"
         val practitioner1 = Practitioner(
             id = Id("${idPrefix}cmjones"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "third"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
         )
         val practitioner2 = Practitioner(
             id = Id("${idPrefix}rallyr"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "second"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne")))
         )
         val testPractitioners = listOf(practitioner1, practitioner2)
@@ -190,16 +180,10 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val location1 = Location(
             id = Id("${idPrefix}12345"),
             language = Code("en-US"),
-            text = Narrative(status = NarrativeStatus.GENERATED, div = "div"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id5"
-                )
-            ),
-            mode = LocationMode.INSTANCE,
-            status = LocationStatus.ACTIVE,
+            text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div"),
+            identifier = listOf(tenantIdentifier),
+            mode = LocationMode.INSTANCE.asCode(),
+            status = LocationStatus.ACTIVE.asCode(),
             name = "My Office",
             alias = listOf("Guest Room"),
             description = "Sun Room",
@@ -214,7 +198,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "8675309")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "8675309")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -229,8 +213,8 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             hoursOfOperation = listOf(
                 LocationHoursOfOperation(
                     daysOfWeek = listOf(
-                        DayOfWeek.SATURDAY,
-                        DayOfWeek.SUNDAY
+                        DayOfWeek.SATURDAY.asCode(),
+                        DayOfWeek.SUNDAY.asCode()
                     ),
                     allDay = true
                 )
@@ -240,16 +224,10 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val location2 = Location(
             id = Id("${idPrefix}12346"),
             language = Code("en-US"),
-            text = Narrative(status = NarrativeStatus.GENERATED, div = "div"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id6"
-                )
-            ),
-            mode = LocationMode.INSTANCE,
-            status = LocationStatus.ACTIVE,
+            text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div"),
+            identifier = listOf(tenantIdentifier),
+            mode = LocationMode.INSTANCE.asCode(),
+            status = LocationStatus.ACTIVE.asCode(),
             name = "Back Study",
             alias = listOf("Studio"),
             description = "Game Room",
@@ -264,7 +242,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "123-456-7890")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "123-456-7890")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -275,7 +253,12 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            hoursOfOperation = listOf(LocationHoursOfOperation(daysOfWeek = listOf(DayOfWeek.TUESDAY), allDay = true)),
+            hoursOfOperation = listOf(
+                LocationHoursOfOperation(
+                    daysOfWeek = listOf(DayOfWeek.TUESDAY.asCode()),
+                    allDay = true
+                )
+            ),
             availabilityExceptions = "By appointment"
         )
         val testLocations = listOf(location1, location2)
@@ -294,35 +277,21 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     fun `can publish multiple resources of different resourceTypes (both RoninResource)`() {
         val practitioner = Practitioner(
             id = Id("mdaoc-practitioner"),
-            identifier = listOf(
-                Identifier(
-                    type = CodeableConcepts.RONIN_TENANT,
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    value = "mdaoc"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Doctor", given = listOf("Bob")))
         )
         val patient = Patient(
             id = Id("mdaoc-patient"),
-            identifier = listOf(
-                Identifier(type = CodeableConcepts.RONIN_TENANT, system = CodeSystem.RONIN_TENANT.uri, value = "mdaoc"),
-                Identifier(type = CodeableConcepts.MRN, system = CodeSystem.MRN.uri, value = "1234"),
-                Identifier(
-                    type = CodeableConcepts.FHIR_STU3_ID,
-                    system = CodeSystem.FHIR_STU3_ID.uri,
-                    value = "patient"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Doe", given = listOf("John"))),
             telecom = listOf(
                 ContactPoint(
-                    system = ContactPointSystem.EMAIL,
+                    system = ContactPointSystem.EMAIL.asCode(),
                     value = "john.doe@projectronin.com",
-                    use = ContactPointUse.WORK
+                    use = ContactPointUse.WORK.asCode()
                 )
             ),
-            gender = AdministrativeGender.MALE,
+            gender = AdministrativeGender.MALE.asCode(),
             birthDate = Date("1976-02-16"),
             address = listOf(Address(text = "Address")),
             maritalStatus = CodeableConcept(
@@ -352,39 +321,21 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val idPrefix = "2PRAllRef200-"
         val practitioner1 = Practitioner(
             id = Id("${idPrefix}cmjones"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "third"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
         )
         val practitioner2 = Practitioner(
             id = Id("${idPrefix}rallyr"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "second"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne")))
         )
         val location1 = Location(
             id = Id("${idPrefix}12345"),
             language = Code("en-US"),
-            text = Narrative(status = NarrativeStatus.GENERATED, div = "div"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id5"
-                )
-            ),
-            mode = LocationMode.INSTANCE,
-            status = LocationStatus.ACTIVE,
+            text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div"),
+            identifier = listOf(tenantIdentifier),
+            mode = LocationMode.INSTANCE.asCode(),
+            status = LocationStatus.ACTIVE.asCode(),
             name = "My Office",
             alias = listOf("Guest Room"),
             description = "Sun Room",
@@ -399,7 +350,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "8675309")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "8675309")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -414,8 +365,8 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             hoursOfOperation = listOf(
                 LocationHoursOfOperation(
                     daysOfWeek = listOf(
-                        DayOfWeek.SATURDAY,
-                        DayOfWeek.SUNDAY
+                        DayOfWeek.SATURDAY.asCode(),
+                        DayOfWeek.SUNDAY.asCode()
                     ),
                     allDay = true
                 )
@@ -425,16 +376,10 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val location2 = Location(
             id = Id("${idPrefix}12346"),
             language = Code("en-US"),
-            text = Narrative(status = NarrativeStatus.GENERATED, div = "div"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id6"
-                )
-            ),
-            mode = LocationMode.INSTANCE,
-            status = LocationStatus.ACTIVE,
+            text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div"),
+            identifier = listOf(tenantIdentifier),
+            mode = LocationMode.INSTANCE.asCode(),
+            status = LocationStatus.ACTIVE.asCode(),
             name = "Back Study",
             alias = listOf("Studio"),
             description = "Game Room",
@@ -449,7 +394,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "123-456-7890")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "123-456-7890")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -460,18 +405,17 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            hoursOfOperation = listOf(LocationHoursOfOperation(daysOfWeek = listOf(DayOfWeek.TUESDAY), allDay = true)),
+            hoursOfOperation = listOf(
+                LocationHoursOfOperation(
+                    daysOfWeek = listOf(DayOfWeek.TUESDAY.asCode()),
+                    allDay = true
+                )
+            ),
             availabilityExceptions = "By appointment"
         )
         val practitionerRole1 = PractitionerRole(
             id = Id("${idPrefix}12347"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id3"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             active = true,
             period = Period(end = DateTime("2022")),
             practitioner = Reference(reference = "Practitioner/${idPrefix}cmjones"),
@@ -482,13 +426,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         )
         val practitionerRole2 = PractitionerRole(
             id = Id("${idPrefix}12348"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id4"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             active = true,
             period = Period(end = DateTime("2022")),
             practitioner = Reference(reference = "Practitioner/${idPrefix}rallyr"),
@@ -533,55 +471,27 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val idPrefix = "1AptAllRef200-"
         val practitioner1 = Practitioner(
             id = Id("${idPrefix}cmjones"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "third"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
         )
         val practitioner2 = Practitioner(
             id = Id("${idPrefix}rallyr"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "second"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne")))
         )
         val patient = Patient(
             id = Id("${idPrefix}12345"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "tenantId"
-                ),
-                Identifier(
-                    system = CodeSystem.MRN.uri,
-                    type = CodeableConcepts.MRN,
-                    value = "MRN"
-                ),
-                Identifier(
-                    system = CodeSystem.FHIR_STU3_ID.uri,
-                    type = CodeableConcepts.FHIR_STU3_ID,
-                    value = "fhirId"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             active = true,
             name = listOf(HumanName(family = "Doe")),
             telecom = listOf(
                 ContactPoint(
-                    system = ContactPointSystem.PHONE,
+                    system = ContactPointSystem.PHONE.asCode(),
                     value = "8675309",
-                    use = ContactPointUse.MOBILE
+                    use = ContactPointUse.MOBILE.asCode()
                 )
             ),
-            gender = AdministrativeGender.FEMALE,
+            gender = AdministrativeGender.FEMALE.asCode(),
             birthDate = Date("1975-07-05"),
             deceased = DynamicValue(type = DynamicValueType.BOOLEAN, value = false),
             address = listOf(Address(country = "USA")),
@@ -592,7 +502,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             communication = listOf(Communication(language = CodeableConcept(text = "English"))),
             generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones")),
             managingOrganization = Reference(display = "organization"),
-            link = listOf(PatientLink(other = Reference(display = "Patient"), type = LinkType.REPLACES))
+            link = listOf(PatientLink(other = Reference(display = "Patient"), type = LinkType.REPLACES.asCode()))
         )
         val appointment = Appointment(
             id = Id("${idPrefix}12345"),
@@ -602,14 +512,8 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     value = DynamicValue(DynamicValueType.REFERENCE, Reference(reference = "reference"))
                 )
             ),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "tenantId"
-                )
-            ),
-            status = AppointmentStatus.CANCELLED,
+            identifier = listOf(tenantIdentifier),
+            status = AppointmentStatus.CANCELLED.asCode(),
             appointmentType = CodeableConcept(text = "appointment type"),
             cancelationReason = CodeableConcept(text = "cancel reason"),
             serviceCategory = listOf(CodeableConcept(text = "service category")),
@@ -629,15 +533,15 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             participant = listOf(
                 Participant(
                     actor = Reference(reference = "Patient/${idPrefix}12345"),
-                    status = ParticipationStatus.ACCEPTED
+                    status = ParticipationStatus.ACCEPTED.asCode()
                 ),
                 Participant(
                     actor = Reference(reference = "Practitioner/${idPrefix}cmjones"),
-                    status = ParticipationStatus.ACCEPTED
+                    status = ParticipationStatus.ACCEPTED.asCode()
                 ),
                 Participant(
                     actor = Reference(reference = "Practitioner/${idPrefix}rallyr"),
-                    status = ParticipationStatus.DECLINED
+                    status = ParticipationStatus.DECLINED.asCode()
                 )
             ),
             requestedPeriod = listOf(
@@ -676,50 +580,26 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val idPrefix = "2PRAllRefPlusUnrelatedP200-"
         val practitioner1 = Practitioner(
             id = Id("${idPrefix}cmjones"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "third"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
         )
         val practitioner2 = Practitioner(
             id = Id("${idPrefix}rallyr"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "second"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne")))
         )
         val practitioner3 = Practitioner(
             id = Id("${idPrefix}gwalsh"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "first"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Walsh", given = listOf("Goneril")))
         )
         val location1 = Location(
             id = Id("${idPrefix}12345"),
             language = Code("en-US"),
-            text = Narrative(status = NarrativeStatus.GENERATED, div = "div"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id5"
-                )
-            ),
-            mode = LocationMode.INSTANCE,
-            status = LocationStatus.ACTIVE,
+            text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div"),
+            identifier = listOf(tenantIdentifier),
+            mode = LocationMode.INSTANCE.asCode(),
+            status = LocationStatus.ACTIVE.asCode(),
             name = "My Office",
             alias = listOf("Guest Room"),
             description = "Sun Room",
@@ -734,7 +614,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "8675309")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "8675309")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -749,8 +629,8 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             hoursOfOperation = listOf(
                 LocationHoursOfOperation(
                     daysOfWeek = listOf(
-                        DayOfWeek.SATURDAY,
-                        DayOfWeek.SUNDAY
+                        DayOfWeek.SATURDAY.asCode(),
+                        DayOfWeek.SUNDAY.asCode()
                     ),
                     allDay = true
                 )
@@ -760,16 +640,10 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val location2 = Location(
             id = Id("${idPrefix}12346"),
             language = Code("en-US"),
-            text = Narrative(status = NarrativeStatus.GENERATED, div = "div"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id6"
-                )
-            ),
-            mode = LocationMode.INSTANCE,
-            status = LocationStatus.ACTIVE,
+            text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div"),
+            identifier = listOf(tenantIdentifier),
+            mode = LocationMode.INSTANCE.asCode(),
+            status = LocationStatus.ACTIVE.asCode(),
             name = "Back Study",
             alias = listOf("Studio"),
             description = "Game Room",
@@ -784,7 +658,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "123-456-7890")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "123-456-7890")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -795,18 +669,17 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            hoursOfOperation = listOf(LocationHoursOfOperation(daysOfWeek = listOf(DayOfWeek.TUESDAY), allDay = true)),
+            hoursOfOperation = listOf(
+                LocationHoursOfOperation(
+                    daysOfWeek = listOf(DayOfWeek.TUESDAY.asCode()),
+                    allDay = true
+                )
+            ),
             availabilityExceptions = "By appointment"
         )
         val practitionerRole1 = PractitionerRole(
             id = Id("${idPrefix}12347"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id3"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             active = true,
             period = Period(end = DateTime("2022")),
             practitioner = Reference(reference = "Practitioner/${idPrefix}cmjones"),
@@ -817,13 +690,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         )
         val practitionerRole2 = PractitionerRole(
             id = Id("${idPrefix}12348"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id4"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             active = true,
             period = Period(end = DateTime("2022")),
             practitioner = Reference(reference = "Practitioner/${idPrefix}rallyr"),
@@ -880,50 +747,26 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val idPrefix = "1AptAllRefPlusUnrelatedP200-"
         val practitioner1 = Practitioner(
             id = Id("${idPrefix}cmjones"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "third"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
         )
         val practitioner2 = Practitioner(
             id = Id("${idPrefix}rallyr"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "second"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne")))
         )
         val practitioner3 = Practitioner(
             id = Id("${idPrefix}gwalsh"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "first"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Walsh", given = listOf("Goneril")))
         )
         val location1 = Location(
             id = Id("${idPrefix}12345"),
             language = Code("en-US"),
-            text = Narrative(status = NarrativeStatus.GENERATED, div = "div"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id5"
-                )
-            ),
-            mode = LocationMode.INSTANCE,
-            status = LocationStatus.ACTIVE,
+            text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div"),
+            identifier = listOf(tenantIdentifier),
+            mode = LocationMode.INSTANCE.asCode(),
+            status = LocationStatus.ACTIVE.asCode(),
             name = "My Office",
             alias = listOf("Guest Room"),
             description = "Sun Room",
@@ -938,7 +781,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "8675309")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "8675309")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -953,8 +796,8 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             hoursOfOperation = listOf(
                 LocationHoursOfOperation(
                     daysOfWeek = listOf(
-                        DayOfWeek.SATURDAY,
-                        DayOfWeek.SUNDAY
+                        DayOfWeek.SATURDAY.asCode(),
+                        DayOfWeek.SUNDAY.asCode()
                     ),
                     allDay = true
                 )
@@ -964,16 +807,10 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val location2 = Location(
             id = Id("${idPrefix}12346"),
             language = Code("en-US"),
-            text = Narrative(status = NarrativeStatus.GENERATED, div = "div"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id6"
-                )
-            ),
-            mode = LocationMode.INSTANCE,
-            status = LocationStatus.ACTIVE,
+            text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div"),
+            identifier = listOf(tenantIdentifier),
+            mode = LocationMode.INSTANCE.asCode(),
+            status = LocationStatus.ACTIVE.asCode(),
             name = "Back Study",
             alias = listOf("Studio"),
             description = "Game Room",
@@ -988,7 +825,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "123-456-7890")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "123-456-7890")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -999,38 +836,27 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            hoursOfOperation = listOf(LocationHoursOfOperation(daysOfWeek = listOf(DayOfWeek.TUESDAY), allDay = true)),
+            hoursOfOperation = listOf(
+                LocationHoursOfOperation(
+                    daysOfWeek = listOf(DayOfWeek.TUESDAY.asCode()),
+                    allDay = true
+                )
+            ),
             availabilityExceptions = "By appointment"
         )
         val patient = Patient(
             id = Id("${idPrefix}12345"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "tenantId"
-                ),
-                Identifier(
-                    system = CodeSystem.MRN.uri,
-                    type = CodeableConcepts.MRN,
-                    value = "MRN"
-                ),
-                Identifier(
-                    system = CodeSystem.FHIR_STU3_ID.uri,
-                    type = CodeableConcepts.FHIR_STU3_ID,
-                    value = "fhirId"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             active = true,
             name = listOf(HumanName(family = "Doe")),
             telecom = listOf(
                 ContactPoint(
-                    system = ContactPointSystem.PHONE,
+                    system = ContactPointSystem.PHONE.asCode(),
                     value = "8675309",
-                    use = ContactPointUse.MOBILE
+                    use = ContactPointUse.MOBILE.asCode()
                 )
             ),
-            gender = AdministrativeGender.FEMALE,
+            gender = AdministrativeGender.FEMALE.asCode(),
             birthDate = Date("1975-07-05"),
             deceased = DynamicValue(type = DynamicValueType.BOOLEAN, value = false),
             address = listOf(Address(country = "USA")),
@@ -1041,7 +867,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             communication = listOf(Communication(language = CodeableConcept(text = "English"))),
             generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones")),
             managingOrganization = Reference(display = "organization"),
-            link = listOf(PatientLink(other = Reference(display = "Patient"), type = LinkType.REPLACES))
+            link = listOf(PatientLink(other = Reference(display = "Patient"), type = LinkType.REPLACES.asCode()))
         )
         val appointment = Appointment(
             id = Id("${idPrefix}12345"),
@@ -1051,14 +877,8 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     value = DynamicValue(DynamicValueType.REFERENCE, Reference(reference = "reference"))
                 )
             ),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "tenantId"
-                )
-            ),
-            status = AppointmentStatus.CANCELLED,
+            identifier = listOf(tenantIdentifier),
+            status = AppointmentStatus.CANCELLED.asCode(),
             appointmentType = CodeableConcept(text = "appointment type"),
             cancelationReason = CodeableConcept(text = "cancel reason"),
             serviceCategory = listOf(CodeableConcept(text = "service category")),
@@ -1078,15 +898,15 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             participant = listOf(
                 Participant(
                     actor = Reference(reference = "Patient/${idPrefix}12345"),
-                    status = ParticipationStatus.ACCEPTED
+                    status = ParticipationStatus.ACCEPTED.asCode()
                 ),
                 Participant(
                     actor = Reference(reference = "Practitioner/${idPrefix}cmjones"),
-                    status = ParticipationStatus.ACCEPTED
+                    status = ParticipationStatus.ACCEPTED.asCode()
                 ),
                 Participant(
                     actor = Reference(reference = "Practitioner/${idPrefix}rallyr"),
-                    status = ParticipationStatus.DECLINED
+                    status = ParticipationStatus.DECLINED.asCode()
                 )
             ),
             requestedPeriod = listOf(
@@ -1141,39 +961,21 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val idPrefix = "2PRNoRef400-"
         val practitioner1 = Practitioner(
             id = Id("${idPrefix}cmjones"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "third"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
         )
         val practitioner2 = Practitioner(
             id = Id("${idPrefix}rallyr"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "second"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne")))
         )
         val location1 = Location(
             id = Id("${idPrefix}12345"),
             language = Code("en-US"),
-            text = Narrative(status = NarrativeStatus.GENERATED, div = "div"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id5"
-                )
-            ),
-            mode = LocationMode.INSTANCE,
-            status = LocationStatus.ACTIVE,
+            text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div"),
+            identifier = listOf(tenantIdentifier),
+            mode = LocationMode.INSTANCE.asCode(),
+            status = LocationStatus.ACTIVE.asCode(),
             name = "My Office",
             alias = listOf("Guest Room"),
             description = "Sun Room",
@@ -1188,7 +990,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                     )
                 )
             ),
-            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "8675309")),
+            telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "8675309")),
             address = Address(country = "USA"),
             physicalType = CodeableConcept(
                 text = "Room",
@@ -1203,8 +1005,8 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             hoursOfOperation = listOf(
                 LocationHoursOfOperation(
                     daysOfWeek = listOf(
-                        DayOfWeek.SATURDAY,
-                        DayOfWeek.SUNDAY
+                        DayOfWeek.SATURDAY.asCode(),
+                        DayOfWeek.SUNDAY.asCode()
                     ),
                     allDay = true
                 )
@@ -1213,13 +1015,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         )
         val practitionerRole1 = PractitionerRole(
             id = Id("${idPrefix}12347"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id3"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             active = true,
             period = Period(end = DateTime("2022")),
             practitioner = Reference(reference = "Practitioner/${idPrefix}cmjones"),
@@ -1230,13 +1026,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         )
         val practitionerRole2 = PractitionerRole(
             id = Id("${idPrefix}12348"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "id4"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             active = true,
             period = Period(end = DateTime("2022")),
             practitioner = Reference(reference = "Practitioner/${idPrefix}rallyr"),
@@ -1274,55 +1064,27 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         val idPrefix = "1AptNoRef400-"
         val practitioner1 = Practitioner(
             id = Id("${idPrefix}cmjones"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "third"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May")))
         )
         val practitioner2 = Practitioner(
             id = Id("${idPrefix}rallyr"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "second"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne")))
         )
         val patient = Patient(
             id = Id("${idPrefix}12345"),
-            identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "tenantId"
-                ),
-                Identifier(
-                    system = CodeSystem.MRN.uri,
-                    type = CodeableConcepts.MRN,
-                    value = "MRN"
-                ),
-                Identifier(
-                    system = CodeSystem.FHIR_STU3_ID.uri,
-                    type = CodeableConcepts.FHIR_STU3_ID,
-                    value = "fhirId"
-                )
-            ),
+            identifier = listOf(tenantIdentifier),
             active = true,
             name = listOf(HumanName(family = "Doe")),
             telecom = listOf(
                 ContactPoint(
-                    system = ContactPointSystem.PHONE,
+                    system = ContactPointSystem.PHONE.asCode(),
                     value = "8675309",
-                    use = ContactPointUse.MOBILE
+                    use = ContactPointUse.MOBILE.asCode()
                 )
             ),
-            gender = AdministrativeGender.FEMALE,
+            gender = AdministrativeGender.FEMALE.asCode(),
             birthDate = Date("1975-07-05"),
             deceased = DynamicValue(type = DynamicValueType.BOOLEAN, value = false),
             address = listOf(Address(country = "USA")),
@@ -1333,7 +1095,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             communication = listOf(Communication(language = CodeableConcept(text = "English"))),
             generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones")),
             managingOrganization = Reference(display = "organization"),
-            link = listOf(PatientLink(other = Reference(display = "Patient"), type = LinkType.REPLACES))
+            link = listOf(PatientLink(other = Reference(display = "Patient"), type = LinkType.REPLACES.asCode()))
         )
         val appointment = Appointment(
             id = Id("${idPrefix}12345"),
@@ -1344,13 +1106,9 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                 )
             ),
             identifier = listOf(
-                Identifier(
-                    system = CodeSystem.RONIN_TENANT.uri,
-                    type = CodeableConcepts.RONIN_TENANT,
-                    value = "tenantId"
-                )
+                tenantIdentifier
             ),
-            status = AppointmentStatus.CANCELLED,
+            status = AppointmentStatus.CANCELLED.asCode(),
             appointmentType = CodeableConcept(text = "appointment type"),
             cancelationReason = CodeableConcept(text = "cancel reason"),
             serviceCategory = listOf(CodeableConcept(text = "service category")),
@@ -1370,15 +1128,15 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             participant = listOf(
                 Participant(
                     actor = Reference(reference = "Patient/${idPrefix}12345"),
-                    status = ParticipationStatus.ACCEPTED
+                    status = ParticipationStatus.ACCEPTED.asCode()
                 ),
                 Participant(
                     actor = Reference(reference = "Practitioner/${idPrefix}12345"),
-                    status = ParticipationStatus.ACCEPTED
+                    status = ParticipationStatus.ACCEPTED.asCode()
                 ),
                 Participant(
                     actor = Reference(reference = "Practitioner/${idPrefix}rallyr"),
-                    status = ParticipationStatus.DECLINED
+                    status = ParticipationStatus.DECLINED.asCode()
                 )
             ),
             requestedPeriod = listOf(

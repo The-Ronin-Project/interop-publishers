@@ -6,12 +6,12 @@ import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
+import com.projectronin.interop.aidbox.utils.RONIN_TENANT_SYSTEM
 import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
-import com.projectronin.interop.fhir.r4.CodeSystem
-import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
+import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.resource.Patient
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
@@ -38,14 +38,14 @@ class PatientServiceTest {
     private val mrn1 = "01111"
     private val mrn2 = "01112"
 
-    private val tenantQueryString = "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic"
-    private val tenantIdentifier = Identifier(system = CodeSystem.RONIN_TENANT.uri, value = tenantMnemonic)
+    private val tenantQueryString = "$RONIN_TENANT_SYSTEM|$tenantMnemonic"
+    private val tenantIdentifier = Identifier(system = Uri(RONIN_TENANT_SYSTEM), value = tenantMnemonic)
 
-    private val mrnSystemValue1 = SystemValue(system = CodeSystem.MRN.uri.value, value = mrn1)
-    private val mrnIdentifier1 = Identifier(system = CodeSystem.MRN.uri, value = mrn1)
+    private val mrnSystemValue1 = SystemValue(system = "mrnSystem", value = mrn1)
+    private val mrnIdentifier1 = Identifier(system = Uri("mrnSystem"), value = mrn1)
 
-    private val mrnSystemValue2 = SystemValue(system = CodeSystem.MRN.uri.value, value = mrn2)
-    private val mrnIdentifier2 = Identifier(system = CodeSystem.MRN.uri, value = mrn2)
+    private val mrnSystemValue2 = SystemValue(system = "mrnSystem", value = mrn2)
+    private val mrnIdentifier2 = Identifier(system = Uri("mrnSystem"), value = mrn2)
 
     private val mockPatientIdentifiers1 = LimitedPatientIdentifiers(
         id = "roninPatient01Test",
@@ -65,16 +65,16 @@ class PatientServiceTest {
         patientList = listOf(
             PartialPatient(
                 identifier = listOf(
-                    Identifier(value = "mdaoc", type = CodeableConcepts.RONIN_TENANT),
-                    Identifier(value = "22221", type = CodeableConcepts.SER),
+                    Identifier(value = "mdaoc"),
+                    Identifier(value = "22221"),
                     Identifier(value = "9988776655")
                 ),
                 id = Id("mdaoc-123"),
             ),
             PartialPatient(
                 identifier = listOf(
-                    Identifier(value = "mdaoc", type = CodeableConcepts.RONIN_TENANT),
-                    Identifier(value = "22222", type = CodeableConcepts.SER),
+                    Identifier(value = "mdaoc"),
+                    Identifier(value = "22222"),
                     Identifier(value = "2281376654")
                 ),
                 id = Id("mdaoc-456"),
@@ -338,7 +338,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -359,7 +359,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -379,7 +379,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } throws Exception()
@@ -396,7 +396,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
             )
         } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 
@@ -407,8 +407,8 @@ class PatientServiceTest {
 
     @Test
     fun `getPatientFHIRIds returns all batched patients`() {
-        val mrnSystemValue3 = SystemValue(system = CodeSystem.MRN.uri.value, value = "01113")
-        val mrnIdentifier3 = Identifier(system = CodeSystem.MRN.uri, value = "01113")
+        val mrnSystemValue3 = SystemValue(system = "mrnSystem", value = "01113")
+        val mrnIdentifier3 = Identifier(system = Uri("mrnSystem"), value = "01113")
 
         val mockPatientIdentifiers3 = LimitedPatientIdentifiers(
             id = "roninPatient03Test",
@@ -471,7 +471,7 @@ class PatientServiceTest {
         val patientMock = mockk<Patient>()
         every { patientMock.identifier } returns listOf(
             Identifier(
-                system = CodeSystem.RONIN_TENANT.uri,
+                system = Uri(RONIN_TENANT_SYSTEM),
                 value = tenantMnemonic
             )
         )
@@ -487,7 +487,7 @@ class PatientServiceTest {
         val patientMock = mockk<Patient>()
         every { patientMock.identifier } returns listOf(
             Identifier(
-                system = CodeSystem.RONIN_TENANT.uri,
+                system = Uri(RONIN_TENANT_SYSTEM),
                 value = tenantMnemonic
             )
         )
@@ -506,7 +506,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -522,7 +522,7 @@ class PatientServiceTest {
         val response2 = objectMapper.readValue<GraphQLResponse<LimitedPatient>>(data)
         coEvery<GraphQLResponse<LimitedPatient>> { mockHttpResponse.body() } returns response2
 
-        val mrnSystemValue3 = SystemValue(system = CodeSystem.MRN.uri.value, value = "01113")
+        val mrnSystemValue3 = SystemValue(system = "mrnSystem", value = "01113")
 
         val response1 = GraphQLResponse(
             data = LimitedPatient(listOf(mockPatientIdentifiers1, mockPatientIdentifiers2))
@@ -576,7 +576,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -596,7 +596,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -616,7 +616,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } throws Exception()
@@ -633,7 +633,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
             )
         } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 

@@ -6,10 +6,10 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.projectronin.interop.aidbox.client.AidboxClient
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
+import com.projectronin.interop.aidbox.utils.RONIN_TENANT_SYSTEM
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.aidbox.utils.validateTenantIdentifier
 import com.projectronin.interop.common.exceptions.LogMarkingException
-import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
@@ -62,7 +62,7 @@ class PatientService(
         val query = javaClass.getResource("/graphql/AidboxPatientFHIRIDsQuery.graphql")!!.readText()
         val parameters = mapOf(
             "tenant" to SystemValue(
-                system = CodeSystem.RONIN_TENANT.uri.value,
+                system = RONIN_TENANT_SYSTEM,
                 value = tenantMnemonic
             ).queryString,
             "identifiers" to batch.joinToString(separator = ",") { it.queryString }
@@ -88,7 +88,7 @@ class PatientService(
     fun getPatientsByTenant(tenantMnemonic: String): Map<String, List<Identifier>> {
         logger.info { "Retrieving Patients for $tenantMnemonic" }
         val query = javaClass.getResource("/graphql/PatientListQuery.graphql")!!.readText()
-        val parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+        val parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
         val response: GraphQLResponse<PatientList> = runBlocking {
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)

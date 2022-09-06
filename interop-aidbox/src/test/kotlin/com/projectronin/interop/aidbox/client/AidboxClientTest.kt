@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.projectronin.interop.aidbox.auth.AidboxAuthenticationBroker
 import com.projectronin.interop.aidbox.model.GraphQLPostRequest
+import com.projectronin.interop.aidbox.utils.asCode
 import com.projectronin.interop.common.http.exceptions.ClientAuthenticationException
 import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.http.exceptions.ServiceUnavailableException
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.fhir.r4.CodeSystem
-import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.Address
 import com.projectronin.interop.fhir.r4.datatype.AvailableTime
 import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
@@ -60,49 +60,33 @@ class AidboxClientTest {
     private val practitioner1 = Practitioner(
         id = Id("cmjones"),
         identifier = listOf(
-            Identifier(
-                system = CodeSystem.RONIN_TENANT.uri,
-                type = CodeableConcepts.RONIN_TENANT,
-                value = "third"
-            )
+            Identifier(system = CodeSystem.NPI.uri, value = "third")
         ),
         name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May"))),
     )
     private val practitioner2 = Practitioner(
         id = Id("rallyr"),
         identifier = listOf(
-            Identifier(
-                system = CodeSystem.RONIN_TENANT.uri,
-                type = CodeableConcepts.RONIN_TENANT,
-                value = "second"
-            )
+            Identifier(system = CodeSystem.NPI.uri, value = "second")
         ),
         name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne"))),
     )
     private val practitioner3 = Practitioner(
         id = Id("gwalsh"),
         identifier = listOf(
-            Identifier(
-                system = CodeSystem.RONIN_TENANT.uri,
-                type = CodeableConcepts.RONIN_TENANT,
-                value = "first"
-            )
+            Identifier(system = CodeSystem.NPI.uri, value = "first")
         ),
         name = listOf(HumanName(family = "Walsh", given = listOf("Goneril"))),
     )
     private val location1 = Location(
         id = Id("12345"),
         language = Code("en-US"),
-        text = Narrative(status = NarrativeStatus.GENERATED, div = "div"),
+        text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div"),
         identifier = listOf(
-            Identifier(
-                system = CodeSystem.RONIN_TENANT.uri,
-                type = CodeableConcepts.RONIN_TENANT,
-                value = "id5"
-            )
+            Identifier(system = CodeSystem.NPI.uri, value = "id5")
         ),
-        mode = LocationMode.INSTANCE,
-        status = LocationStatus.ACTIVE,
+        mode = LocationMode.INSTANCE.asCode(),
+        status = LocationStatus.ACTIVE.asCode(),
         name = "My Office",
         alias = listOf("Guest Room"),
         description = "Sun Room",
@@ -117,7 +101,7 @@ class AidboxClientTest {
                 )
             )
         ),
-        telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "8675309")),
+        telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "8675309")),
         address = Address(country = "USA"),
         physicalType = CodeableConcept(
             text = "Room",
@@ -132,8 +116,8 @@ class AidboxClientTest {
         hoursOfOperation = listOf(
             LocationHoursOfOperation(
                 daysOfWeek = listOf(
-                    DayOfWeek.SATURDAY,
-                    DayOfWeek.SUNDAY
+                    DayOfWeek.SATURDAY.asCode(),
+                    DayOfWeek.SUNDAY.asCode()
                 ),
                 allDay = true
             )
@@ -144,16 +128,12 @@ class AidboxClientTest {
     private val location2 = Location(
         id = Id("12346"),
         language = Code("en-US"),
-        text = Narrative(status = NarrativeStatus.GENERATED, div = "div"),
+        text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div"),
         identifier = listOf(
-            Identifier(
-                system = CodeSystem.RONIN_TENANT.uri,
-                type = CodeableConcepts.RONIN_TENANT,
-                value = "id6"
-            )
+            Identifier(system = CodeSystem.NPI.uri, value = "id6")
         ),
-        mode = LocationMode.INSTANCE,
-        status = LocationStatus.ACTIVE,
+        mode = LocationMode.INSTANCE.asCode(),
+        status = LocationStatus.ACTIVE.asCode(),
         name = "Back Study",
         alias = listOf("Studio"),
         description = "Game Room",
@@ -168,7 +148,7 @@ class AidboxClientTest {
                 )
             )
         ),
-        telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE, value = "123-456-7890")),
+        telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "123-456-7890")),
         address = Address(country = "USA"),
         physicalType = CodeableConcept(
             text = "Room",
@@ -179,18 +159,19 @@ class AidboxClientTest {
                 )
             )
         ),
-        hoursOfOperation = listOf(LocationHoursOfOperation(daysOfWeek = listOf(DayOfWeek.TUESDAY), allDay = true)),
+        hoursOfOperation = listOf(
+            LocationHoursOfOperation(
+                daysOfWeek = listOf(DayOfWeek.TUESDAY.asCode()),
+                allDay = true
+            )
+        ),
         availabilityExceptions = "By appointment",
         endpoint = listOf(Reference(reference = "Endpoint/4322"))
     )
     private val practitionerRole1 = PractitionerRole(
         id = Id("12347"),
         identifier = listOf(
-            Identifier(
-                system = CodeSystem.RONIN_TENANT.uri,
-                type = CodeableConcepts.RONIN_TENANT,
-                value = "id3"
-            )
+            Identifier(system = CodeSystem.NPI.uri, value = "id3")
         ),
         active = true,
         period = Period(end = DateTime("2022")),
@@ -205,11 +186,7 @@ class AidboxClientTest {
     private val practitionerRole2 = PractitionerRole(
         id = Id("12348"),
         identifier = listOf(
-            Identifier(
-                system = CodeSystem.RONIN_TENANT.uri,
-                type = CodeableConcepts.RONIN_TENANT,
-                value = "id4"
-            )
+            Identifier(system = CodeSystem.NPI.uri, value = "id4")
         ),
         active = true,
         period = Period(end = DateTime("2022")),

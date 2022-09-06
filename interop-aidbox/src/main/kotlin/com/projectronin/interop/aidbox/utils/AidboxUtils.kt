@@ -4,15 +4,18 @@ import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.common.http.exceptions.HttpException
-import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.BundleEntry
 import com.projectronin.interop.fhir.r4.datatype.BundleRequest
 import com.projectronin.interop.fhir.r4.datatype.Identifier
+import com.projectronin.interop.fhir.r4.datatype.primitive.Code
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.resource.Bundle
 import com.projectronin.interop.fhir.r4.resource.Resource
 import com.projectronin.interop.fhir.r4.valueset.BundleType
 import com.projectronin.interop.fhir.r4.valueset.HttpVerb
+
+// Should we put this somewhere else? This is in RoninCodeSystem in interop-fhir-ronin, but that's part of interop-ehr, creating a circular dependency.
+const val RONIN_TENANT_SYSTEM = "http://projectronin.com/id/tenantId"
 
 /**
  * Creates and returns the appropriate GraphQLReponse for the provided exception.
@@ -34,7 +37,7 @@ fun <T> respondToGraphQLException(exception: Exception): GraphQLResponse<T> {
 fun makeBundleForBatchUpsert(aidboxURLRest: String, resources: List<Resource<*>>): Bundle {
     return Bundle(
         id = null,
-        type = BundleType.TRANSACTION,
+        type = Code(BundleType.TRANSACTION.code),
         entry = resources.map { makeBundleEntry(aidboxURLRest, HttpVerb.PUT, it) }
     )
 }
@@ -49,7 +52,7 @@ fun makeBundleEntry(aidboxURLRest: String, method: HttpVerb, resource: Resource<
     val fullReference = "/${resource.resourceType}/${resource.id?.value}"
     return BundleEntry(
         fullUrl = Uri("$aidboxURLRest$fullReference"),
-        request = BundleRequest(method = method, url = Uri(fullReference)),
+        request = BundleRequest(method = Code(method.code), url = Uri(fullReference)),
         resource = resource
     )
 }
@@ -59,7 +62,7 @@ fun makeBundleEntry(aidboxURLRest: String, method: HttpVerb, resource: Resource<
  * throws [InvalidTenantAccessException] with the supplied [errorMessage] if failed.
  */
 fun validateTenantIdentifier(tenantMnemonic: String, identifiers: List<Identifier>, errorMessage: String) {
-    if (identifiers.none { it.value == tenantMnemonic && it.system == CodeSystem.RONIN_TENANT.uri }) {
+    if (identifiers.none { it.value == tenantMnemonic && it.system?.value == RONIN_TENANT_SYSTEM }) {
         throw InvalidTenantAccessException(errorMessage)
     }
 }

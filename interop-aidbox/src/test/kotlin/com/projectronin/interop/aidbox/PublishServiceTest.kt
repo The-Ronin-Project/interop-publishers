@@ -2,7 +2,6 @@ package com.projectronin.interop.aidbox
 
 import com.projectronin.interop.aidbox.client.AidboxClient
 import com.projectronin.interop.fhir.r4.CodeSystem
-import com.projectronin.interop.fhir.r4.CodeableConcepts
 import com.projectronin.interop.fhir.r4.datatype.HumanName
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
@@ -22,7 +21,7 @@ class PublishServiceTest {
         Practitioner(
             id = Id("cmjones"),
             identifier = listOf(
-                Identifier(system = CodeSystem.RONIN_TENANT.uri, type = CodeableConcepts.RONIN_TENANT, value = "third")
+                Identifier(system = CodeSystem.NPI.uri, value = "third")
             ),
             name = listOf(
                 HumanName(family = "Jones", given = listOf("Cordelia", "May"))
@@ -31,7 +30,7 @@ class PublishServiceTest {
         Practitioner(
             id = Id("rallyr"),
             identifier = listOf(
-                Identifier(system = CodeSystem.RONIN_TENANT.uri, type = CodeableConcepts.RONIN_TENANT, value = "second")
+                Identifier(system = CodeSystem.NPI.uri, value = "second")
             ),
             name = listOf(
                 HumanName(

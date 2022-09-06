@@ -1,7 +1,6 @@
 package com.projectronin.interop.aidbox.utils
 
 import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
-import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import io.mockk.mockkStatic
@@ -40,7 +39,7 @@ class AidboxUtilsTest {
             validateTenantIdentifier(
                 "tenant1",
                 listOf(
-                    Identifier(system = CodeSystem.RONIN_TENANT.uri, value = "tenant1"),
+                    Identifier(system = Uri(RONIN_TENANT_SYSTEM), value = "tenant1"),
                     Identifier(system = Uri("otherIdentifierSystem"), value = "123")
                 ),
                 "Tenant did not match"
@@ -53,7 +52,7 @@ class AidboxUtilsTest {
         assertThrows<InvalidTenantAccessException> {
             validateTenantIdentifier(
                 "tenant1",
-                listOf(Identifier(system = CodeSystem.RONIN_TENANT.uri, value = "tenant2")),
+                listOf(Identifier(system = Uri(RONIN_TENANT_SYSTEM), value = "tenant2")),
                 "Tenant did not match"
             )
         }

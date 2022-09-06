@@ -6,12 +6,14 @@ import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
+import com.projectronin.interop.aidbox.utils.RONIN_TENANT_SYSTEM
 import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.jackson.JacksonManager
 import com.projectronin.interop.fhir.r4.CodeSystem
-import com.projectronin.interop.fhir.r4.CodeableConcepts
+import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
+import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
@@ -33,15 +35,9 @@ class PractitionerServiceTest {
         practitionerList = listOf(
             LimitedPractitionerIdentifiers(
                 identifier = listOf(
-                    Identifier(
-                        value = "tenant-id", type = CodeableConcepts.RONIN_TENANT
-                    ),
-                    Identifier(
-                        value = "22221", type = CodeableConcepts.SER
-                    ),
-                    Identifier(
-                        value = "9988776655"
-                    )
+                    Identifier(value = "tenant-id", type = CodeableConcept(text = "tenant")),
+                    Identifier(value = "22221", type = CodeableConcept(text = "ser")),
+                    Identifier(value = "9988776655")
                 )
             )
         )
@@ -50,15 +46,9 @@ class PractitionerServiceTest {
         practitionerList = listOf(
             LimitedPractitionerIdentifiers(
                 identifier = listOf(
-                    Identifier(
-                        value = "mdaoc", type = CodeableConcepts.RONIN_TENANT
-                    ),
-                    Identifier(
-                        value = "22222", type = CodeableConcepts.SER
-                    ),
-                    Identifier(
-                        value = "2281376654"
-                    )
+                    Identifier(value = "mdaoc", type = CodeableConcept(text = "tenant")),
+                    Identifier(value = "22222", type = CodeableConcept(text = "ser")),
+                    Identifier(value = "2281376654")
                 )
             )
         )
@@ -67,29 +57,17 @@ class PractitionerServiceTest {
         practitionerList = listOf(
             PartialPractitioner(
                 identifier = listOf(
-                    Identifier(
-                        value = "mdaoc", type = CodeableConcepts.RONIN_TENANT
-                    ),
-                    Identifier(
-                        value = "22221", type = CodeableConcepts.SER
-                    ),
-                    Identifier(
-                        value = "9988776655"
-                    )
+                    Identifier(value = "mdaoc", type = CodeableConcept(text = "tenant")),
+                    Identifier(value = "22221", type = CodeableConcept(text = "ser")),
+                    Identifier(value = "9988776655")
                 ),
                 id = Id("123"),
             ),
             PartialPractitioner(
                 identifier = listOf(
-                    Identifier(
-                        value = "mdaoc", type = CodeableConcepts.RONIN_TENANT
-                    ),
-                    Identifier(
-                        value = "22222", type = CodeableConcepts.SER
-                    ),
-                    Identifier(
-                        value = "2281376654"
-                    )
+                    Identifier(value = "mdaoc", type = CodeableConcept(text = "tenant")),
+                    Identifier(value = "22222", type = CodeableConcept(text = "ser")),
+                    Identifier(value = "2281376654")
                 ),
                 id = Id("456"),
             )
@@ -106,8 +84,8 @@ class PractitionerServiceTest {
     private val practitioner1 = "01111"
     private val practitioner2 = "01112"
 
-    private val tenantQueryString = "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic"
-    private val tenantIdentifier = Identifier(system = CodeSystem.RONIN_TENANT.uri, value = tenantMnemonic)
+    private val tenantQueryString = "$RONIN_TENANT_SYSTEM|$tenantMnemonic"
+    private val tenantIdentifier = Identifier(system = Uri(RONIN_TENANT_SYSTEM), value = tenantMnemonic)
 
     private val practitionerSystemValue1 = SystemValue(system = CodeSystem.NPI.uri.value, value = practitioner1)
     private val practitionerIdentifier1 = Identifier(system = CodeSystem.NPI.uri, value = practitioner1)
@@ -250,7 +228,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
-                parameters = mapOf("id" to fhirID, "tenant" to "${CodeSystem.RONIN_TENANT.uri.value}|wrongTenant")
+                parameters = mapOf("id" to fhirID, "tenant" to "$RONIN_TENANT_SYSTEM|wrongTenant")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
@@ -328,10 +306,11 @@ class PractitionerServiceTest {
         } returns mockHttpResponse
         coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
 
-        val actual = practitionerService.getSpecificPractitionerIdentifier(tenantMnemonic, fhirID, CodeableConcepts.SER)
+        val actual =
+            practitionerService.getSpecificPractitionerIdentifier(tenantMnemonic, fhirID, CodeableConcept(text = "ser"))
 
         val expected = Identifier(
-            value = "22221", type = CodeableConcepts.SER
+            value = "22221", type = CodeableConcept(text = "ser")
         )
         assertEquals(actual, expected)
     }
@@ -349,7 +328,8 @@ class PractitionerServiceTest {
         } returns mockHttpResponse
         coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
 
-        val actual = practitionerService.getSpecificPractitionerIdentifier(tenantMnemonic, fhirID, CodeableConcepts.MRN)
+        val actual =
+            practitionerService.getSpecificPractitionerIdentifier(tenantMnemonic, fhirID, CodeableConcept(text = "mrn"))
 
         val expected = null
         assertEquals(actual, expected)
@@ -690,7 +670,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse.body() } returns response
@@ -711,7 +691,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse.body() } returns response
@@ -731,7 +711,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse.body() } throws Exception()
@@ -748,7 +728,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
             )
         } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 
@@ -826,7 +806,7 @@ class PractitionerServiceTest {
         val practitionerMock = mockk<Practitioner>()
         every { practitionerMock.identifier } returns listOf(
             Identifier(
-                system = CodeSystem.RONIN_TENANT.uri,
+                system = Uri(RONIN_TENANT_SYSTEM),
                 value = tenantMnemonic
             )
         )
@@ -842,7 +822,7 @@ class PractitionerServiceTest {
         val practitionerMock = mockk<Practitioner>()
         every { practitionerMock.identifier } returns listOf(
             Identifier(
-                system = CodeSystem.RONIN_TENANT.uri,
+                system = Uri(RONIN_TENANT_SYSTEM),
                 value = tenantMnemonic
             )
         )
@@ -861,7 +841,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse.body() } returns response
@@ -883,7 +863,7 @@ class PractitionerServiceTest {
                 query = query,
                 parameters = mapOf(
                     "id" to fhirID,
-                    "tenant" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic"
+                    "tenant" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic"
                 )
             )
         } returns mockHttpResponse

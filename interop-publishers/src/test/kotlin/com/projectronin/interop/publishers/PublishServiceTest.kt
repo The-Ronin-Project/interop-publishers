@@ -1,10 +1,10 @@
 package com.projectronin.interop.publishers
 
-import com.projectronin.interop.fhir.r4.CodeSystem
-import com.projectronin.interop.fhir.r4.CodeableConcepts
+import com.projectronin.interop.aidbox.utils.RONIN_TENANT_SYSTEM
 import com.projectronin.interop.fhir.r4.datatype.HumanName
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
+import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import io.mockk.every
 import io.mockk.mockk
@@ -22,7 +22,7 @@ class PublishServiceTest {
         Practitioner(
             id = Id("cmjones"),
             identifier = listOf(
-                Identifier(system = CodeSystem.RONIN_TENANT.uri, type = CodeableConcepts.RONIN_TENANT, value = "third")
+                Identifier(system = Uri(RONIN_TENANT_SYSTEM), value = "third")
             ),
             name = listOf(
                 HumanName(family = "Jones", given = listOf("Cordelia", "May"))
@@ -31,7 +31,7 @@ class PublishServiceTest {
         Practitioner(
             id = Id("rallyr"),
             identifier = listOf(
-                Identifier(system = CodeSystem.RONIN_TENANT.uri, type = CodeableConcepts.RONIN_TENANT, value = "second")
+                Identifier(system = Uri(RONIN_TENANT_SYSTEM), value = "second")
             ),
             name = listOf(
                 HumanName(

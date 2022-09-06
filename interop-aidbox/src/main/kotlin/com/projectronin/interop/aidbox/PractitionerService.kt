@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.projectronin.interop.aidbox.client.AidboxClient
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
+import com.projectronin.interop.aidbox.utils.RONIN_TENANT_SYSTEM
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.aidbox.utils.validateTenantIdentifier
 import com.projectronin.interop.common.exceptions.LogMarkingException
-import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
@@ -37,7 +37,7 @@ class PractitionerService(
         val parameters = mapOf(
             "id" to practitionerFHIRID,
             "tenant" to SystemValue(
-                system = CodeSystem.RONIN_TENANT.uri.value,
+                system = RONIN_TENANT_SYSTEM,
                 value = tenantMnemonic
             ).queryString
         )
@@ -124,7 +124,7 @@ class PractitionerService(
         val query = javaClass.getResource("/graphql/AidboxPractitionerFHIRIDsQuery.graphql")!!.readText()
         val parameters = mapOf(
             "tenant" to SystemValue(
-                system = CodeSystem.RONIN_TENANT.uri.value,
+                system = RONIN_TENANT_SYSTEM,
                 value = tenantMnemonic
             ).queryString,
             "identifiers" to batch.joinToString(separator = ",") { it.queryString }
@@ -149,7 +149,7 @@ class PractitionerService(
     fun getPractitionersByTenant(tenantMnemonic: String): Map<String, List<Identifier>> {
         logger.info { "Retrieving Practitioners for $tenantMnemonic" }
         val query = javaClass.getResource("/graphql/PractitionerListQuery.graphql")!!.readText()
-        val parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
+        val parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
         val response: GraphQLResponse<PractitionerList> = runBlocking {
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
