@@ -14,7 +14,6 @@ import io.mockk.unmockkAll
 import io.mockk.verify
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -28,7 +27,7 @@ class PublishServiceTest {
 
     @Test
     fun `empty FHIR R4 collection is skipped`() {
-        assertTrue(service.publishFHIRR4(tenantId, emptyList()))
+        service.publishFHIRR4(tenantId, emptyList())
         verify(exactly = 0) { mockClient.upload(any(), any()) }
     }
 
@@ -76,7 +75,7 @@ class PublishServiceTest {
                 objectMapper.writeValueAsString(practitioner)
             )
         }
-        assertTrue(service.publishFHIRR4(tenantId, listOf(location1, location2, practitioner)))
+        service.publishFHIRR4(tenantId, listOf(location1, location2, practitioner))
         verify(exactly = 3) { mockClient.upload(any(), any()) }
     }
 
@@ -87,7 +86,7 @@ class PublishServiceTest {
             service.publishFHIRR4(tenantId, listOf(badResource))
         }
         Assertions.assertEquals(
-            "Attempted to publish a Location resource without a FHIR ID for tenant $tenantId",
+            "Did not publish all FHIR resources to datalake for tenant $tenantId: Some resources lacked FHIR IDs. Errors were logged.",
             exception.message
         )
     }
@@ -99,14 +98,14 @@ class PublishServiceTest {
             service.publishFHIRR4(tenantId, listOf(badResource))
         }
         Assertions.assertEquals(
-            "Attempted to publish a Location resource without a FHIR ID for tenant $tenantId",
+            "Did not publish all FHIR resources to datalake for tenant $tenantId: Some resources lacked FHIR IDs. Errors were logged.",
             exception.message
         )
     }
 
     @Test
     fun `empty API JSON data is skipped`() {
-        assertTrue(service.publishAPIJSON(tenantId, "", "GET", "/fhir/Appointment"))
+        service.publishAPIJSON(tenantId, "", "GET", "/fhir/Appointment")
         verify(exactly = 0) { mockClient.upload(any(), any()) }
     }
 
@@ -161,19 +160,19 @@ class PublishServiceTest {
         val filePathString =
             "/api-json/schema=GET-customAppointmentByPatient/date=1990-01-03/tenant_id=mockTenant/06-07-42-999.json"
         justRun { mockClient.upload(filePathString, data) }
-        assertTrue(service.publishAPIJSON(tenantId, data, "GET", "/custom/AppointmentByPatient"))
+        service.publishAPIJSON(tenantId, data, "GET", "/custom/AppointmentByPatient")
         verify(exactly = 1) { mockClient.upload(any(), any()) }
     }
 
     @Test
     fun `empty list of HL7v2 messages is skipped`() {
-        assertTrue(service.publishHL7v2(tenantId, emptyList()))
+        service.publishHL7v2(tenantId, emptyList())
         verify(exactly = 0) { mockClient.upload(any(), any()) }
     }
 
     @Test
     fun `empty HL7v2 messages are skipped`() {
-        assertTrue(service.publishHL7v2(tenantId, listOf("", "")))
+        service.publishHL7v2(tenantId, listOf("", ""))
         verify(exactly = 0) { mockClient.upload(any(), any()) }
     }
 
@@ -190,7 +189,13 @@ class PublishServiceTest {
             IN1||022254P|4558PD|BLUE CROSS|STREET^OTHER STREET^CITY^ST^00990||(333)333-6666||221K|LENIX|||19980515|19990515|||PATIENT01 TEST D||||||||||||||||||02LL|022LP554
         """.trimMargin()
 
-        assertTrue(service.publishHL7v2(tenantId, listOf(message)))
+        val exception = assertThrows<IllegalStateException> {
+            service.publishHL7v2(tenantId, listOf(message))
+        }
+        Assertions.assertEquals(
+            "Did not publish all HL7v2 messages to datalake for tenant $tenantId: Problems with some message structures. Errors were logged.",
+            exception.message
+        )
         verify(exactly = 0) { mockClient.upload(any(), any()) }
     }
 
@@ -245,12 +250,12 @@ class PublishServiceTest {
         val filePathMDMT02 =
             "/hl7v2/date=1990-01-03/tenant_id=mockTenant/message_type=MDM/message_event=MDMT02/06-07-42-999-0.json"
         justRun { mockClient.upload(filePathMDMT02, messageMDMT02) }
-        assertTrue(service.publishHL7v2(tenantId, listOf(messageMDMT02)))
+        service.publishHL7v2(tenantId, listOf(messageMDMT02))
         verify(exactly = 1) { mockClient.upload(any(), any()) }
     }
 
     @Test
-    fun `HL7v2 bad message structure halts processing of message list`() {
+    fun `HL7v2 bad message structure skipped, but MDMT02 processes`() {
         mockkConstructor(LocalDate::class)
         mockkStatic(LocalDate::class)
         val mockkLocalDate = mockk<LocalDate> {
@@ -278,14 +283,18 @@ class PublishServiceTest {
             OBX|4|TX|||Histopathology: 8070/3 Squamous cell carcinoma, NOS
         """.trimIndent()
 
-        // messageBadData is skipped at index 0, throws exception
+        // messageBadData is skipped at index 0, MDMT02 processed at index 1
+        val filePathMDMT02 =
+            "/hl7v2/date=1990-01-03/tenant_id=mockTenant/message_type=MDM/message_event=MDMT02/06-07-42-999-1.json"
+        justRun { mockClient.upload(filePathMDMT02, messageMDMT02) }
         val exception = assertThrows<IllegalStateException> {
             service.publishHL7v2(tenantId, listOf(messageBadData, messageMDMT02))
         }
         Assertions.assertEquals(
-            "Did not publish HL7v2 message to datalake for tenant $tenantId: the message has invalid structure",
+            "Did not publish all HL7v2 messages to datalake for tenant $tenantId: Problems with some message structures. Errors were logged.",
             exception.message
         )
+        verify(exactly = 1) { mockClient.upload(any(), any()) }
     }
 
     @Test
@@ -348,7 +357,13 @@ class PublishServiceTest {
         justRun { mockClient.upload(filePathMDMT02, messageMDMT02) }
         justRun { mockClient.upload(filePathADTA01, messageADTA01) }
         justRun { mockClient.upload(filePathMDMT06, messageMDMT06) }
-        assertTrue(service.publishHL7v2(tenantId, listOf(messageMDMT02, messageADTA01, messageMDMT06)))
+        val exception = assertThrows<IllegalStateException> {
+            service.publishHL7v2(tenantId, listOf(messageMDMT02, messageADTA01, messageMDMT06))
+        }
+        Assertions.assertEquals(
+            "Did not publish all HL7v2 messages to datalake for tenant $tenantId: Problems with some message structures. Errors were logged.",
+            exception.message
+        )
         verify(exactly = 2) { mockClient.upload(any(), any()) }
     }
 
