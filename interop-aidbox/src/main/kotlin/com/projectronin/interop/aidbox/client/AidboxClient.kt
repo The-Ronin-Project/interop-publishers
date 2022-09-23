@@ -3,7 +3,7 @@ package com.projectronin.interop.aidbox.client
 import com.projectronin.interop.aidbox.auth.AidboxAuthenticationBroker
 import com.projectronin.interop.aidbox.model.GraphQLPostRequest
 import com.projectronin.interop.aidbox.utils.makeBundleForBatchUpsert
-import com.projectronin.interop.common.http.ktor.throwExceptionFromHttpStatus
+import com.projectronin.interop.common.http.throwExceptionFromHttpStatus
 import com.projectronin.interop.fhir.r4.resource.Resource
 import io.ktor.client.HttpClient
 import io.ktor.client.request.accept
