@@ -1,5 +1,5 @@
 [libraries]
-azure-identity = "com.azure:azure-identity:1.5.5"
+azure-identity = "com.azure:azure-identity:1.6.0"
 azure-storage-blob = "com.azure:azure-storage-blob:12.19.1"
 commons-codec = "commons-codec:commons-codec:1.15"
 interop-common = "com.projectronin.interop:interop-common:3.0.0"
