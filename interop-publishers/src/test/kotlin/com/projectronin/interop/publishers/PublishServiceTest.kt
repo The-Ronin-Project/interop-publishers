@@ -7,22 +7,16 @@ import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import com.projectronin.interop.publishers.exception.AidboxPublishException
-import com.projectronin.interop.publishers.exception.DatalakePublishException
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.runs
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import com.projectronin.interop.aidbox.PublishService as AidboxPublishService
-import com.projectronin.interop.datalake.PublishService as DatalakePublishService
 
 class PublishServiceTest {
     private lateinit var aidboxPublishService: AidboxPublishService
-    private lateinit var datalakePublishService: DatalakePublishService
     private lateinit var service: PublishService
 
     private val tenantId = "tenant"
@@ -54,15 +48,13 @@ class PublishServiceTest {
     @BeforeEach
     fun setup() {
         aidboxPublishService = mockk()
-        datalakePublishService = mockk()
 
-        service = PublishService(aidboxPublishService, datalakePublishService)
+        service = PublishService(aidboxPublishService)
     }
 
     @Test
-    fun `publishes FHIR resources to Aidbox and datalake`() {
+    fun `publishes FHIR resources to Aidbox`() {
         every { aidboxPublishService.publish(roninDomainResources) } returns true
-        every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
 
         assertTrue(service.publishFHIRResources(tenantId, roninDomainResources))
     }
@@ -74,19 +66,5 @@ class PublishServiceTest {
         assertThrows<AidboxPublishException> {
             service.publishFHIRResources(tenantId, roninDomainResources)
         }
-    }
-
-    @Test
-    fun `handles publish to datalake failing`() {
-        val exception = IllegalStateException("exception")
-
-        every { aidboxPublishService.publish(roninDomainResources) } returns true
-        every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } throws exception
-
-        val e = assertThrows<DatalakePublishException> {
-            service.publishFHIRResources(tenantId, roninDomainResources)
-        }
-
-        assertEquals(exception, e.cause)
     }
 }
