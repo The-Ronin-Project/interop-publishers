@@ -3,8 +3,8 @@ package com.projectronin.interop.datalake
 import com.projectronin.interop.common.hl7.EventType
 import com.projectronin.interop.common.hl7.MessageType
 import com.projectronin.interop.common.jackson.JacksonManager
-import com.projectronin.interop.datalake.azure.client.AzureClient
 import com.projectronin.interop.datalake.hl7.getMSH9
+import com.projectronin.interop.datalake.oci.client.OCIClient
 import com.projectronin.interop.fhir.r4.resource.Resource
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
@@ -16,7 +16,7 @@ import java.time.format.DateTimeFormatter
  * Service allowing access to push data updates to  the datalake
  */
 @Service
-class PublishService(private val azureClient: AzureClient) {
+class PublishService(private val ociClient: OCIClient) {
     private val logger = KotlinLogging.logger { }
 
     /**
@@ -53,7 +53,7 @@ class PublishService(private val azureClient: AzureClient) {
                 "$root/date=$dateOfExport/tenant_id=$tenantId/resource_type=$resourceType/$resourceId.json"
             logger.debug { "Publishing Ronin clinical data to $filePathString" }
             val serialized = JacksonManager.objectMapper.writeValueAsString(it)
-            azureClient.upload(filePathString, serialized)
+            ociClient.upload(filePathString, serialized)
         }
 
         if (resourcesToWrite.size < resources.size) {
@@ -64,7 +64,7 @@ class PublishService(private val azureClient: AzureClient) {
     }
 
     /**
-     * Publishes serialized JSON data to the Azure datalake.
+     * Publishes serialized JSON data to the OCI datalake.
      * The [data] is expected to be the response payload from an API call whose response content format is JSON.
      *
      * For JSON response data from FHIR APIs, use publishFHIRR4().
@@ -107,11 +107,11 @@ class PublishService(private val azureClient: AzureClient) {
             .replace(pathCleanup, "-")
         val filePathString = "$root/schema=$schema/date=$dateOfExport/tenant_id=$tenantId/$timeOfExport.json"
         logger.debug { "Publishing Ronin clinical data to $filePathString" }
-        azureClient.upload(filePathString, data)
+        ociClient.upload(filePathString, data)
     }
 
     /**
-     * Publishes HL7v2 data to the Azure datalake.
+     * Publishes HL7v2 data to the OCI datalake.
      *
      * publishHL7v2() publishes the HL7v2 data to a file in the datalake container.
      * The file path supports Data Platform needs for code optimization and bronze directory layout:
@@ -163,7 +163,7 @@ class PublishService(private val azureClient: AzureClient) {
                 return@forEachIndexed
             }
             logger.debug { "Publishing Ronin clinical data to $filePathString" }
-            azureClient.upload(filePathString, message)
+            ociClient.upload(filePathString, message)
         }
         if (messageCount < messagesToWrite.size) {
             throw IllegalStateException(

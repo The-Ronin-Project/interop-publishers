@@ -1,7 +1,7 @@
 package com.projectronin.interop.datalake
 
 import com.projectronin.interop.common.jackson.JacksonManager
-import com.projectronin.interop.datalake.azure.client.AzureClient
+import com.projectronin.interop.datalake.oci.client.OCIClient
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.resource.Location
 import com.projectronin.interop.fhir.r4.resource.Practitioner
@@ -21,7 +21,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 class PublishServiceTest {
-    private val mockClient = mockk<AzureClient> {}
+    private val mockClient = mockk<OCIClient> {}
     private val service = PublishService(mockClient)
     private val tenantId = "mockTenant"
 
@@ -92,10 +92,11 @@ class PublishServiceTest {
     }
 
     @Test
-    fun `cannot publish a FHIR R4 resource that has a null id`() {
+    fun `cannot publish a FHIR R4 resource that has a null id or value`() {
         val badResource = Location(id = null)
+        val badResource2 = Location(id = Id(value = ""))
         val exception = assertThrows<IllegalStateException> {
-            service.publishFHIRR4(tenantId, listOf(badResource))
+            service.publishFHIRR4(tenantId, listOf(badResource, badResource2))
         }
         Assertions.assertEquals(
             "Did not publish all FHIR resources to datalake for tenant $tenantId: Some resources lacked FHIR IDs. Errors were logged.",

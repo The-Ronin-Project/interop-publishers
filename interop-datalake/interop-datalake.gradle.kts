@@ -7,8 +7,7 @@ dependencies {
     implementation(libs.interop.common)
     implementation(libs.interop.commonJackson)
     implementation(libs.interop.fhir)
-    implementation(libs.azure.storage.blob)
-    implementation(libs.azure.identity)
-
+    implementation(libs.oci.common)
+    implementation(libs.oci.objectstorage)
     testImplementation(libs.mockk)
 }

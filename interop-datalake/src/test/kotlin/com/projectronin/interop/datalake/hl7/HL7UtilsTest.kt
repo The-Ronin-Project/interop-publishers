@@ -1,15 +1,9 @@
-package com.projectronin.interop.datalake.azure.hl7
+package com.projectronin.interop.datalake.hl7
 
-import com.projectronin.interop.datalake.azure.client.AzureClient
-import com.projectronin.interop.datalake.hl7.getMSH9
-import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class HL7UtilsTest {
-    private val mockClient = mockk<AzureClient> {}
-    private val tenantId = "mockTenant"
-
     @Test
     fun `HL7v2 missing message header`() {
         val messageMDMT02 = """
