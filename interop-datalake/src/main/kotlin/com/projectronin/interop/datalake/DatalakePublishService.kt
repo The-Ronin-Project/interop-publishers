@@ -13,10 +13,10 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 /**
- * Service allowing access to push data updates to  the datalake
+ * Service allowing access to push data updates to the datalake
  */
 @Service
-class PublishService(private val ociClient: OCIClient) {
+class DatalakePublishService(private val ociClient: OCIClient) {
     private val logger = KotlinLogging.logger { }
 
     /**

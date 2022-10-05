@@ -20,9 +20,9 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-class PublishServiceTest {
+class DatalakePublishServiceTest {
     private val mockClient = mockk<OCIClient> {}
-    private val service = PublishService(mockClient)
+    private val service = DatalakePublishService(mockClient)
     private val tenantId = "mockTenant"
 
     @Test

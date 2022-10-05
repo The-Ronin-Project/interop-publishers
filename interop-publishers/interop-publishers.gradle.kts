@@ -7,7 +7,6 @@ dependencies {
     implementation(libs.interop.common)
     implementation(libs.interop.fhir)
     implementation(project(":interop-aidbox"))
-    implementation(project(":interop-datalake"))
 
     testImplementation(libs.mockk)
 }
