@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.github.dockerjava.api.command.InspectContainerResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
@@ -34,14 +34,14 @@ import java.nio.charset.Charset
  *
  * This container requires a [databaseContainer], which will be marked as a dependency of this container to ensure
  * proper load order. This container can also be provided with the following options:
- * * [version] - the version of devbox that should be loaded ("latest" by default)
+ * * [version] - the version of devbox that should be loaded ("2206-lts" by default)
  * * [fhirVersion] - the version of FHIR supported by Aidbox ("4.0.0" by default)
  * * [aidboxClientId] - the client ID registered as an authorized client
  * * [aidboxClientSecret] - the secret registered to the authorized client
  */
 class AidboxContainer(
     private val databaseContainer: AidboxDatabaseContainer,
-    private val version: String = "latest",
+    private val version: String = "2206-lts",
     private val fhirVersion: String = "4.0.0",
     val aidboxClientId: String = "client",
     val aidboxClientSecret: String = "secret"
@@ -59,7 +59,7 @@ class AidboxContainer(
     /**
      * Ktor Client used by the AidboxContainer. It is also available for use by any consumers of the container.
      */
-    val ktorClient = HttpClient(CIO) {
+    val ktorClient = HttpClient(OkHttp) {
         install(ContentNegotiation) {
             jackson {
                 disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)

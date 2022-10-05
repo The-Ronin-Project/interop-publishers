@@ -7,10 +7,6 @@ dependencies {
     implementation(libs.interop.common)
     implementation(libs.interop.commonHttp)
     implementation(libs.interop.fhir)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.jackson)
 
     testImplementation(libs.interop.commonJackson)
     testImplementation(libs.ktor.client.mock)

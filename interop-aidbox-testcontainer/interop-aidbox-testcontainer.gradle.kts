@@ -8,9 +8,5 @@ dependencies {
     api("org.testcontainers:testcontainers")
     implementation("org.testcontainers:junit-jupiter")
     implementation(libs.commons.codec)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.client.logging)
-    implementation(libs.ktor.serialization.jackson)
+    implementation(libs.interop.commonHttp)
 }
