@@ -6,7 +6,6 @@ import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
-import com.projectronin.interop.aidbox.utils.RONIN_TENANT_SYSTEM
 import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.fhir.r4.datatype.Identifier
@@ -38,8 +37,8 @@ class PatientServiceTest {
     private val mrn1 = "01111"
     private val mrn2 = "01112"
 
-    private val tenantQueryString = "$RONIN_TENANT_SYSTEM|$tenantMnemonic"
-    private val tenantIdentifier = Identifier(system = Uri(RONIN_TENANT_SYSTEM), value = tenantMnemonic)
+    private val tenantQueryString = "http://projectronin.com/id/tenantId|$tenantMnemonic"
+    private val tenantIdentifier = Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic)
 
     private val mrnSystemValue1 = SystemValue(system = "mrnSystem", value = mrn1)
     private val mrnIdentifier1 = Identifier(system = Uri("mrnSystem"), value = mrn1)
@@ -338,7 +337,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -359,7 +358,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -379,7 +378,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } throws Exception()
@@ -396,7 +395,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
             )
         } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 
@@ -466,12 +465,12 @@ class PatientServiceTest {
     }
 
     @Test
-    fun `getOncologyPatient - success`() {
+    fun `getPatient - success`() {
         val httpMock = mockk<HttpResponse>()
         val patientMock = mockk<Patient>()
         every { patientMock.identifier } returns listOf(
             Identifier(
-                system = Uri(RONIN_TENANT_SYSTEM),
+                system = Uri("http://projectronin.com/id/tenantId"),
                 value = tenantMnemonic
             )
         )
@@ -487,7 +486,7 @@ class PatientServiceTest {
         val patientMock = mockk<Patient>()
         every { patientMock.identifier } returns listOf(
             Identifier(
-                system = Uri(RONIN_TENANT_SYSTEM),
+                system = Uri("http://projectronin.com/id/tenantId"),
                 value = tenantMnemonic
             )
         )
@@ -506,7 +505,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -576,7 +575,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -596,7 +595,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -616,7 +615,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } throws Exception()
@@ -633,7 +632,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
             )
         } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 

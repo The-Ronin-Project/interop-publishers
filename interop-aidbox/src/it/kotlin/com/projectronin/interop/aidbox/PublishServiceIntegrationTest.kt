@@ -5,8 +5,6 @@ import com.fasterxml.jackson.module.kotlin.convertValue
 import com.projectronin.interop.aidbox.spring.AidboxIntegrationConfig
 import com.projectronin.interop.aidbox.testcontainer.AidboxData
 import com.projectronin.interop.aidbox.testcontainer.BaseAidboxTest
-import com.projectronin.interop.aidbox.util.asCode
-import com.projectronin.interop.aidbox.utils.RONIN_TENANT_SYSTEM
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.fhir.r4.datatype.Address
 import com.projectronin.interop.fhir.r4.datatype.Attachment
@@ -18,7 +16,6 @@ import com.projectronin.interop.fhir.r4.datatype.Contact
 import com.projectronin.interop.fhir.r4.datatype.ContactPoint
 import com.projectronin.interop.fhir.r4.datatype.DynamicValue
 import com.projectronin.interop.fhir.r4.datatype.DynamicValueType
-import com.projectronin.interop.fhir.r4.datatype.Extension
 import com.projectronin.interop.fhir.r4.datatype.HumanName
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.LocationHoursOfOperation
@@ -53,6 +50,7 @@ import com.projectronin.interop.fhir.r4.valueset.LocationMode
 import com.projectronin.interop.fhir.r4.valueset.LocationStatus
 import com.projectronin.interop.fhir.r4.valueset.NarrativeStatus
 import com.projectronin.interop.fhir.r4.valueset.ParticipationStatus
+import com.projectronin.interop.fhir.util.asCode
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.delete
@@ -97,13 +95,13 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         type = CodeableConcept(
             coding = listOf(
                 Coding(
-                    system = Uri(RONIN_TENANT_SYSTEM),
+                    system = Uri("http://projectronin.com/id/tenantId"),
                     code = Code("TID"),
                     display = "Ronin-specified Tenant Identifier"
                 )
             )
         ),
-        system = Uri(RONIN_TENANT_SYSTEM),
+        system = Uri("http://projectronin.com/id/tenantId"),
         value = "mdaoc"
     )
 
@@ -506,12 +504,6 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         )
         val appointment = Appointment(
             id = Id("${idPrefix}12345"),
-            extension = listOf(
-                Extension(
-                    url = Uri("http://projectronin.com/fhir/us/ronin/StructureDefinition/partnerDepartmentReference"),
-                    value = DynamicValue(DynamicValueType.REFERENCE, Reference(reference = "reference"))
-                )
-            ),
             identifier = listOf(tenantIdentifier),
             status = AppointmentStatus.CANCELLED.asCode(),
             appointmentType = CodeableConcept(text = "appointment type"),
@@ -871,12 +863,6 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         )
         val appointment = Appointment(
             id = Id("${idPrefix}12345"),
-            extension = listOf(
-                Extension(
-                    url = Uri("http://projectronin.com/fhir/us/ronin/StructureDefinition/partnerDepartmentReference"),
-                    value = DynamicValue(DynamicValueType.REFERENCE, Reference(reference = "reference"))
-                )
-            ),
             identifier = listOf(tenantIdentifier),
             status = AppointmentStatus.CANCELLED.asCode(),
             appointmentType = CodeableConcept(text = "appointment type"),
@@ -1099,12 +1085,6 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         )
         val appointment = Appointment(
             id = Id("${idPrefix}12345"),
-            extension = listOf(
-                Extension(
-                    url = Uri("http://projectronin.com/fhir/us/ronin/StructureDefinition/partnerDepartmentReference"),
-                    value = DynamicValue(DynamicValueType.REFERENCE, Reference(reference = "reference"))
-                )
-            ),
             identifier = listOf(
                 tenantIdentifier
             ),

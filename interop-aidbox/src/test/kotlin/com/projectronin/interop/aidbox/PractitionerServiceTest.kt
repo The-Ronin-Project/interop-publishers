@@ -6,7 +6,6 @@ import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
-import com.projectronin.interop.aidbox.utils.RONIN_TENANT_SYSTEM
 import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.jackson.JacksonManager
 import com.projectronin.interop.fhir.r4.CodeSystem
@@ -84,8 +83,8 @@ class PractitionerServiceTest {
     private val practitioner1 = "01111"
     private val practitioner2 = "01112"
 
-    private val tenantQueryString = "$RONIN_TENANT_SYSTEM|$tenantMnemonic"
-    private val tenantIdentifier = Identifier(system = Uri(RONIN_TENANT_SYSTEM), value = tenantMnemonic)
+    private val tenantQueryString = "http://projectronin.com/id/tenantId|$tenantMnemonic"
+    private val tenantIdentifier = Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic)
 
     private val practitionerSystemValue1 = SystemValue(system = CodeSystem.NPI.uri.value, value = practitioner1)
     private val practitionerIdentifier1 = Identifier(system = CodeSystem.NPI.uri, value = practitioner1)
@@ -228,7 +227,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
-                parameters = mapOf("id" to fhirID, "tenant" to "$RONIN_TENANT_SYSTEM|wrongTenant")
+                parameters = mapOf("id" to fhirID, "tenant" to "http://projectronin.com/id/tenantId|wrongTenant")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
@@ -670,7 +669,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse.body() } returns response
@@ -691,7 +690,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse.body() } returns response
@@ -711,7 +710,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse.body() } throws Exception()
@@ -728,7 +727,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
             )
         } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 
@@ -806,7 +805,7 @@ class PractitionerServiceTest {
         val practitionerMock = mockk<Practitioner>()
         every { practitionerMock.identifier } returns listOf(
             Identifier(
-                system = Uri(RONIN_TENANT_SYSTEM),
+                system = Uri("http://projectronin.com/id/tenantId"),
                 value = tenantMnemonic
             )
         )
@@ -822,7 +821,7 @@ class PractitionerServiceTest {
         val practitionerMock = mockk<Practitioner>()
         every { practitionerMock.identifier } returns listOf(
             Identifier(
-                system = Uri(RONIN_TENANT_SYSTEM),
+                system = Uri("http://projectronin.com/id/tenantId"),
                 value = tenantMnemonic
             )
         )
@@ -841,7 +840,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic")
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse.body() } returns response
@@ -863,7 +862,7 @@ class PractitionerServiceTest {
                 query = query,
                 parameters = mapOf(
                     "id" to fhirID,
-                    "tenant" to "$RONIN_TENANT_SYSTEM|$tenantMnemonic"
+                    "tenant" to "http://projectronin.com/id/tenantId|$tenantMnemonic"
                 )
             )
         } returns mockHttpResponse

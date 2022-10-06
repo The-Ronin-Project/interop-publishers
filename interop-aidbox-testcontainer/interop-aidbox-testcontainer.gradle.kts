@@ -9,4 +9,5 @@ dependencies {
     implementation("org.testcontainers:junit-jupiter")
     implementation(libs.commons.codec)
     implementation(libs.interop.commonHttp)
+    testImplementation(libs.interop.fhir)
 }

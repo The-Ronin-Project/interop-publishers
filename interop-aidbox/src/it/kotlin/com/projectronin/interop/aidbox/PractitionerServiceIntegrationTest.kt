@@ -4,7 +4,6 @@ import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.aidbox.spring.AidboxIntegrationConfig
 import com.projectronin.interop.aidbox.testcontainer.AidboxData
 import com.projectronin.interop.aidbox.testcontainer.BaseAidboxTest
-import com.projectronin.interop.aidbox.utils.RONIN_TENANT_SYSTEM
 import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
@@ -133,7 +132,7 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
         val tenantIdentifier =
             Identifier(
                 type = CodeableConcept(text = "Tenant ID"),
-                system = Uri(RONIN_TENANT_SYSTEM),
+                system = Uri("http://projectronin.com/id/tenantId"),
                 value = "tenant"
             )
         assertEquals(

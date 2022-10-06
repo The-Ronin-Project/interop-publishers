@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.projectronin.interop.aidbox.auth.AidboxAuthenticationBroker
 import com.projectronin.interop.aidbox.model.GraphQLPostRequest
-import com.projectronin.interop.aidbox.utils.asCode
 import com.projectronin.interop.common.http.exceptions.ClientAuthenticationException
 import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.http.exceptions.ServiceUnavailableException
@@ -37,6 +36,7 @@ import com.projectronin.interop.fhir.r4.valueset.DayOfWeek
 import com.projectronin.interop.fhir.r4.valueset.LocationMode
 import com.projectronin.interop.fhir.r4.valueset.LocationStatus
 import com.projectronin.interop.fhir.r4.valueset.NarrativeStatus
+import com.projectronin.interop.fhir.util.asCode
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond

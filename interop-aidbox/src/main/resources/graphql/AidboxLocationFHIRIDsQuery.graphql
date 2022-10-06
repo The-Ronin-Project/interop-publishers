@@ -1,0 +1,14 @@
+query($tenant:string!, $identifiers:string!) {
+    LocationList(
+        identifier: $tenant
+        identifier_list: [$identifiers]
+    )
+    {
+        id
+        identifier {
+            system
+            value
+        }
+    }
+}
+

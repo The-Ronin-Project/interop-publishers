@@ -14,9 +14,6 @@ import com.projectronin.interop.fhir.r4.resource.Resource
 import com.projectronin.interop.fhir.r4.valueset.BundleType
 import com.projectronin.interop.fhir.r4.valueset.HttpVerb
 
-// Should we put this somewhere else? This is in RoninCodeSystem in interop-fhir-ronin, but that's part of interop-ehr, creating a circular dependency.
-const val RONIN_TENANT_SYSTEM = "http://projectronin.com/id/tenantId"
-
 /**
  * Creates and returns the appropriate GraphQLReponse for the provided exception.
  * @param exception The exception for which a response should be created
@@ -62,7 +59,7 @@ fun makeBundleEntry(aidboxURLRest: String, method: HttpVerb, resource: Resource<
  * throws [InvalidTenantAccessException] with the supplied [errorMessage] if failed.
  */
 fun validateTenantIdentifier(tenantMnemonic: String, identifiers: List<Identifier>, errorMessage: String) {
-    if (identifiers.none { it.value == tenantMnemonic && it.system?.value == RONIN_TENANT_SYSTEM }) {
+    if (identifiers.none { it.value == tenantMnemonic && it.system?.value == "http://projectronin.com/id/tenantId" }) {
         throw InvalidTenantAccessException(errorMessage)
     }
 }

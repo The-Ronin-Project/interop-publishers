@@ -39,7 +39,7 @@ class AidboxUtilsTest {
             validateTenantIdentifier(
                 "tenant1",
                 listOf(
-                    Identifier(system = Uri(RONIN_TENANT_SYSTEM), value = "tenant1"),
+                    Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = "tenant1"),
                     Identifier(system = Uri("otherIdentifierSystem"), value = "123")
                 ),
                 "Tenant did not match"
@@ -52,7 +52,7 @@ class AidboxUtilsTest {
         assertThrows<InvalidTenantAccessException> {
             validateTenantIdentifier(
                 "tenant1",
-                listOf(Identifier(system = Uri(RONIN_TENANT_SYSTEM), value = "tenant2")),
+                listOf(Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = "tenant2")),
                 "Tenant did not match"
             )
         }
