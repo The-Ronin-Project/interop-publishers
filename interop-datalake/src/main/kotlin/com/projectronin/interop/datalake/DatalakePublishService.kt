@@ -36,7 +36,7 @@ class DatalakePublishService(private val ociClient: OCIClient) {
      * @throws IllegalStateException if any of the resources lacked FHIR id values so were not published.
      */
     fun publishFHIRR4(tenantId: String, resources: List<Resource<*>>) {
-        val root = "/fhir-r4"
+        val root = "fhir-r4"
         logger.info { "Publishing Ronin clinical data to datalake at $root" }
         if (resources.isEmpty()) {
             logger.debug { "Publishing nothing to datalake because the supplied data is empty" }
@@ -87,7 +87,7 @@ class DatalakePublishService(private val ociClient: OCIClient) {
      * @throws IllegalStateException if the method or url is empty so the API request could not be correctly identified.
      */
     fun publishAPIJSON(tenantId: String, data: String, method: String, url: String) {
-        val root = "/api-json"
+        val root = "api-json"
         logger.info { "Publishing Ronin clinical data to datalake at $root" }
         if (method.isEmpty() || url.isEmpty()) {
             throw IllegalStateException(
@@ -125,7 +125,7 @@ class DatalakePublishService(private val ociClient: OCIClient) {
      * @throws IllegalStateException if any of the HL7v2 messages had an invalid structure so could not be published.
      */
     fun publishHL7v2(tenantId: String, messages: List<String>) {
-        val root = "/hl7v2"
+        val root = "hl7v2"
         logger.info { "Publishing Ronin clinical data to datalake at $root" }
         if (messages.isEmpty()) {
             logger.debug { "Publishing nothing to datalake because the supplied data is empty" }

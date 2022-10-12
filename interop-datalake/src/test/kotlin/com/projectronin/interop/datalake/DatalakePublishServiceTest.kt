@@ -53,7 +53,7 @@ class DatalakePublishServiceTest {
             id = Id("abc"),
         )
         val filePathString =
-            "/fhir-r4/date=1990-01-03/tenant_id=mockTenant/resource_type=__RESOURCETYPE__/__FHIRID__.json"
+            "fhir-r4/date=1990-01-03/tenant_id=mockTenant/resource_type=__RESOURCETYPE__/__FHIRID__.json"
         val locationFilePathString = filePathString.replace("__RESOURCETYPE__", "Location")
         val practitionerFilePathString = filePathString.replace("__RESOURCETYPE__", "Practitioner")
         val objectMapper = JacksonManager.objectMapper
@@ -159,7 +159,7 @@ class DatalakePublishServiceTest {
         """.trimIndent()
 
         val filePathString =
-            "/api-json/schema=GET-customAppointmentByPatient/date=1990-01-03/tenant_id=mockTenant/06-07-42-999.json"
+            "api-json/schema=GET-customAppointmentByPatient/date=1990-01-03/tenant_id=mockTenant/06-07-42-999.json"
         justRun { mockClient.upload(filePathString, data) }
         service.publishAPIJSON(tenantId, data, "GET", "/custom/AppointmentByPatient")
         verify(exactly = 1) { mockClient.upload(any(), any()) }
@@ -249,7 +249,7 @@ class DatalakePublishServiceTest {
 
         // messageMDMT02 processes at index 0
         val filePathMDMT02 =
-            "/hl7v2/date=1990-01-03/tenant_id=mockTenant/message_type=MDM/message_event=MDMT02/06-07-42-999-0.json"
+            "hl7v2/date=1990-01-03/tenant_id=mockTenant/message_type=MDM/message_event=MDMT02/06-07-42-999-0.json"
         justRun { mockClient.upload(filePathMDMT02, messageMDMT02) }
         service.publishHL7v2(tenantId, listOf(messageMDMT02))
         verify(exactly = 1) { mockClient.upload(any(), any()) }
@@ -286,7 +286,7 @@ class DatalakePublishServiceTest {
 
         // messageBadData is skipped at index 0, MDMT02 processed at index 1
         val filePathMDMT02 =
-            "/hl7v2/date=1990-01-03/tenant_id=mockTenant/message_type=MDM/message_event=MDMT02/06-07-42-999-1.json"
+            "hl7v2/date=1990-01-03/tenant_id=mockTenant/message_type=MDM/message_event=MDMT02/06-07-42-999-1.json"
         justRun { mockClient.upload(filePathMDMT02, messageMDMT02) }
         val exception = assertThrows<IllegalStateException> {
             service.publishHL7v2(tenantId, listOf(messageBadData, messageMDMT02))
@@ -350,10 +350,13 @@ class DatalakePublishServiceTest {
         """.trimIndent()
 
         // messageMDMT02 processes at index 0, messageADTA01 is an unsupported type at index 1, messageMDMT06 processes at index 2
-        val filePathString = "/hl7v2/date=1990-01-03/tenant_id=mockTenant__REPLACE__.json"
-        val filePathMDMT02 = filePathString.replace("__REPLACE__", "/message_type=MDM/message_event=MDMT02/06-07-42-999-0")
-        val filePathADTA01 = filePathString.replace("__REPLACE__", "/message_type=ADT/message_event=ADTA01/06-07-42-999-1")
-        val filePathMDMT06 = filePathString.replace("__REPLACE__", "/message_type=MDM/message_event=MDMT06/06-07-42-999-2")
+        val filePathString = "hl7v2/date=1990-01-03/tenant_id=mockTenant__REPLACE__.json"
+        val filePathMDMT02 =
+            filePathString.replace("__REPLACE__", "/message_type=MDM/message_event=MDMT02/06-07-42-999-0")
+        val filePathADTA01 =
+            filePathString.replace("__REPLACE__", "/message_type=ADT/message_event=ADTA01/06-07-42-999-1")
+        val filePathMDMT06 =
+            filePathString.replace("__REPLACE__", "/message_type=MDM/message_event=MDMT06/06-07-42-999-2")
 
         justRun { mockClient.upload(filePathMDMT02, messageMDMT02) }
         justRun { mockClient.upload(filePathADTA01, messageADTA01) }
