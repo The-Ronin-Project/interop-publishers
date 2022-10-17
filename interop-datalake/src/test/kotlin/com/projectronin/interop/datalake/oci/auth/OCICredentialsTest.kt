@@ -7,6 +7,7 @@ import io.mockk.unmockkAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import java.util.Base64
 
 class OCICredentialsTest {
     @Test
@@ -29,13 +30,14 @@ class OCICredentialsTest {
     @Test
     fun `getAuthentication - works`() {
         mockkConstructor(SimpleAuthenticationDetailsProviderBuilder::class)
+        val privateString = "-----BEGIN PRIVATE KEY-----\n" +
+            "-----END PRIVATE KEY-----"
         val credentials = OCICredentials(
             tenantId = "ocid1.tenancy.oc1",
             userId = "ocid1.user.oc1.",
             fingerPrint = "a1:",
             region = Region.US_PHOENIX_1,
-            privateKey = "-----BEGIN PRIVATE KEY-----\n" +
-                "-----END PRIVATE KEY-----"
+            privateKey = Base64.getEncoder().encodeToString(privateString.toByteArray())
         )
         val auth = credentials.getAuthentication()
 

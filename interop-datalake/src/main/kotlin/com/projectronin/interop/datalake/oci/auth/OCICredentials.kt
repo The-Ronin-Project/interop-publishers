@@ -5,6 +5,7 @@ import com.oracle.bmc.auth.AuthenticationDetailsProvider
 import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider
 import org.springframework.beans.factory.annotation.Value
 import java.io.InputStream
+import java.util.Base64
 import java.util.function.Supplier
 
 /***
@@ -22,7 +23,7 @@ data class OCICredentials(
     @Value("\${datalake.oci.region}")
     val region: Region
 ) {
-    private val privateKeySupplier: Supplier<InputStream> = Supplier<InputStream> { privateKey.byteInputStream() }
+    private val privateKeySupplier: Supplier<InputStream> = Supplier<InputStream> { Base64.getDecoder().decode(privateKey).inputStream() }
     private val authProvider by lazy {
         SimpleAuthenticationDetailsProvider.builder()
             .tenantId(tenantId)

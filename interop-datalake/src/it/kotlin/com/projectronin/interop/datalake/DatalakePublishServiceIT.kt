@@ -48,7 +48,11 @@ class DatalakePublishServiceIT {
     private val ociUserId = "ociUser"
     private val fingerPrint = "fingerPrint"
     private val privateKey =
-        this::class.java.getResource("/ExamplePEMPrivateKey.txt")!!.readText().replace("\\r", "").replace("\\n", "")
+        java.util.Base64.getEncoder().encodeToString(
+            this::class.java.getResource("/ExamplePEMPrivateKey.txt")!!.readText().replace("\\r", "")
+                .replace("\\n", "")
+                .toByteArray()
+        )
 
     // We have to mock the region to force this to our localhost.
     private val region = mockk<Region> {
