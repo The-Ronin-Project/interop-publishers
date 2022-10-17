@@ -1160,6 +1160,27 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         assertTrue(published)
     }
 
+    @Test
+    fun `can publish relatively large number of resources`() {
+        // this number should exceed our batch size, which currently defaults to 25
+        val resources = (1..100).map {
+            Practitioner(
+                id = Id("batchTest-$it"),
+                identifier = listOf(tenantIdentifier),
+                name = listOf(HumanName(family = "Jones", given = listOf(it.toString())))
+            )
+        }
+        val resourceIds = resources.map { it.id!!.value }
+
+        assertTrue(allResourcesNull("Practitioner", resourceIds))
+
+        val published = publishService.publish(resources)
+        assertTrue(published)
+        assertTrue(allResourcesExist("Practitioner", resourceIds))
+
+        deleteAllResources("Practitioner", resourceIds)
+    }
+
     private inline fun <reified T : Resource<T>> getResource(resourceType: String, id: String): T? {
         return runBlocking {
             val aidboxUrl = aidbox.baseUrl()
@@ -1187,13 +1208,13 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         }
     }
 
-    private fun deleteResource(resourceType: String, id: String) {
+    private fun deleteResource(resourceType: String, id: String, accessToken: String = aidbox.accessToken()) {
         return runBlocking {
             val aidboxUrl = aidbox.baseUrl()
             try {
                 aidbox.ktorClient.delete("$aidboxUrl/fhir/$resourceType/$id") {
                     headers {
-                        append(HttpHeaders.Authorization, "Bearer ${aidbox.accessToken()}")
+                        append(HttpHeaders.Authorization, "Bearer $accessToken")
                     }
                 }
             } catch (e: ClientRequestException) {
@@ -1202,14 +1223,16 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     }
 
     private fun deleteAllResources(resourceType: String, ids: List<String>) {
+        val accessToken = aidbox.accessToken()
         ids.forEach {
-            deleteResource(resourceType, it)
+            deleteResource(resourceType, it, accessToken)
         }
     }
 
     private fun allResourcesExist(resourceType: String, ids: List<String>): Boolean {
+        val accessToken = aidbox.accessToken()
         ids.forEach {
-            if (!doesResourceExist(resourceType, it)) {
+            if (!doesResourceExist(resourceType, it, accessToken)) {
                 return false
             }
         }
@@ -1217,21 +1240,26 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     }
 
     private fun allResourcesNull(resourceType: String, ids: List<String>): Boolean {
+        val accessToken = aidbox.accessToken()
         ids.forEach {
-            if (doesResourceExist(resourceType, it)) {
+            if (doesResourceExist(resourceType, it, accessToken)) {
                 return false
             }
         }
         return true
     }
 
-    private fun doesResourceExist(resourceType: String, id: String): Boolean {
+    private fun doesResourceExist(
+        resourceType: String,
+        id: String,
+        accessToken: String = aidbox.accessToken()
+    ): Boolean {
         return runBlocking {
             val aidboxUrl = aidbox.baseUrl()
             val response = try {
                 aidbox.ktorClient.get("$aidboxUrl/fhir/$resourceType/$id") {
                     headers {
-                        append(HttpHeaders.Authorization, "Bearer ${aidbox.accessToken()}")
+                        append(HttpHeaders.Authorization, "Bearer $accessToken")
                     }
                 }
             } catch (e: ClientRequestException) {

@@ -6,13 +6,17 @@ import com.projectronin.interop.fhir.r4.resource.Resource
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
 /**
  * Service allowing access to push data updates to the Ronin clinical data store.
  */
 @Service
-class PublishService(private val aidboxClient: AidboxClient) {
+class PublishService(
+    private val aidboxClient: AidboxClient,
+    @Value("\${aidbox.publishBatchSize:25}") private val batchSize: Int = 25
+) {
     private val logger = KotlinLogging.logger { }
 
     /**
@@ -27,13 +31,17 @@ class PublishService(private val aidboxClient: AidboxClient) {
         if (resourceCollection.isEmpty()) {
             return true
         }
-        return runBlocking {
-            try {
-                aidboxClient.batchUpsert(resourceCollection).status.isSuccess()
-            } catch (e: LogMarkingException) {
-                logger.warn(e.logMarker) { "Failed to publish Ronin clinical data" }
-                false
+
+        val processedResults = runBlocking {
+            resourceCollection.chunked(batchSize).map {
+                try {
+                    aidboxClient.batchUpsert(it).status.isSuccess()
+                } catch (e: LogMarkingException) {
+                    logger.warn(e.logMarker) { "Failed to publish Ronin clinical data" }
+                    false
+                }
             }
         }
+        return processedResults.all { it }
     }
 }
