@@ -5,7 +5,7 @@ import com.oracle.bmc.objectstorage.requests.GetObjectRequest
 import com.oracle.bmc.objectstorage.requests.PutObjectRequest
 import com.oracle.bmc.objectstorage.responses.GetObjectResponse
 import com.oracle.bmc.objectstorage.responses.PutObjectResponse
-import com.projectronin.interop.datalake.oci.auth.OCICredentials
+import com.projectronin.interop.datalake.oci.auth.OCIConfiguration
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkConstructor
@@ -18,7 +18,10 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 
 class OCIClientTest {
-    private val credentials = mockk<OCICredentials>()
+    private val credentials = mockk<OCIConfiguration> {
+        every { nameSpace } returns "nameSpace"
+        every { bucketName } returns "bucket"
+    }
 
     @Test
     fun `getContentBody - works`() {
@@ -38,7 +41,7 @@ class OCIClientTest {
             every { getObject(mockRequest) } returns mockResponse
         }
 
-        val client = spyk(OCIClient("nameSpace", "bucket", credentials))
+        val client = spyk(OCIClient(credentials))
         every { client getProperty "client" } returns mockObjectStorageClient
         every { client.getObjectBody("test") } answers { callOriginal() }
         assertEquals("blag", client.getObjectBody("test"))
@@ -62,7 +65,7 @@ class OCIClientTest {
             every { getObject(mockRequest) } returns mockResponse
         }
 
-        val client = spyk(OCIClient("nameSpace", "bucket", credentials))
+        val client = spyk(OCIClient(credentials))
         every { client getProperty "client" } returns mockObjectStorageClient
         every { client.getObjectBody("test") } answers { callOriginal() }
         assertNull(client.getObjectBody("test"))
@@ -85,7 +88,7 @@ class OCIClientTest {
             every { putObject(mockRequest) } returns mockResponse
         }
 
-        val client = spyk(OCIClient("nameSpace", "bucket", credentials))
+        val client = spyk(OCIClient(credentials))
         every { client getProperty "client" } returns mockObjectStorageClient
         every { client.upload("test", "content") } answers { callOriginal() }
         assertNotNull(client.upload("test", "content"))

@@ -4,7 +4,7 @@ import com.google.common.base.Optional
 import com.oracle.bmc.Region
 import com.oracle.bmc.objectstorage.ObjectStorageClient
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
-import com.projectronin.interop.datalake.oci.auth.OCICredentials
+import com.projectronin.interop.datalake.oci.auth.OCIConfiguration
 import com.projectronin.interop.datalake.oci.client.OCIClient
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.resource.Patient
@@ -59,8 +59,8 @@ class DatalakePublishServiceIT {
         every { getEndpoint(ObjectStorageClient.SERVICE) } returns Optional.of(getMockserverUrl())
     }
 
-    private val credentials = OCICredentials(ociTenantId, ociUserId, fingerPrint, privateKey, region)
-    private val ociClient = OCIClient(namespace, bucketName, credentials)
+    private val credentials = OCIConfiguration(ociTenantId, ociUserId, fingerPrint, privateKey, namespace, bucketName, region)
+    private val ociClient = OCIClient(credentials)
     private val publishService = DatalakePublishService(ociClient)
 
     @BeforeEach

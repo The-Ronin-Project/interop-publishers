@@ -3,23 +3,16 @@ package com.projectronin.interop.datalake.oci.client
 import com.oracle.bmc.objectstorage.ObjectStorageClient
 import com.oracle.bmc.objectstorage.requests.GetObjectRequest
 import com.oracle.bmc.objectstorage.requests.PutObjectRequest
-import com.projectronin.interop.datalake.oci.auth.OCICredentials
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
+import com.projectronin.interop.datalake.oci.auth.OCIConfiguration
 import java.io.ByteArrayInputStream
 
 /***
  * Client for interactive with OCI's object store
  */
-@Component
 class OCIClient(
-    @Value("\${datalake.oci.nameSpace}")
-    private val nameSpace: String,
-    @Value("\${datalake.oci.bucketName}")
-    private val bucketName: String,
-    private val credentials: OCICredentials
+    private val config: OCIConfiguration
 ) {
-    val client by lazy { ObjectStorageClient(credentials.getAuthentication()) }
+    private val client by lazy { ObjectStorageClient(config.getAuthentication()) }
 
     /**
      * Upload the string found in [data] to [fileName]
@@ -28,8 +21,8 @@ class OCIClient(
         val putObjectRequest = PutObjectRequest.builder()
             .objectName(fileName)
             .putObjectBody(ByteArrayInputStream(data.toByteArray()))
-            .namespaceName(nameSpace)
-            .bucketName(bucketName)
+            .namespaceName(config.nameSpace)
+            .bucketName(config.bucketName)
             .build()
         client.putObject(putObjectRequest)
     }
@@ -40,8 +33,8 @@ class OCIClient(
     fun getObjectBody(fileName: String): String? {
         val getObjectRequest = GetObjectRequest.builder()
             .objectName(fileName)
-            .namespaceName(nameSpace)
-            .bucketName(bucketName)
+            .namespaceName(config.nameSpace)
+            .bucketName(config.bucketName)
             .build()
         val inputStream = client.getObject(getObjectRequest).inputStream
         return inputStream?.bufferedReader().use { it?.readText() }
