@@ -1,14 +1,16 @@
 query PractitionerList(
     $identifier: string,
-    ){
-    PractitionerList(identifier: $identifier) {
+    $count: integer,
+    $page: integer
+){
+    PractitionerList(identifier: $identifier, _count: $count, _page: $page) {
         identifier{
             system
             type{
                 text
             }
             value
-        },
+        }
         id
     }
 }

@@ -30,44 +30,39 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class PractitionerServiceTest {
+    private val identifiers1 = listOf(
+        Identifier(value = "tenant-id", type = CodeableConcept(text = "tenant")),
+        Identifier(value = "22221", type = CodeableConcept(text = "ser")),
+        Identifier(value = "9988776655")
+    )
     private val mockPractitioner1 = LimitedPractitioner(
         practitionerList = listOf(
             LimitedPractitionerIdentifiers(
-                identifier = listOf(
-                    Identifier(value = "tenant-id", type = CodeableConcept(text = "tenant")),
-                    Identifier(value = "22221", type = CodeableConcept(text = "ser")),
-                    Identifier(value = "9988776655")
-                )
+                identifier = identifiers1
             )
         )
+    )
+
+    private val identifiers2 = listOf(
+        Identifier(value = "mdaoc", type = CodeableConcept(text = "tenant")),
+        Identifier(value = "22222", type = CodeableConcept(text = "ser")),
+        Identifier(value = "2281376654")
     )
     private val mockPractitioner2 = LimitedPractitioner(
         practitionerList = listOf(
             LimitedPractitionerIdentifiers(
-                identifier = listOf(
-                    Identifier(value = "mdaoc", type = CodeableConcept(text = "tenant")),
-                    Identifier(value = "22222", type = CodeableConcept(text = "ser")),
-                    Identifier(value = "2281376654")
-                )
+                identifier = identifiers2
             )
         )
     )
     private val mockPractitionerList = PractitionerList(
         practitionerList = listOf(
             PartialPractitioner(
-                identifier = listOf(
-                    Identifier(value = "mdaoc", type = CodeableConcept(text = "tenant")),
-                    Identifier(value = "22221", type = CodeableConcept(text = "ser")),
-                    Identifier(value = "9988776655")
-                ),
+                identifier = identifiers1,
                 id = Id("123"),
             ),
             PartialPractitioner(
-                identifier = listOf(
-                    Identifier(value = "mdaoc", type = CodeableConcept(text = "tenant")),
-                    Identifier(value = "22222", type = CodeableConcept(text = "ser")),
-                    Identifier(value = "2281376654")
-                ),
+                identifier = identifiers2,
                 id = Id("456"),
             )
         )
@@ -84,7 +79,8 @@ class PractitionerServiceTest {
     private val practitioner2 = "01112"
 
     private val tenantQueryString = "http://projectronin.com/id/tenantId|$tenantMnemonic"
-    private val tenantIdentifier = Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic)
+    private val tenantIdentifier =
+        Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic)
 
     private val practitionerSystemValue1 = SystemValue(system = CodeSystem.NPI.uri.value, value = practitioner1)
     private val practitionerIdentifier1 = Identifier(system = CodeSystem.NPI.uri, value = practitioner1)
@@ -669,7 +665,11 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf(
+                    "identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic",
+                    "count" to "100",
+                    "page" to "1"
+                )
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse.body() } returns response
@@ -690,7 +690,11 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf(
+                    "identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic",
+                    "count" to "100",
+                    "page" to "1"
+                )
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse.body() } returns response
@@ -698,6 +702,64 @@ class PractitionerServiceTest {
         val actual = practitionerService.getPractitionersByTenant(tenantMnemonic)
 
         assertEquals(mutableMapOf<String, List<Identifier>>(), actual)
+    }
+
+    @Test
+    fun `getPractitionersByTenant - multiple pages`() {
+        val practitioner1 = mockk<PartialPractitioner>() {
+            every { id } returns mockk {
+                every { value } returns "value1"
+            }
+            every { identifier } returns identifiers1
+        }
+        val practitioner2 = mockk<PartialPractitioner>() {
+            every { id } returns mockk {
+                every { value } returns "value2"
+            }
+            every { identifier } returns identifiers2
+        }
+        val practitioner3 = mockk<PartialPractitioner>() {
+            every { id } returns mockk {
+                every { value } returns "value3"
+            }
+            every { identifier } returns identifiers1
+        }
+
+        val response1 = GraphQLResponse(data = PractitionerList(listOf(practitioner1, practitioner2)))
+        val mockHttpResponse1 = mockk<HttpResponse>()
+
+        val tenantMnemonic = "tenant-id"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = practitionerListQuery,
+                parameters = mapOf(
+                    "identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic",
+                    "count" to "2",
+                    "page" to "1"
+                )
+            )
+        } returns mockHttpResponse1
+        coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse1.body() } returns response1
+
+        val response2 = GraphQLResponse(data = PractitionerList(listOf(practitioner3)))
+        val mockHttpResponse2 = mockk<HttpResponse>()
+
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = practitionerListQuery,
+                parameters = mapOf(
+                    "identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic",
+                    "count" to "2",
+                    "page" to "2"
+                )
+            )
+        } returns mockHttpResponse2
+        coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse2.body() } returns response2
+
+        val actual = practitionerService.getPractitionersByTenant(tenantMnemonic, 2)
+
+        assertEquals(3, actual.size)
+        assertEquals(mapOf("value1" to identifiers1, "value2" to identifiers2, "value3" to identifiers1), actual)
     }
 
     @Test
@@ -727,7 +789,11 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf(
+                    "identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic",
+                    "count" to "100",
+                    "page" to "1"
+                )
             )
         } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 
@@ -840,7 +906,11 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf(
+                    "identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic",
+                    "count" to "100",
+                    "page" to "1"
+                )
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse.body() } returns response

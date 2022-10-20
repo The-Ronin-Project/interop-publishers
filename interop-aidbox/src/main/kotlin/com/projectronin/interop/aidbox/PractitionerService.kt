@@ -145,23 +145,37 @@ class PractitionerService(
      * Each [Map] key is the FHIR ID for a Practitioner in Aidbox and
      * each [Map] value is the list of [Identifier]s for that Practitioner.
      */
-    fun getPractitionersByTenant(tenantMnemonic: String): Map<String, List<Identifier>> {
+    fun getPractitionersByTenant(tenantMnemonic: String, batchSize: Int = 100): Map<String, List<Identifier>> {
         logger.info { "Retrieving Practitioners for $tenantMnemonic" }
         val query = javaClass.getResource("/graphql/PractitionerListQuery.graphql")!!.readText()
-        val parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
-        val response: GraphQLResponse<PractitionerList> = runBlocking {
-            try {
-                val httpResponse = aidboxClient.queryGraphQL(query, parameters)
-                httpResponse.body()
-            } catch (e: LogMarkingException) {
-                logger.warn(e.logMarker) {
-                    "Exception occurred while retrieving Practitioners for $tenantMnemonic: ${e.message}"
+
+        val allPractitioners = mutableListOf<PartialPractitioner>()
+        var currentPage = 1
+        do {
+            val parameters = mapOf(
+                "identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic",
+                "count" to batchSize.toString(),
+                "page" to currentPage.toString()
+            )
+            val response: GraphQLResponse<PractitionerList> = runBlocking {
+                try {
+                    val httpResponse = aidboxClient.queryGraphQL(query, parameters)
+                    httpResponse.body()
+                } catch (e: LogMarkingException) {
+                    logger.warn(e.logMarker) {
+                        "Exception occurred while retrieving Practitioners for $tenantMnemonic: ${e.message}"
+                    }
+                    respondToGraphQLException(e)
                 }
-                respondToGraphQLException(e)
             }
-        }
-        response.errors?.let { return emptyMap() }
-        val idMap = response.data?.practitionerList?.associate { it.id.value to it.identifier } ?: emptyMap()
+            response.errors?.let { return emptyMap() }
+
+            val practitioners = response.data?.practitionerList ?: emptyList()
+            allPractitioners.addAll(practitioners)
+            currentPage++
+        } while (practitioners.size == batchSize)
+
+        val idMap = allPractitioners.associate { it.id.value to it.identifier }
         logger.info { "Completed retrieving Practitioners from Aidbox for $tenantMnemonic" }
         return idMap
     }

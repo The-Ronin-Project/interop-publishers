@@ -170,6 +170,52 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
     }
 
     @Test
+    fun `retrieves all practitioners for a tenant when multiple pages are needed`() {
+        // crazy low batch size, but we only have 2 practitioners in, so need to set to 1 to prove out.
+        val identifiersByFHIRId = practitionerService.getPractitionersByTenant("tenant", 1)
+        assertEquals(2, identifiersByFHIRId.size)
+
+        val tenantIdentifier =
+            Identifier(
+                type = CodeableConcept(text = "Tenant ID"),
+                system = Uri("http://projectronin.com/id/tenantId"),
+                value = "tenant"
+            )
+        assertEquals(
+            listOf(
+                tenantIdentifier,
+                Identifier(
+                    type = CodeableConcept(text = "EXTERNAL"),
+                    system = Uri("external-system"),
+                    value = "external-value"
+                ),
+                Identifier(
+                    type = CodeableConcept(text = "INTERNAL"),
+                    system = Uri("internal-system"),
+                    value = "internal-value"
+                )
+            ),
+            identifiersByFHIRId["tenant-practitioner1"]
+        )
+        assertEquals(
+            listOf(
+                tenantIdentifier,
+                Identifier(
+                    type = CodeableConcept(text = "EXTERNAL"),
+                    system = Uri("external-system"),
+                    value = "external-value2"
+                ),
+                Identifier(
+                    type = CodeableConcept(text = "INTERNAL"),
+                    system = Uri("internal-system"),
+                    value = "internal-value2"
+                )
+            ),
+            identifiersByFHIRId["tenant-practitioner2"]
+        )
+    }
+
+    @Test
     fun `return and deserialize full practitioner`() {
         val practitioner = practitionerService.getPractitioner("mdaoc", "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
         assertEquals(practitioner.id?.value, "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
