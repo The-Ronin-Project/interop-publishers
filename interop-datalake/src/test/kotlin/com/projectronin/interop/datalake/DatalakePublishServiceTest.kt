@@ -28,7 +28,7 @@ class DatalakePublishServiceTest {
     @Test
     fun `empty FHIR R4 collection is skipped`() {
         service.publishFHIRR4(tenantId, emptyList())
-        verify(exactly = 0) { mockClient.upload(any(), any()) }
+        verify(exactly = 0) { mockClient.uploadToDatalake(any(), any()) }
     }
 
     @Test
@@ -58,25 +58,25 @@ class DatalakePublishServiceTest {
         val practitionerFilePathString = filePathString.replace("__RESOURCETYPE__", "Practitioner")
         val objectMapper = JacksonManager.objectMapper
         justRun {
-            mockClient.upload(
+            mockClient.uploadToDatalake(
                 locationFilePathString.replace("__FHIRID__", "abc"),
                 objectMapper.writeValueAsString(location1)
             )
         }
         justRun {
-            mockClient.upload(
+            mockClient.uploadToDatalake(
                 locationFilePathString.replace("__FHIRID__", "def"),
                 objectMapper.writeValueAsString(location2)
             )
         }
         justRun {
-            mockClient.upload(
+            mockClient.uploadToDatalake(
                 practitionerFilePathString.replace("__FHIRID__", "abc"),
                 objectMapper.writeValueAsString(practitioner)
             )
         }
         service.publishFHIRR4(tenantId, listOf(location1, location2, practitioner))
-        verify(exactly = 3) { mockClient.upload(any(), any()) }
+        verify(exactly = 3) { mockClient.uploadToDatalake(any(), any()) }
     }
 
     @Test
@@ -107,7 +107,7 @@ class DatalakePublishServiceTest {
     @Test
     fun `empty API JSON data is skipped`() {
         service.publishAPIJSON(tenantId, "", "GET", "/fhir/Appointment")
-        verify(exactly = 0) { mockClient.upload(any(), any()) }
+        verify(exactly = 0) { mockClient.uploadToDatalake(any(), any()) }
     }
 
     @Test
@@ -160,21 +160,21 @@ class DatalakePublishServiceTest {
 
         val filePathString =
             "api-json/schema=GET-customAppointmentByPatient/date=1990-01-03/tenant_id=mockTenant/06-07-42-999.json"
-        justRun { mockClient.upload(filePathString, data) }
+        justRun { mockClient.uploadToDatalake(filePathString, data) }
         service.publishAPIJSON(tenantId, data, "GET", "/custom/AppointmentByPatient")
-        verify(exactly = 1) { mockClient.upload(any(), any()) }
+        verify(exactly = 1) { mockClient.uploadToDatalake(any(), any()) }
     }
 
     @Test
     fun `empty list of HL7v2 messages is skipped`() {
         service.publishHL7v2(tenantId, emptyList())
-        verify(exactly = 0) { mockClient.upload(any(), any()) }
+        verify(exactly = 0) { mockClient.uploadToDatalake(any(), any()) }
     }
 
     @Test
     fun `empty HL7v2 messages are skipped`() {
         service.publishHL7v2(tenantId, listOf("", ""))
-        verify(exactly = 0) { mockClient.upload(any(), any()) }
+        verify(exactly = 0) { mockClient.uploadToDatalake(any(), any()) }
     }
 
     @Test
@@ -197,7 +197,7 @@ class DatalakePublishServiceTest {
             "Did not publish all HL7v2 messages to datalake for tenant $tenantId: Problems with some message structures. Errors were logged.",
             exception.message
         )
-        verify(exactly = 0) { mockClient.upload(any(), any()) }
+        verify(exactly = 0) { mockClient.uploadToDatalake(any(), any()) }
     }
 
     @Test
@@ -250,9 +250,9 @@ class DatalakePublishServiceTest {
         // messageMDMT02 processes at index 0
         val filePathMDMT02 =
             "hl7v2/date=1990-01-03/tenant_id=mockTenant/message_type=MDM/message_event=MDMT02/06-07-42-999-0.json"
-        justRun { mockClient.upload(filePathMDMT02, messageMDMT02) }
+        justRun { mockClient.uploadToDatalake(filePathMDMT02, messageMDMT02) }
         service.publishHL7v2(tenantId, listOf(messageMDMT02))
-        verify(exactly = 1) { mockClient.upload(any(), any()) }
+        verify(exactly = 1) { mockClient.uploadToDatalake(any(), any()) }
     }
 
     @Test
@@ -287,7 +287,7 @@ class DatalakePublishServiceTest {
         // messageBadData is skipped at index 0, MDMT02 processed at index 1
         val filePathMDMT02 =
             "hl7v2/date=1990-01-03/tenant_id=mockTenant/message_type=MDM/message_event=MDMT02/06-07-42-999-1.json"
-        justRun { mockClient.upload(filePathMDMT02, messageMDMT02) }
+        justRun { mockClient.uploadToDatalake(filePathMDMT02, messageMDMT02) }
         val exception = assertThrows<IllegalStateException> {
             service.publishHL7v2(tenantId, listOf(messageBadData, messageMDMT02))
         }
@@ -295,7 +295,7 @@ class DatalakePublishServiceTest {
             "Did not publish all HL7v2 messages to datalake for tenant $tenantId: Problems with some message structures. Errors were logged.",
             exception.message
         )
-        verify(exactly = 1) { mockClient.upload(any(), any()) }
+        verify(exactly = 1) { mockClient.uploadToDatalake(any(), any()) }
     }
 
     @Test
@@ -358,9 +358,9 @@ class DatalakePublishServiceTest {
         val filePathMDMT06 =
             filePathString.replace("__REPLACE__", "/message_type=MDM/message_event=MDMT06/06-07-42-999-2")
 
-        justRun { mockClient.upload(filePathMDMT02, messageMDMT02) }
-        justRun { mockClient.upload(filePathADTA01, messageADTA01) }
-        justRun { mockClient.upload(filePathMDMT06, messageMDMT06) }
+        justRun { mockClient.uploadToDatalake(filePathMDMT02, messageMDMT02) }
+        justRun { mockClient.uploadToDatalake(filePathADTA01, messageADTA01) }
+        justRun { mockClient.uploadToDatalake(filePathMDMT06, messageMDMT06) }
         val exception = assertThrows<IllegalStateException> {
             service.publishHL7v2(tenantId, listOf(messageMDMT02, messageADTA01, messageMDMT06))
         }
@@ -368,7 +368,7 @@ class DatalakePublishServiceTest {
             "Did not publish all HL7v2 messages to datalake for tenant $tenantId: Problems with some message structures. Errors were logged.",
             exception.message
         )
-        verify(exactly = 2) { mockClient.upload(any(), any()) }
+        verify(exactly = 2) { mockClient.uploadToDatalake(any(), any()) }
     }
 
     @AfterEach

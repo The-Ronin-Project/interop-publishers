@@ -51,7 +51,7 @@ class DatalakePublishService(private val ociClient: OCIClient) {
                 "$root/date=$dateOfExport/tenant_id=$tenantId/resource_type=$resourceType/$resourceId.json"
             logger.debug { "Publishing Ronin clinical data to $filePathString" }
             val serialized = JacksonManager.objectMapper.writeValueAsString(it)
-            ociClient.upload(filePathString, serialized)
+            ociClient.uploadToDatalake(filePathString, serialized)
         }
 
         if (resourcesToWrite.size < resources.size) {
@@ -105,7 +105,7 @@ class DatalakePublishService(private val ociClient: OCIClient) {
             .replace(pathCleanup, "-")
         val filePathString = "$root/schema=$schema/date=$dateOfExport/tenant_id=$tenantId/$timeOfExport.json"
         logger.debug { "Publishing Ronin clinical data to $filePathString" }
-        ociClient.upload(filePathString, data)
+        ociClient.uploadToDatalake(filePathString, data)
     }
 
     /**
@@ -161,7 +161,7 @@ class DatalakePublishService(private val ociClient: OCIClient) {
                 return@forEachIndexed
             }
             logger.debug { "Publishing Ronin clinical data to $filePathString" }
-            ociClient.upload(filePathString, message)
+            ociClient.uploadToDatalake(filePathString, message)
         }
         if (messageCount < messagesToWrite.size) {
             throw IllegalStateException(
