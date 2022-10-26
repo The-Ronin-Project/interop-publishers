@@ -6,6 +6,9 @@ import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
+import com.projectronin.interop.aidbox.utils.AIDBOX_LIMITED_PRACTITIONER_IDS_QUERY
+import com.projectronin.interop.aidbox.utils.AIDBOX_PRACTITIONER_FHIR_IDS_QUERY
+import com.projectronin.interop.aidbox.utils.AIDBOX_PRACTITIONER_LIST_QUERY
 import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.jackson.JacksonManager
 import com.projectronin.interop.fhir.r4.CodeSystem
@@ -69,10 +72,9 @@ class PractitionerServiceTest {
     )
     private val aidboxClient = mockk<AidboxClient>()
     private val practitionerService = PractitionerService(aidboxClient, 2)
-    private val query = javaClass.getResource("/graphql/AidboxLimitedPractitionerIDsQuery.graphql")!!.readText()
-    private val practitionerListQuery = javaClass.getResource("/graphql/PractitionerListQuery.graphql")!!.readText()
-
-    private val queryFHIR = javaClass.getResource("/graphql/AidboxPractitionerFHIRIDsQuery.graphql")!!.readText()
+    private val query = AIDBOX_LIMITED_PRACTITIONER_IDS_QUERY
+    private val practitionerListQuery = AIDBOX_PRACTITIONER_LIST_QUERY
+    private val queryFHIR = AIDBOX_PRACTITIONER_FHIR_IDS_QUERY
 
     private val tenantMnemonic = "mdaoc"
     private val practitioner1 = "01111"

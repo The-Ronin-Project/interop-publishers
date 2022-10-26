@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.projectronin.interop.aidbox.client.AidboxClient
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
+import com.projectronin.interop.aidbox.utils.AIDBOX_LOCATION_FHIR_IDS_QUERY
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.common.exceptions.LogMarkingException
 import com.projectronin.interop.fhir.r4.datatype.Identifier
@@ -53,7 +54,7 @@ class LocationService(
         tenantMnemonic: String,
         batch: List<SystemValue>
     ): GraphQLResponse<LimitedLocationsFHIR> {
-        val query = javaClass.getResource("/graphql/AidboxLocationFHIRIDsQuery.graphql")!!.readText()
+        val query = AIDBOX_LOCATION_FHIR_IDS_QUERY
         val parameters = mapOf(
             "tenant" to SystemValue(
                 system = "http://projectronin.com/id/tenantId",

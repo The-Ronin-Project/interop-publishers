@@ -5,6 +5,7 @@ import com.projectronin.interop.aidbox.client.AidboxClient
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
+import com.projectronin.interop.aidbox.utils.AIDBOX_LOCATION_FHIR_IDS_QUERY
 import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.jackson.JacksonManager
 import com.projectronin.interop.fhir.r4.CodeSystem
@@ -29,7 +30,7 @@ class LocationServiceTest {
     private val aidboxClient = mockk<AidboxClient>()
     private val locationService = LocationService(aidboxClient, 2)
 
-    private val queryFHIR = javaClass.getResource("/graphql/AidboxLocationFHIRIDsQuery.graphql")!!.readText()
+    private val queryFHIR = AIDBOX_LOCATION_FHIR_IDS_QUERY
 
     private val tenantMnemonic = "ronin"
     private val location1 = "01111"

@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.projectronin.interop.aidbox.client.AidboxClient
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
+import com.projectronin.interop.aidbox.utils.AIDBOX_LIMITED_PRACTITIONER_IDS_QUERY
+import com.projectronin.interop.aidbox.utils.AIDBOX_PRACTITIONER_FHIR_IDS_QUERY
+import com.projectronin.interop.aidbox.utils.AIDBOX_PRACTITIONER_LIST_QUERY
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.aidbox.utils.validateTenantIdentifier
 import com.projectronin.interop.common.exceptions.LogMarkingException
@@ -32,7 +35,7 @@ class PractitionerService(
      */
     fun getPractitionerIdentifiers(tenantMnemonic: String, practitionerFHIRID: String): List<Identifier> {
         logger.info { "Retrieving Practitioner Identifiers from Aidbox using FHIR ID" }
-        val query = javaClass.getResource("/graphql/AidboxLimitedPractitionerIDsQuery.graphql")!!.readText()
+        val query = AIDBOX_LIMITED_PRACTITIONER_IDS_QUERY
         val parameters = mapOf(
             "id" to practitionerFHIRID,
             "tenant" to SystemValue(
@@ -120,7 +123,7 @@ class PractitionerService(
         tenantMnemonic: String,
         batch: List<SystemValue>
     ): GraphQLResponse<LimitedPractitionersFHIR> {
-        val query = javaClass.getResource("/graphql/AidboxPractitionerFHIRIDsQuery.graphql")!!.readText()
+        val query = AIDBOX_PRACTITIONER_FHIR_IDS_QUERY
         val parameters = mapOf(
             "tenant" to SystemValue(
                 system = "http://projectronin.com/id/tenantId",
@@ -147,7 +150,7 @@ class PractitionerService(
      */
     fun getPractitionersByTenant(tenantMnemonic: String, batchSize: Int = 100): Map<String, List<Identifier>> {
         logger.info { "Retrieving Practitioners for $tenantMnemonic" }
-        val query = javaClass.getResource("/graphql/PractitionerListQuery.graphql")!!.readText()
+        val query = AIDBOX_PRACTITIONER_LIST_QUERY
 
         val allPractitioners = mutableListOf<PartialPractitioner>()
         var currentPage = 1

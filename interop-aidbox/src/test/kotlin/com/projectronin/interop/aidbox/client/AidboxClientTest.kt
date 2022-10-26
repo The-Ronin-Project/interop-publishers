@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.projectronin.interop.aidbox.auth.AidboxAuthenticationBroker
 import com.projectronin.interop.aidbox.model.GraphQLPostRequest
+import com.projectronin.interop.aidbox.utils.AIDBOX_LIMITED_PRACTITIONER_IDS_QUERY
 import com.projectronin.interop.common.http.exceptions.ClientAuthenticationException
 import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.http.exceptions.ServiceUnavailableException
@@ -208,7 +209,7 @@ class AidboxClientTest {
 
     @Test
     fun `query test`() {
-        val query = javaClass.getResource("/graphql/AidboxLimitedPractitionerIDsQuery.graphql")!!.readText()
+        val query = AIDBOX_LIMITED_PRACTITIONER_IDS_QUERY
         val param = mapOf("id" to "id1")
         val expectedBody = objectMapper.writeValueAsString(GraphQLPostRequest(query = query, variables = param))
         println(expectedBody)

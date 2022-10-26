@@ -6,6 +6,8 @@ import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
+import com.projectronin.interop.aidbox.utils.AIDBOX_PATIENT_FHIR_IDS_QUERY
+import com.projectronin.interop.aidbox.utils.AIDBOX_PATIENT_LIST_QUERY
 import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.fhir.r4.datatype.Identifier
@@ -30,9 +32,8 @@ import org.junit.jupiter.api.assertThrows
 class PatientServiceTest {
     private val aidboxClient = mockk<AidboxClient>()
     private val patientService = PatientService(aidboxClient, 2)
-    private val query = javaClass.getResource("/graphql/AidboxPatientFHIRIDsQuery.graphql")!!.readText()
-    private val patientListQuery = javaClass.getResource("/graphql/PatientListQuery.graphql")!!.readText()
-
+    private val query = AIDBOX_PATIENT_FHIR_IDS_QUERY
+    private val patientListQuery = AIDBOX_PATIENT_LIST_QUERY
     private val tenantMnemonic = "mdaoc"
     private val mrn1 = "01111"
     private val mrn2 = "01112"
