@@ -8,8 +8,8 @@ import com.projectronin.interop.aidbox.utils.AIDBOX_LOCATION_FHIR_IDS_QUERY
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.common.exceptions.LogMarkingException
 import com.projectronin.interop.fhir.r4.datatype.Identifier
-import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
+import datadog.trace.api.Trace
 import io.ktor.client.call.body
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -28,6 +28,7 @@ class LocationService(
      * representing a Location identifier.  Returns a map of the given keys, along with the Location's FHIR ID
      * if it was found, otherwise no entry for that key.
      */
+    @Trace
     fun <K> getLocationFHIRIds(tenantMnemonic: String, identifiers: Map<K, SystemValue>): Map<K, String> {
         logger.info { "Retrieving Location FHIR IDs from Aidbox" }
 
@@ -74,8 +75,6 @@ class LocationService(
         return response
     }
 }
-
-data class PartialLocation(val identifier: List<Identifier>, val id: Id)
 
 data class LimitedLocationsFHIR(@JsonProperty("LocationList") val locationList: List<LimitedLocationFHIRIdentifiers>?)
 data class LimitedLocationFHIRIdentifiers(

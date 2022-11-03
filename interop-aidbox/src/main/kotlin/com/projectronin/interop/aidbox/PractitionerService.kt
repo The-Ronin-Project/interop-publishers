@@ -15,6 +15,7 @@ import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.resource.Practitioner
+import datadog.trace.api.Trace
 import io.ktor.client.call.body
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -33,6 +34,7 @@ class PractitionerService(
      * @param tenantMnemonic the mnemonic of the tenant represented by this call.
      * @param practitionerFHIRID the FHIR ID of the practitioner (the key value in AidBox)
      */
+    @Trace
     fun getPractitionerIdentifiers(tenantMnemonic: String, practitionerFHIRID: String): List<Identifier> {
         logger.info { "Retrieving Practitioner Identifiers from Aidbox using FHIR ID" }
         val query = AIDBOX_LIMITED_PRACTITIONER_IDS_QUERY
@@ -67,6 +69,7 @@ class PractitionerService(
      * @param idType is a [CodeableConcept] representing the Identifer to retrieve.
      *  (see CodeableConcepts in package com.projectronin.interop.fhir.r4)
      */
+    @Trace
     fun getSpecificPractitionerIdentifier(
         tenantMnemonic: String,
         practitionerFHIRID: String,
@@ -81,6 +84,7 @@ class PractitionerService(
      * @param practitionerFHIRIDs a list of FHIR IDs to lookup
      * @return a [Map] where the FHIR ID is the key, and a [List] of [Identifier] is the value.
      */
+    @Trace
     fun getPractitionersIdentifiers(
         tenantMnemonic: String,
         practitionerFHIRIDs: List<String>
@@ -97,6 +101,7 @@ class PractitionerService(
      * representing a Practitioner identifier.  Returns a map of the given keys, along with the practitioner's FHIR ID
      * if it was found, otherwise no entry for that key.
      */
+    @Trace
     fun <K> getPractitionerFHIRIds(tenantMnemonic: String, identifiers: Map<K, SystemValue>): Map<K, String> {
         logger.info { "Retrieving Practitioner FHIR IDs from Aidbox" }
 
@@ -148,6 +153,7 @@ class PractitionerService(
      * Each [Map] key is the FHIR ID for a Practitioner in Aidbox and
      * each [Map] value is the list of [Identifier]s for that Practitioner.
      */
+    @Trace
     fun getPractitionersByTenant(tenantMnemonic: String, batchSize: Int = 100): Map<String, List<Identifier>> {
         logger.info { "Retrieving Practitioners for $tenantMnemonic" }
         val query = AIDBOX_PRACTITIONER_LIST_QUERY
@@ -186,6 +192,7 @@ class PractitionerService(
     /**
      * Fetches a [Practitioner] from Aidbox for the [tenantMnemonic] and [practitionerFHIRID]
      */
+    @Trace
     fun getPractitioner(tenantMnemonic: String, practitionerFHIRID: String): Practitioner {
         val practitioner = runBlocking<Practitioner> {
             val httpResponse = aidboxClient.getResource("Practitioner", practitionerFHIRID)

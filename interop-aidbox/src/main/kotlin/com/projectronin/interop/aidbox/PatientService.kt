@@ -15,6 +15,7 @@ import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.resource.Patient
+import datadog.trace.api.Trace
 import io.ktor.client.call.body
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -33,6 +34,7 @@ class PatientService(
      * representing a patient identifier.  Returns a map of the given keys, along with the patient's FHIR ID if it was
      * found, otherwise no entry for that key.
      */
+    @Trace
     fun <K> getPatientFHIRIds(tenantMnemonic: String, identifiers: Map<K, SystemValue>): Map<K, String> {
         logger.info { "Retrieving Patient FHIR IDs from Aidbox" }
 
@@ -86,6 +88,7 @@ class PatientService(
      * Each [Map] key is the FHIR ID for a Patient in Aidbox and
      * each [Map] value is the list of [Identifier]s for that Patient.
      */
+    @Trace
     fun getPatientsByTenant(tenantMnemonic: String): Map<String, List<Identifier>> {
         logger.info { "Retrieving Patients for $tenantMnemonic" }
         val query = AIDBOX_PATIENT_LIST_QUERY
@@ -108,6 +111,7 @@ class PatientService(
     /**
      * Returns a [List] of all patient FHIR IDs in Aidbox for the tenant mnemonic.
      */
+    @Trace
     fun getPatientFHIRIdsByTenant(tenantMnemonic: String): List<String> {
         return getPatientsByTenant(tenantMnemonic).keys.toList()
     }
@@ -115,6 +119,7 @@ class PatientService(
     /**
      * Fetches a [Patient] from Aidbox for the [tenantMnemonic] and [patientFHIRID]
      */
+    @Trace
     fun getPatient(tenantMnemonic: String, patientFHIRID: String): Patient {
         val patient = runBlocking<Patient> {
             val httpResponse = aidboxClient.getResource("Patient", patientFHIRID)
