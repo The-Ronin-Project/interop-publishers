@@ -24,6 +24,11 @@ coverage:
         threshold: 1%
         flags:
           - datalake
+      kafka:
+        target: auto
+        threshold: 1%
+        flags:
+          - kafka
 
 
     patch:
@@ -51,6 +56,12 @@ coverage:
         base: auto
         flags:
           - datalake
+      kafka:
+        target: 80
+        threshold: 1%
+        base: auto
+        flags:
+          - kafka
 
 comment:
   layout: "reach, diff, flags, files"
@@ -77,4 +88,8 @@ flags:
   datalake:
     paths:
       - interop-datalake/
+    carryforward: true
+  kafka:
+    paths:
+      - interop-kafka/
     carryforward: true
