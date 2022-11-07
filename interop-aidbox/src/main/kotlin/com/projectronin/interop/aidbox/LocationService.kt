@@ -51,6 +51,22 @@ class LocationService(
         }.toMap()
     }
 
+    /**
+     Retrieves all Identifers for a Location resource in Aidbox, based on a search by a single Identifier
+     represented by a [SystemValue]. One example would be searching by FHIR ID (added to the Identifier list during transform)
+     to find a different Identifier.
+     */
+    fun getAllLocationIdentifiers(
+        tenantMnemonic: String,
+        identifiers: List<SystemValue>
+    ): List<LimitedLocationFHIRIdentifiers> {
+        logger.info { "Retrieving Location Identifiers IDs from Aidbox" }
+
+        return identifiers.chunked(batchSize).flatMap { batch ->
+            queryLocationFHIRIds(tenantMnemonic, batch).data?.locationList ?: emptyList()
+        }
+    }
+
     private fun queryLocationFHIRIds(
         tenantMnemonic: String,
         batch: List<SystemValue>

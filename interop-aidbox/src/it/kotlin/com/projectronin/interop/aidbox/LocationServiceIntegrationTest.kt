@@ -70,6 +70,17 @@ class LocationServiceIntegrationTest : BaseAidboxTest() {
     }
 
     @Test
+    fun `all location identifers found for FHIR ID`() {
+        val identifiers = listOf(
+            SystemValue("e0nTqDB9tPOCaY4ODzeTeSWBZBT0YlpU8phB88YramOI3", "http://projectronin.com/id/fhir"),
+            SystemValue("e1O7rbysoLddQsbsvfjKJvLOvBMDJwrf06OE6bKCBN4c3", "http://projectronin.com/id/fhir"),
+            SystemValue("e3HhsZW6y9UW.W6TkIYuVk5kdFQV3gMSB.S-V6TTYxAI3", "http://projectronin.com/id/fhir")
+        )
+        val locationList = locationService.getAllLocationIdentifiers("ronin", identifiers)
+        assertEquals(3, locationList.size)
+    }
+
+    @Test
     fun `identifiers are restricted to requested tenant when searching for location FHIR Ids`() {
         val identifiers = mapOf(
             1 to SystemValue("503548000", epicDepartmentSystem),

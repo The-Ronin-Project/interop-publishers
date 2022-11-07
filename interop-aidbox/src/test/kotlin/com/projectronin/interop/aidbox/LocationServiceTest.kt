@@ -37,7 +37,8 @@ class LocationServiceTest {
     private val location2 = "01112"
 
     private val tenantQueryString = "http://projectronin.com/id/tenantId|$tenantMnemonic"
-    private val tenantIdentifier = Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic)
+    private val tenantIdentifier =
+        Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic)
 
     private val locationSystemValue1 = SystemValue(system = CodeSystem.NPI.uri.value, value = location1)
     private val locationIdentifier1 = Identifier(system = CodeSystem.NPI.uri, value = location1)
@@ -68,6 +69,54 @@ class LocationServiceTest {
     @AfterEach
     fun tearDown() {
         unmockkStatic("io.ktor.client.statement.HttpResponseKt")
+    }
+
+    @Test
+    fun `identifier search returns all locations`() {
+        val response = GraphQLResponse(
+            data = LimitedLocationsFHIR(listOf(mockLocationIdentifiers1, mockLocationIdentifiers2))
+        )
+        val mockHttpResponse = mockk<HttpResponse>()
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = queryFHIR,
+                parameters = mapOf(
+                    "tenant" to tenantQueryString,
+                    "identifiers" to listOf(
+                        locationSystemValue1,
+                        locationSystemValue2
+                    ).joinToString(separator = ",") {
+                        it.queryString
+                    }
+                )
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<LimitedLocationsFHIR>> { mockHttpResponse.body() } returns response
+
+        var actualMap = locationService.getAllLocationIdentifiers(
+            tenantMnemonic,
+            listOf(locationSystemValue1, locationSystemValue2)
+        )
+
+        assertEquals(2, actualMap.size)
+
+        coEvery<GraphQLResponse<LimitedLocationsFHIR>> { mockHttpResponse.body() } returns GraphQLResponse(
+            data = LimitedLocationsFHIR(emptyList())
+        )
+        actualMap = locationService.getAllLocationIdentifiers(
+            tenantMnemonic,
+            listOf(locationSystemValue1, locationSystemValue2)
+        )
+        assertEquals(0, actualMap.size)
+
+        coEvery<GraphQLResponse<LimitedLocationsFHIR>> { mockHttpResponse.body() } returns GraphQLResponse(
+            data = null
+        )
+        actualMap = locationService.getAllLocationIdentifiers(
+            tenantMnemonic,
+            listOf(locationSystemValue1, locationSystemValue2)
+        )
+        assertEquals(0, actualMap.size)
     }
 
     @Test
