@@ -69,7 +69,13 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
         assertEquals(0, response.failures.size)
 
         val publishedEvents =
-            pollEvents(patientTopic, DataTrigger.AD_HOC, mapOf("ronin.interop.patient.publish" to PatientEvent::class))
+            pollEvents(
+                patientTopic,
+                DataTrigger.AD_HOC,
+                mapOf("ronin.interop.patient.publish" to PatientEvent::class),
+                expectedResults = 1,
+                waitTime = 10_000
+            )
         assertEquals(1, publishedEvents.size)
 
         assertEquals(
@@ -110,7 +116,13 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
         assertEquals(0, response.failures.size)
 
         val publishedEvents =
-            pollEvents(patientTopic, DataTrigger.AD_HOC, mapOf("ronin.interop.patient.publish" to PatientEvent::class))
+            pollEvents(
+                patientTopic,
+                DataTrigger.AD_HOC,
+                mapOf("ronin.interop.patient.publish" to PatientEvent::class),
+                expectedResults = 2,
+                waitTime = 10_000
+            )
         assertEquals(2, publishedEvents.size)
 
         assertEquals(
@@ -165,7 +177,9 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
                 patientTopic, DataTrigger.AD_HOC,
                 mapOf(
                     "ronin.interop.patient.publish" to PatientEvent::class
-                )
+                ),
+                expectedResults = 1,
+                waitTime = 10_000
             )
         assertEquals(1, publishedPatientEvents.size)
         assertEquals(
@@ -181,7 +195,9 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
                 appointmentTopic, DataTrigger.AD_HOC,
                 mapOf(
                     "ronin.interop.appointment.publish" to AppointmentEvent::class
-                )
+                ),
+                expectedResults = 1,
+                waitTime = 10_000
             )
         assertEquals(1, publishedAppointmentEvents.size)
         assertEquals(

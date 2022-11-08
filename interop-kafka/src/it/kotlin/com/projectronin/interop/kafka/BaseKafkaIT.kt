@@ -55,7 +55,8 @@ abstract class BaseKafkaIT {
         topic: PublishTopic,
         trigger: DataTrigger?,
         typeMap: Map<String, KClass<*>>,
-        waitTime: Long = 1000
+        waitTime: Long = 1000,
+        expectedResults: Int? = null
     ): List<RoninEvent<*>> {
         val consumer = createConsumer(topic, trigger, typeMap)
         val events = mutableListOf<RoninEvent<*>>()
@@ -66,6 +67,11 @@ abstract class BaseKafkaIT {
 
         consumer.process {
             events.add(it)
+
+            if (expectedResults != null && events.size >= expectedResults) {
+                consumer.stop()
+            }
+
             RoninEventResult.ACK
         }
         return events

@@ -1,4 +1,4 @@
-name: Publish Snapshots to GitHub Packages
+name: Publish Snapshots to Nexus
 on:
   push:
     branches: [ master ]
