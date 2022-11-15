@@ -345,13 +345,51 @@ class PatientServiceTest {
 
         val actual = patientService.getPatientsByTenant(tenantMnemonic)
         val fhirIds = response.data?.patientList?.map {
-            it.id.value
+            it.id.value!!
         }
         assertEquals(fhirIds, actual.keys.toList())
     }
 
     @Test
     fun `getPatientsByTenant - no data`() {
+        val response = GraphQLResponse<PatientList>(data = null)
+        val mockHttpResponse = mockk<HttpResponse>()
+
+        val tenantMnemonic = "tenant-id"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = patientListQuery,
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
+
+        val actual = patientService.getPatientsByTenant(tenantMnemonic)
+
+        assertEquals(mutableMapOf<String, List<Identifier>>(), actual)
+    }
+
+    @Test
+    fun `getPatientsByTenant - null patient list data`() {
+        val response = GraphQLResponse(data = PatientList(null))
+        val mockHttpResponse = mockk<HttpResponse>()
+
+        val tenantMnemonic = "tenant-id"
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = patientListQuery,
+                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
+
+        val actual = patientService.getPatientsByTenant(tenantMnemonic)
+
+        assertEquals(mutableMapOf<String, List<Identifier>>(), actual)
+    }
+
+    @Test
+    fun `getPatientsByTenant - empty data`() {
         val response = GraphQLResponse(data = PatientList(listOf()))
         val mockHttpResponse = mockk<HttpResponse>()
 

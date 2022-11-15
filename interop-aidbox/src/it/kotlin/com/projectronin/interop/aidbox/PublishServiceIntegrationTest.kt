@@ -1170,7 +1170,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
                 name = listOf(HumanName(family = "Jones", given = listOf(it.toString())))
             )
         }
-        val resourceIds = resources.map { it.id!!.value }
+        val resourceIds = resources.map { it.id!!.value!! }
 
         assertTrue(allResourcesNull("Practitioner", resourceIds))
 

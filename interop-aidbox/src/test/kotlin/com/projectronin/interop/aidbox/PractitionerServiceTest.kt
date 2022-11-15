@@ -84,10 +84,10 @@ class PractitionerServiceTest {
     private val tenantIdentifier =
         Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic)
 
-    private val practitionerSystemValue1 = SystemValue(system = CodeSystem.NPI.uri.value, value = practitioner1)
+    private val practitionerSystemValue1 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = practitioner1)
     private val practitionerIdentifier1 = Identifier(system = CodeSystem.NPI.uri, value = practitioner1)
 
-    private val practitionerSystemValue2 = SystemValue(system = CodeSystem.NPI.uri.value, value = practitioner2)
+    private val practitionerSystemValue2 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = practitioner2)
     private val practitionerIdentifier2 = Identifier(system = CodeSystem.NPI.uri, value = practitioner2)
 
     private val mockPractitionerIdentifiers1 = LimitedPractitionerFHIRIdentifiers(
@@ -678,7 +678,7 @@ class PractitionerServiceTest {
 
         val actual = practitionerService.getPractitionersByTenant(tenantMnemonic)
         val fhirIds = response.data?.practitionerList?.map {
-            it.id.value
+            it.id.value!!
         }
         assertEquals(fhirIds, actual.keys.toList())
     }
@@ -806,7 +806,7 @@ class PractitionerServiceTest {
 
     @Test
     fun `getFHIRIDs returns all batched practitioners`() {
-        val practitionerSystemValue3 = SystemValue(system = CodeSystem.NPI.uri.value, value = "01113")
+        val practitionerSystemValue3 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = "01113")
         val practitionerIdentifier3 = Identifier(system = CodeSystem.NPI.uri, value = "01113")
 
         val mockPractitionerIdentifiers3 = LimitedPractitionerFHIRIdentifiers(

@@ -184,7 +184,7 @@ class PractitionerService(
             currentPage++
         } while (practitioners.size == batchSize)
 
-        val idMap = allPractitioners.associate { it.id.value to it.identifier }
+        val idMap = allPractitioners.associate { it.id.value!! to it.identifier }
         logger.info { "Completed retrieving Practitioners from Aidbox for $tenantMnemonic" }
         return idMap
     }

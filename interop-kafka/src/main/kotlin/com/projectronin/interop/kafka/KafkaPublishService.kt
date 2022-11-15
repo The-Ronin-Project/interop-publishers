@@ -47,7 +47,7 @@ class KafkaPublishService(private val kafkaClient: KafkaClient, topics: List<Pub
                         domain = publishTopic.systemName,
                         resource = type,
                         action = KafkaAction.PUBLISH,
-                        resourceId = it.id!!.value,
+                        resourceId = it.id!!.value!!,
                         data = publishTopic.converter(tenantId, it)
                     )
                 }

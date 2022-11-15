@@ -59,11 +59,33 @@ class AidboxUtilsTest {
     }
 
     @Test
+    fun `ensure validateTenantIdentifier throw exception when no value`() {
+        assertThrows<InvalidTenantAccessException> {
+            validateTenantIdentifier(
+                "tenant1",
+                listOf(Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = null)),
+                "Tenant did not match"
+            )
+        }
+    }
+
+    @Test
     fun `ensure validateTenantIdentifier throw exception with no tenant identifier systems`() {
         assertThrows<InvalidTenantAccessException> {
             validateTenantIdentifier(
                 "tenant1",
                 listOf(Identifier(system = Uri("otherUri"), value = "tenant1")),
+                "Tenant did not match"
+            )
+        }
+    }
+
+    @Test
+    fun `ensure validateTenantIdentifier throw exception with no systems`() {
+        assertThrows<InvalidTenantAccessException> {
+            validateTenantIdentifier(
+                "tenant1",
+                listOf(Identifier(system = null, value = "tenant1")),
                 "Tenant did not match"
             )
         }

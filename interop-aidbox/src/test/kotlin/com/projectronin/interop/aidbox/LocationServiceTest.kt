@@ -40,10 +40,10 @@ class LocationServiceTest {
     private val tenantIdentifier =
         Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic)
 
-    private val locationSystemValue1 = SystemValue(system = CodeSystem.NPI.uri.value, value = location1)
+    private val locationSystemValue1 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = location1)
     private val locationIdentifier1 = Identifier(system = CodeSystem.NPI.uri, value = location1)
 
-    private val locationSystemValue2 = SystemValue(system = CodeSystem.NPI.uri.value, value = location2)
+    private val locationSystemValue2 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = location2)
     private val locationIdentifier2 = Identifier(system = CodeSystem.NPI.uri, value = location2)
 
     private val mockLocationIdentifiers1 = LimitedLocationFHIRIdentifiers(
@@ -446,7 +446,7 @@ class LocationServiceTest {
 
     @Test
     fun `getFHIRIDs returns all batched locations`() {
-        val locationSystemValue3 = SystemValue(system = CodeSystem.NPI.uri.value, value = "01113")
+        val locationSystemValue3 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = "01113")
         val locationIdentifier3 = Identifier(system = CodeSystem.NPI.uri, value = "01113")
 
         val mockLocationIdentifiers3 = LimitedLocationFHIRIdentifiers(

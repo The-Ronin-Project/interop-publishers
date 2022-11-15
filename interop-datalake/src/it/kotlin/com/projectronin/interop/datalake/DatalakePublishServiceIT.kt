@@ -81,7 +81,7 @@ class DatalakePublishServiceIT {
         )
         val tenant = "ronin"
 
-        val objectName = getR4Name(tenant, "Patient", id.value)
+        val objectName = getR4Name(tenant, "Patient", id.value!!)
         setPutExpectation(objectName)
 
         publishService.publishFHIRR4(tenant, listOf(patient))

@@ -103,7 +103,7 @@ class PatientService(
             }
         }
         response.errors?.let { return emptyMap() }
-        val idMap = response.data?.patientList?.associate { it.id.value to it.identifier } ?: emptyMap()
+        val idMap = response.data?.patientList?.associate { it.id.value!! to it.identifier } ?: emptyMap()
         logger.info { "Completed retrieving Patients from Aidbox for $tenantMnemonic" }
         return idMap
     }
