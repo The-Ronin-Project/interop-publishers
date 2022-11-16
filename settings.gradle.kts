@@ -12,11 +12,11 @@ for (project in rootProject.children) {
 
 pluginManagement {
     plugins {
-        id("com.projectronin.interop.gradle.base") version "2.1.4"
-        id("com.projectronin.interop.gradle.integration") version "2.1.4"
-        id("com.projectronin.interop.gradle.publish") version "2.1.4"
-        id("com.projectronin.interop.gradle.spring") version "2.1.4"
-        id("com.projectronin.interop.gradle.version") version "2.1.4"
+        id("com.projectronin.interop.gradle.base") version "2.2.0"
+        id("com.projectronin.interop.gradle.integration") version "2.2.0"
+        id("com.projectronin.interop.gradle.publish") version "2.2.0"
+        id("com.projectronin.interop.gradle.spring") version "2.2.0"
+        id("com.projectronin.interop.gradle.version") version "2.2.0"
     }
 
     repositories {
