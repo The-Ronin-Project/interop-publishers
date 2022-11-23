@@ -64,6 +64,8 @@ class OCIClient(
      * Upload the string found in [data] to [fileName]
      */
     fun upload(bucket: String, fileName: String, data: String) {
+        // val encodedObjectName = URLEncoder.encode(fileName, "UTF-8")
+        print(fileName)
         val putObjectRequest = PutObjectRequest.builder()
             .objectName(fileName)
             .putObjectBody(ByteArrayInputStream(data.toByteArray()))

@@ -10,6 +10,7 @@ dependencies {
     implementation(libs.interop.fhir)
     implementation(libs.oci.common)
     implementation(libs.oci.objectstorage)
+    implementation(libs.oci.http.client)
     testImplementation(libs.mockk)
 
     itImplementation(project(":interop-aidbox-testcontainer"))

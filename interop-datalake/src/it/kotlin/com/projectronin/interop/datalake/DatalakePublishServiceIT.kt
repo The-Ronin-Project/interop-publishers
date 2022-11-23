@@ -1,7 +1,7 @@
 package com.projectronin.interop.datalake
 
-import com.google.common.base.Optional
 import com.oracle.bmc.Region
+import com.oracle.bmc.http.internal.ParamEncoder
 import com.oracle.bmc.objectstorage.ObjectStorageClient
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.datalake.oci.client.OCIClient
@@ -11,6 +11,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import org.bouncycastle.util.encoders.Base64
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -23,9 +24,9 @@ import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import java.net.URLEncoder
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Optional
 import java.util.UUID
 
 @Testcontainers
@@ -73,6 +74,12 @@ class DatalakePublishServiceIT {
         client.reset()
     }
 
+    @AfterEach
+    fun test() {
+        val test = 1
+        println(test)
+    }
+
     @Test
     fun `can publish FHIR`() {
         val id = Id(UUID.randomUUID().toString())
@@ -93,10 +100,9 @@ class DatalakePublishServiceIT {
 
     private fun getR4Name(tenantId: String, resourceType: String, resourceId: String): String {
         val date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-        return URLEncoder.encode(
-            "fhir-r4/date=$date/tenant_id=$tenantId/resource_type=$resourceType/$resourceId.json",
-            "UTF-8"
-        )
+        // OCI doesn't encode all characters, use their API so we don't encode '='
+        val objectName = "fhir-r4/date=$date/tenant_id=$tenantId/resource_type=$resourceType/$resourceId.json"
+        return ParamEncoder.encodePathParam(objectName)
     }
 
     private fun setPutExpectation(objectName: String) {
