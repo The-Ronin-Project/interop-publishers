@@ -5,6 +5,7 @@ import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.HumanName
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
+import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Appointment
 import com.projectronin.interop.fhir.r4.resource.Condition
 import com.projectronin.interop.fhir.r4.resource.Location
@@ -26,20 +27,20 @@ class PublishServiceTest {
         Practitioner(
             id = Id("cmjones"),
             identifier = listOf(
-                Identifier(system = CodeSystem.NPI.uri, value = "third")
+                Identifier(system = CodeSystem.NPI.uri, value = "third".asFHIR())
             ),
             name = listOf(
-                HumanName(family = "Jones", given = listOf("Cordelia", "May"))
+                HumanName(family = "Jones".asFHIR(), given = listOf("Cordelia", "May").asFHIR())
             )
         ),
         Practitioner(
             id = Id("rallyr"),
             identifier = listOf(
-                Identifier(system = CodeSystem.NPI.uri, value = "second")
+                Identifier(system = CodeSystem.NPI.uri, value = "second".asFHIR())
             ),
             name = listOf(
                 HumanName(
-                    family = "Llyr", given = listOf("Regan", "Anne")
+                    family = "Llyr".asFHIR(), given = listOf("Regan", "Anne").asFHIR()
                 )
             )
         )

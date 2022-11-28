@@ -13,6 +13,7 @@ import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMa
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
+import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Patient
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
@@ -39,13 +40,14 @@ class PatientServiceTest {
     private val mrn2 = "01112"
 
     private val tenantQueryString = "http://projectronin.com/id/tenantId|$tenantMnemonic"
-    private val tenantIdentifier = Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic)
+    private val tenantIdentifier =
+        Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic.asFHIR())
 
     private val mrnSystemValue1 = SystemValue(system = "mrnSystem", value = mrn1)
-    private val mrnIdentifier1 = Identifier(system = Uri("mrnSystem"), value = mrn1)
+    private val mrnIdentifier1 = Identifier(system = Uri("mrnSystem"), value = mrn1.asFHIR())
 
     private val mrnSystemValue2 = SystemValue(system = "mrnSystem", value = mrn2)
-    private val mrnIdentifier2 = Identifier(system = Uri("mrnSystem"), value = mrn2)
+    private val mrnIdentifier2 = Identifier(system = Uri("mrnSystem"), value = mrn2.asFHIR())
 
     private val mockPatientIdentifiers1 = LimitedPatientIdentifiers(
         id = "roninPatient01Test",
@@ -65,17 +67,17 @@ class PatientServiceTest {
         patientList = listOf(
             PartialPatient(
                 identifier = listOf(
-                    Identifier(value = "mdaoc"),
-                    Identifier(value = "22221"),
-                    Identifier(value = "9988776655")
+                    Identifier(value = "mdaoc".asFHIR()),
+                    Identifier(value = "22221".asFHIR()),
+                    Identifier(value = "9988776655".asFHIR())
                 ),
                 id = Id("mdaoc-123"),
             ),
             PartialPatient(
                 identifier = listOf(
-                    Identifier(value = "mdaoc"),
-                    Identifier(value = "22222"),
-                    Identifier(value = "2281376654")
+                    Identifier(value = "mdaoc".asFHIR()),
+                    Identifier(value = "22222".asFHIR()),
+                    Identifier(value = "2281376654".asFHIR())
                 ),
                 id = Id("mdaoc-456"),
             )
@@ -266,20 +268,20 @@ class PatientServiceTest {
         """.trimIndent()
         val deserializedLimitedPatientIdentifiers = objectMapper.readValue<LimitedPatientIdentifiers>(actualJson)
 
-        assertEquals(deserializedLimitedPatientIdentifiers.id, "roninPatient01Test")
-        assertEquals(deserializedLimitedPatientIdentifiers.identifiers.size, 3)
+        assertEquals("roninPatient01Test", deserializedLimitedPatientIdentifiers.id)
+        assertEquals(3, deserializedLimitedPatientIdentifiers.identifiers.size)
 
         val identifier1 = deserializedLimitedPatientIdentifiers.identifiers[0]
-        assertEquals(identifier1.system?.value, "http://projectronin.com/id/tenantId")
-        assertEquals(identifier1.value, "mdaoc")
+        assertEquals("http://projectronin.com/id/tenantId", identifier1.system?.value)
+        assertEquals("mdaoc".asFHIR(), identifier1.value)
 
         val identifier2 = deserializedLimitedPatientIdentifiers.identifiers[1]
-        assertEquals(identifier2.system?.value, "http://projectronin.com/id/mrn")
-        assertEquals(identifier2.value, "01111")
+        assertEquals("http://projectronin.com/id/mrn", identifier2.system?.value)
+        assertEquals("01111".asFHIR(), identifier2.value)
 
         val identifier3 = deserializedLimitedPatientIdentifiers.identifiers[2]
-        assertEquals(identifier3.system?.value, "http://projectronin.com/id/fhir")
-        assertEquals(identifier3.value, "stu3-01111")
+        assertEquals("http://projectronin.com/id/fhir", identifier3.system?.value)
+        assertEquals("stu3-01111".asFHIR(), identifier3.value)
     }
 
     @Test
@@ -446,7 +448,7 @@ class PatientServiceTest {
     @Test
     fun `getPatientFHIRIds returns all batched patients`() {
         val mrnSystemValue3 = SystemValue(system = "mrnSystem", value = "01113")
-        val mrnIdentifier3 = Identifier(system = Uri("mrnSystem"), value = "01113")
+        val mrnIdentifier3 = Identifier(system = Uri("mrnSystem"), value = "01113".asFHIR())
 
         val mockPatientIdentifiers3 = LimitedPatientIdentifiers(
             id = "roninPatient03Test",
@@ -510,7 +512,7 @@ class PatientServiceTest {
         every { patientMock.identifier } returns listOf(
             Identifier(
                 system = Uri("http://projectronin.com/id/tenantId"),
-                value = tenantMnemonic
+                value = tenantMnemonic.asFHIR()
             )
         )
         coEvery { httpMock.body<Patient>() } returns patientMock
@@ -526,7 +528,7 @@ class PatientServiceTest {
         every { patientMock.identifier } returns listOf(
             Identifier(
                 system = Uri("http://projectronin.com/id/tenantId"),
-                value = tenantMnemonic
+                value = tenantMnemonic.asFHIR()
             )
         )
         coEvery { httpMock.body<Patient>() } returns patientMock

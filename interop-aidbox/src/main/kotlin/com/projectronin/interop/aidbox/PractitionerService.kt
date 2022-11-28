@@ -14,6 +14,7 @@ import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
+import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import datadog.trace.api.Trace
 import io.ktor.client.call.body
@@ -114,7 +115,8 @@ class PractitionerService(
         }.toMap()
 
         return identifiers.mapNotNull {
-            val fhirId = identifierToFhirIdMap[Identifier(system = Uri(it.value.system), value = it.value.value)]
+            val fhirId =
+                identifierToFhirIdMap[Identifier(system = Uri(it.value.system), value = it.value.value.asFHIR())]
 
             if (fhirId != null) {
                 it.key to fhirId

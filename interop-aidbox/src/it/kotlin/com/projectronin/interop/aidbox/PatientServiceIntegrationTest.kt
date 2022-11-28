@@ -8,6 +8,7 @@ import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
+import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -93,22 +94,22 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
 
         val tenantIdentifier =
             Identifier(
-                type = CodeableConcept(text = "Tenant ID"),
+                type = CodeableConcept(text = "Tenant ID".asFHIR()),
                 system = Uri("http://projectronin.com/id/tenantId"),
-                value = "mdaoc"
+                value = "mdaoc".asFHIR()
             )
         assertEquals(
             listOf(
                 tenantIdentifier,
                 Identifier(
-                    type = CodeableConcept(text = "MRN"),
+                    type = CodeableConcept(text = "MRN".asFHIR()),
                     system = Uri("http://projectronin.com/id/mrn"),
-                    value = "1234"
+                    value = "1234".asFHIR()
                 ),
                 Identifier(
-                    type = CodeableConcept(text = "FHIR STU3"),
+                    type = CodeableConcept(text = "FHIR STU3".asFHIR()),
                     system = Uri("http://projectronin.com/id/fhir"),
-                    value = "12345678901"
+                    value = "12345678901".asFHIR()
                 )
             ),
             identifiersByFHIRId["mdaoc-12345678901"]
@@ -117,18 +118,18 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
             listOf(
                 tenantIdentifier,
                 Identifier(
-                    type = CodeableConcept(text = "MRN"),
+                    type = CodeableConcept(text = "MRN".asFHIR()),
                     system = Uri("http://projectronin.com/id/mrn"),
-                    value = "5678"
+                    value = "5678".asFHIR()
                 ),
                 Identifier(
-                    type = CodeableConcept(text = "FHIR STU3"),
+                    type = CodeableConcept(text = "FHIR STU3".asFHIR()),
                     system = Uri("http://projectronin.com/id/fhir"),
-                    value = "12345678902"
+                    value = "12345678902".asFHIR()
                 ),
                 Identifier(
                     system = Uri("my-own-system"),
-                    value = "abcdef"
+                    value = "abcdef".asFHIR()
                 )
             ),
             identifiersByFHIRId["mdaoc-12345678902"]

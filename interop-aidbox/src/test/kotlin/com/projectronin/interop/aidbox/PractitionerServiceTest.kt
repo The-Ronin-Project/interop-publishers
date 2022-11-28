@@ -16,6 +16,7 @@ import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
+import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
@@ -34,9 +35,9 @@ import org.junit.jupiter.api.assertThrows
 
 class PractitionerServiceTest {
     private val identifiers1 = listOf(
-        Identifier(value = "tenant-id", type = CodeableConcept(text = "tenant")),
-        Identifier(value = "22221", type = CodeableConcept(text = "ser")),
-        Identifier(value = "9988776655")
+        Identifier(value = "tenant-id".asFHIR(), type = CodeableConcept(text = "tenant".asFHIR())),
+        Identifier(value = "22221".asFHIR(), type = CodeableConcept(text = "ser".asFHIR())),
+        Identifier(value = "9988776655".asFHIR())
     )
     private val mockPractitioner1 = LimitedPractitioner(
         practitionerList = listOf(
@@ -47,9 +48,9 @@ class PractitionerServiceTest {
     )
 
     private val identifiers2 = listOf(
-        Identifier(value = "mdaoc", type = CodeableConcept(text = "tenant")),
-        Identifier(value = "22222", type = CodeableConcept(text = "ser")),
-        Identifier(value = "2281376654")
+        Identifier(value = "mdaoc".asFHIR(), type = CodeableConcept(text = "tenant".asFHIR())),
+        Identifier(value = "22222".asFHIR(), type = CodeableConcept(text = "ser".asFHIR())),
+        Identifier(value = "2281376654".asFHIR())
     )
     private val mockPractitioner2 = LimitedPractitioner(
         practitionerList = listOf(
@@ -82,13 +83,13 @@ class PractitionerServiceTest {
 
     private val tenantQueryString = "http://projectronin.com/id/tenantId|$tenantMnemonic"
     private val tenantIdentifier =
-        Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic)
+        Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic.asFHIR())
 
     private val practitionerSystemValue1 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = practitioner1)
-    private val practitionerIdentifier1 = Identifier(system = CodeSystem.NPI.uri, value = practitioner1)
+    private val practitionerIdentifier1 = Identifier(system = CodeSystem.NPI.uri, value = practitioner1.asFHIR())
 
     private val practitionerSystemValue2 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = practitioner2)
-    private val practitionerIdentifier2 = Identifier(system = CodeSystem.NPI.uri, value = practitioner2)
+    private val practitionerIdentifier2 = Identifier(system = CodeSystem.NPI.uri, value = practitioner2.asFHIR())
 
     private val mockPractitionerIdentifiers1 = LimitedPractitionerFHIRIdentifiers(
         id = "roninPractitioner01Test",
@@ -304,10 +305,14 @@ class PractitionerServiceTest {
         coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
 
         val actual =
-            practitionerService.getSpecificPractitionerIdentifier(tenantMnemonic, fhirID, CodeableConcept(text = "ser"))
+            practitionerService.getSpecificPractitionerIdentifier(
+                tenantMnemonic,
+                fhirID,
+                CodeableConcept(text = "ser".asFHIR())
+            )
 
         val expected = Identifier(
-            value = "22221", type = CodeableConcept(text = "ser")
+            value = "22221".asFHIR(), type = CodeableConcept(text = "ser".asFHIR())
         )
         assertEquals(actual, expected)
     }
@@ -326,7 +331,11 @@ class PractitionerServiceTest {
         coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
 
         val actual =
-            practitionerService.getSpecificPractitionerIdentifier(tenantMnemonic, fhirID, CodeableConcept(text = "mrn"))
+            practitionerService.getSpecificPractitionerIdentifier(
+                tenantMnemonic,
+                fhirID,
+                CodeableConcept(text = "mrn".asFHIR())
+            )
 
         val expected = null
         assertEquals(actual, expected)
@@ -578,20 +587,20 @@ class PractitionerServiceTest {
         val deserializedLimitedPractitionerFHIRIdentifiers =
             JacksonManager.objectMapper.readValue<LimitedPractitionerFHIRIdentifiers>(actualJson)
 
-        assertEquals(deserializedLimitedPractitionerFHIRIdentifiers.id, "mdaoc-e3Dt5qIBhMpHNwBK2q370pg3")
-        assertEquals(deserializedLimitedPractitionerFHIRIdentifiers.identifiers.size, 6)
+        assertEquals("mdaoc-e3Dt5qIBhMpHNwBK2q370pg3", deserializedLimitedPractitionerFHIRIdentifiers.id)
+        assertEquals(6, deserializedLimitedPractitionerFHIRIdentifiers.identifiers.size)
 
         val identifier1 = deserializedLimitedPractitionerFHIRIdentifiers.identifiers[1]
-        assertEquals(identifier1.system?.value, "urn:oid:1.2.840.114350.1.13.0.1.7.2.697780")
-        assertEquals(identifier1.value, "30777")
+        assertEquals("urn:oid:1.2.840.114350.1.13.0.1.7.2.697780", identifier1.system?.value)
+        assertEquals("30777".asFHIR(), identifier1.value)
 
         val identifier2 = deserializedLimitedPractitionerFHIRIdentifiers.identifiers[2]
-        assertEquals(identifier2.system?.value, "POTFID")
-        assertEquals(identifier2.value, "30777")
+        assertEquals("POTFID", identifier2.system?.value)
+        assertEquals("30777".asFHIR(), identifier2.value)
 
         val identifier5 = deserializedLimitedPractitionerFHIRIdentifiers.identifiers[5]
-        assertEquals(identifier5.system?.value, "http://projectronin.com/id/tenantId")
-        assertEquals(identifier5.value, "mdaoc")
+        assertEquals("http://projectronin.com/id/tenantId", identifier5.system?.value)
+        assertEquals("mdaoc".asFHIR(), identifier5.value)
     }
 
     @Test
@@ -807,7 +816,7 @@ class PractitionerServiceTest {
     @Test
     fun `getFHIRIDs returns all batched practitioners`() {
         val practitionerSystemValue3 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = "01113")
-        val practitionerIdentifier3 = Identifier(system = CodeSystem.NPI.uri, value = "01113")
+        val practitionerIdentifier3 = Identifier(system = CodeSystem.NPI.uri, value = "01113".asFHIR())
 
         val mockPractitionerIdentifiers3 = LimitedPractitionerFHIRIdentifiers(
             id = "roninPractitioner01Test",
@@ -874,7 +883,7 @@ class PractitionerServiceTest {
         every { practitionerMock.identifier } returns listOf(
             Identifier(
                 system = Uri("http://projectronin.com/id/tenantId"),
-                value = tenantMnemonic
+                value = tenantMnemonic.asFHIR()
             )
         )
         coEvery { httpMock.body<Practitioner>() } returns practitionerMock
@@ -890,7 +899,7 @@ class PractitionerServiceTest {
         every { practitionerMock.identifier } returns listOf(
             Identifier(
                 system = Uri("http://projectronin.com/id/tenantId"),
-                value = tenantMnemonic
+                value = tenantMnemonic.asFHIR()
             )
         )
         coEvery { httpMock.body<Practitioner>() } returns practitionerMock

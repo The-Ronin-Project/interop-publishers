@@ -1,8 +1,11 @@
 package com.projectronin.interop.aidbox.utils
 
 import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
+import com.projectronin.interop.fhir.r4.datatype.Extension
 import com.projectronin.interop.fhir.r4.datatype.Identifier
+import com.projectronin.interop.fhir.r4.datatype.primitive.FHIRString
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
+import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import kotlinx.coroutines.runBlocking
@@ -39,8 +42,8 @@ class AidboxUtilsTest {
             validateTenantIdentifier(
                 "tenant1",
                 listOf(
-                    Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = "tenant1"),
-                    Identifier(system = Uri("otherIdentifierSystem"), value = "123")
+                    Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = "tenant1".asFHIR()),
+                    Identifier(system = Uri("otherIdentifierSystem"), value = "123".asFHIR())
                 ),
                 "Tenant did not match"
             )
@@ -52,7 +55,7 @@ class AidboxUtilsTest {
         assertThrows<InvalidTenantAccessException> {
             validateTenantIdentifier(
                 "tenant1",
-                listOf(Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = "tenant2")),
+                listOf(Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = "tenant2".asFHIR())),
                 "Tenant did not match"
             )
         }
@@ -70,11 +73,32 @@ class AidboxUtilsTest {
     }
 
     @Test
+    fun `ensure validateTenantIdentifier throw exception when value with only extension`() {
+        assertThrows<InvalidTenantAccessException> {
+            validateTenantIdentifier(
+                "tenant1",
+                listOf(
+                    Identifier(
+                        system = Uri("http://projectronin.com/id/tenantId"),
+                        value = FHIRString(
+                            value = null,
+                            extension = listOf(
+                                Extension(id = FHIRString("1234"))
+                            )
+                        )
+                    )
+                ),
+                "Tenant did not match"
+            )
+        }
+    }
+
+    @Test
     fun `ensure validateTenantIdentifier throw exception with no tenant identifier systems`() {
         assertThrows<InvalidTenantAccessException> {
             validateTenantIdentifier(
                 "tenant1",
-                listOf(Identifier(system = Uri("otherUri"), value = "tenant1")),
+                listOf(Identifier(system = Uri("otherUri"), value = "tenant1".asFHIR())),
                 "Tenant did not match"
             )
         }
@@ -85,7 +109,7 @@ class AidboxUtilsTest {
         assertThrows<InvalidTenantAccessException> {
             validateTenantIdentifier(
                 "tenant1",
-                listOf(Identifier(system = null, value = "tenant1")),
+                listOf(Identifier(system = null, value = "tenant1".asFHIR())),
                 "Tenant did not match"
             )
         }

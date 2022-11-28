@@ -11,6 +11,7 @@ import com.projectronin.interop.common.jackson.JacksonManager
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
+import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -38,13 +39,13 @@ class LocationServiceTest {
 
     private val tenantQueryString = "http://projectronin.com/id/tenantId|$tenantMnemonic"
     private val tenantIdentifier =
-        Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic)
+        Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic.asFHIR())
 
     private val locationSystemValue1 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = location1)
-    private val locationIdentifier1 = Identifier(system = CodeSystem.NPI.uri, value = location1)
+    private val locationIdentifier1 = Identifier(system = CodeSystem.NPI.uri, value = location1.asFHIR())
 
     private val locationSystemValue2 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = location2)
-    private val locationIdentifier2 = Identifier(system = CodeSystem.NPI.uri, value = location2)
+    private val locationIdentifier2 = Identifier(system = CodeSystem.NPI.uri, value = location2.asFHIR())
 
     private val mockLocationIdentifiers1 = LimitedLocationFHIRIdentifiers(
         id = "roninLocation01Test",
@@ -364,20 +365,20 @@ class LocationServiceTest {
         val deserializedLimitedLocationFHIRIdentifiers =
             JacksonManager.objectMapper.readValue<LimitedLocationFHIRIdentifiers>(actualJson)
 
-        assertEquals(deserializedLimitedLocationFHIRIdentifiers.id, "mdaoc-e3Dt5qIBhMpHNwBK2q370pg3")
-        assertEquals(deserializedLimitedLocationFHIRIdentifiers.identifiers.size, 6)
+        assertEquals("mdaoc-e3Dt5qIBhMpHNwBK2q370pg3", deserializedLimitedLocationFHIRIdentifiers.id)
+        assertEquals(6, deserializedLimitedLocationFHIRIdentifiers.identifiers.size)
 
         val identifier1 = deserializedLimitedLocationFHIRIdentifiers.identifiers[1]
-        assertEquals(identifier1.system?.value, "urn:oid:1.2.840.114350.1.13.0.1.7.2.697780")
-        assertEquals(identifier1.value, "30777")
+        assertEquals("urn:oid:1.2.840.114350.1.13.0.1.7.2.697780", identifier1.system?.value)
+        assertEquals("30777".asFHIR(), identifier1.value)
 
         val identifier2 = deserializedLimitedLocationFHIRIdentifiers.identifiers[2]
-        assertEquals(identifier2.system?.value, "POTFID")
-        assertEquals(identifier2.value, "30777")
+        assertEquals("POTFID", identifier2.system?.value)
+        assertEquals("30777".asFHIR(), identifier2.value)
 
         val identifier5 = deserializedLimitedLocationFHIRIdentifiers.identifiers[5]
-        assertEquals(identifier5.system?.value, "http://projectronin.com/id/tenantId")
-        assertEquals(identifier5.value, "mdaoc")
+        assertEquals("http://projectronin.com/id/tenantId", identifier5.system?.value)
+        assertEquals("mdaoc".asFHIR(), identifier5.value)
     }
 
     @Test
@@ -441,13 +442,13 @@ class LocationServiceTest {
         val deserializedLimitedLocation =
             JacksonManager.objectMapper.readValue<LimitedLocationsFHIR>(actualJson)
 
-        assertEquals(deserializedLimitedLocation.locationList?.size, 2)
+        assertEquals(2, deserializedLimitedLocation.locationList?.size)
     }
 
     @Test
     fun `getFHIRIDs returns all batched locations`() {
         val locationSystemValue3 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = "01113")
-        val locationIdentifier3 = Identifier(system = CodeSystem.NPI.uri, value = "01113")
+        val locationIdentifier3 = Identifier(system = CodeSystem.NPI.uri, value = "01113".asFHIR())
 
         val mockLocationIdentifiers3 = LimitedLocationFHIRIdentifiers(
             id = "roninLocation01Test",

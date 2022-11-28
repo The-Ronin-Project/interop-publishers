@@ -59,7 +59,7 @@ fun makeBundleEntry(aidboxURLRest: String, method: HttpVerb, resource: Resource<
  * throws [InvalidTenantAccessException] with the supplied [errorMessage] if failed.
  */
 fun validateTenantIdentifier(tenantMnemonic: String, identifiers: List<Identifier>, errorMessage: String) {
-    if (identifiers.none { it.value == tenantMnemonic && it.system?.value == "http://projectronin.com/id/tenantId" }) {
+    if (identifiers.none { it.value?.value == tenantMnemonic && it.system?.value == "http://projectronin.com/id/tenantId" }) {
         throw InvalidTenantAccessException(errorMessage)
     }
 }

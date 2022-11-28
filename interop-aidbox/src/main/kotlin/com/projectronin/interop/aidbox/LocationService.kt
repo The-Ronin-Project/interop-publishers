@@ -9,6 +9,7 @@ import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.common.exceptions.LogMarkingException
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
+import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import datadog.trace.api.Trace
 import io.ktor.client.call.body
 import kotlinx.coroutines.runBlocking
@@ -41,7 +42,8 @@ class LocationService(
         }.toMap()
 
         return identifiers.mapNotNull {
-            val fhirId = identifierToFHIRIdMap[Identifier(system = Uri(it.value.system), value = it.value.value)]
+            val fhirId =
+                identifierToFHIRIdMap[Identifier(system = Uri(it.value.system), value = it.value.value.asFHIR())]
 
             if (fhirId != null) {
                 it.key to fhirId

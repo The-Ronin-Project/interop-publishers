@@ -26,8 +26,10 @@ import com.projectronin.interop.fhir.r4.datatype.Reference
 import com.projectronin.interop.fhir.r4.datatype.primitive.Code
 import com.projectronin.interop.fhir.r4.datatype.primitive.DateTime
 import com.projectronin.interop.fhir.r4.datatype.primitive.Decimal
+import com.projectronin.interop.fhir.r4.datatype.primitive.FHIRBoolean
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
+import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Location
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import com.projectronin.interop.fhir.r4.resource.PractitionerRole
@@ -61,39 +63,39 @@ class AidboxClientTest {
     private val practitioner1 = Practitioner(
         id = Id("cmjones"),
         identifier = listOf(
-            Identifier(system = CodeSystem.NPI.uri, value = "third")
+            Identifier(system = CodeSystem.NPI.uri, value = "third".asFHIR())
         ),
-        name = listOf(HumanName(family = "Jones", given = listOf("Cordelia", "May"))),
+        name = listOf(HumanName(family = "Jones".asFHIR(), given = listOf("Cordelia", "May").asFHIR())),
     )
     private val practitioner2 = Practitioner(
         id = Id("rallyr"),
         identifier = listOf(
-            Identifier(system = CodeSystem.NPI.uri, value = "second")
+            Identifier(system = CodeSystem.NPI.uri, value = "second".asFHIR())
         ),
-        name = listOf(HumanName(family = "Llyr", given = listOf("Regan", "Anne"))),
+        name = listOf(HumanName(family = "Llyr".asFHIR(), given = listOf("Regan", "Anne").asFHIR())),
     )
     private val practitioner3 = Practitioner(
         id = Id("gwalsh"),
         identifier = listOf(
-            Identifier(system = CodeSystem.NPI.uri, value = "first")
+            Identifier(system = CodeSystem.NPI.uri, value = "first".asFHIR())
         ),
-        name = listOf(HumanName(family = "Walsh", given = listOf("Goneril"))),
+        name = listOf(HumanName(family = "Walsh".asFHIR(), given = listOf("Goneril").asFHIR())),
     )
     private val location1 = Location(
         id = Id("12345"),
         language = Code("en-US"),
-        text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div"),
+        text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div".asFHIR()),
         identifier = listOf(
-            Identifier(system = CodeSystem.NPI.uri, value = "id5")
+            Identifier(system = CodeSystem.NPI.uri, value = "id5".asFHIR())
         ),
         mode = LocationMode.INSTANCE.asCode(),
         status = LocationStatus.ACTIVE.asCode(),
-        name = "My Office",
-        alias = listOf("Guest Room"),
-        description = "Sun Room",
+        name = "My Office".asFHIR(),
+        alias = listOf("Guest Room").asFHIR(),
+        description = "Sun Room".asFHIR(),
         type = listOf(
             CodeableConcept(
-                text = "Diagnostic",
+                text = "Diagnostic".asFHIR(),
                 coding = listOf(
                     Coding(
                         code = Code("DX"),
@@ -102,10 +104,10 @@ class AidboxClientTest {
                 )
             )
         ),
-        telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "8675309")),
-        address = Address(country = "USA"),
+        telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "8675309".asFHIR())),
+        address = Address(country = "USA".asFHIR()),
         physicalType = CodeableConcept(
-            text = "Room",
+            text = "Room".asFHIR(),
             coding = listOf(
                 Coding(
                     code = Code("ro"),
@@ -120,27 +122,27 @@ class AidboxClientTest {
                     DayOfWeek.SATURDAY.asCode(),
                     DayOfWeek.SUNDAY.asCode()
                 ),
-                allDay = true
+                allDay = FHIRBoolean.TRUE
             )
         ),
-        availabilityExceptions = "Call for details",
-        endpoint = listOf(Reference(reference = "Endpoint/4321"))
+        availabilityExceptions = "Call for details".asFHIR(),
+        endpoint = listOf(Reference(reference = "Endpoint/4321".asFHIR()))
     )
     private val location2 = Location(
         id = Id("12346"),
         language = Code("en-US"),
-        text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div"),
+        text = Narrative(status = NarrativeStatus.GENERATED.asCode(), div = "div".asFHIR()),
         identifier = listOf(
-            Identifier(system = CodeSystem.NPI.uri, value = "id6")
+            Identifier(system = CodeSystem.NPI.uri, value = "id6".asFHIR())
         ),
         mode = LocationMode.INSTANCE.asCode(),
         status = LocationStatus.ACTIVE.asCode(),
-        name = "Back Study",
-        alias = listOf("Studio"),
-        description = "Game Room",
+        name = "Back Study".asFHIR(),
+        alias = listOf("Studio").asFHIR(),
+        description = "Game Room".asFHIR(),
         type = listOf(
             CodeableConcept(
-                text = "Diagnostic",
+                text = "Diagnostic".asFHIR(),
                 coding = listOf(
                     Coding(
                         code = Code("DX"),
@@ -149,10 +151,10 @@ class AidboxClientTest {
                 )
             )
         ),
-        telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "123-456-7890")),
-        address = Address(country = "USA"),
+        telecom = listOf(ContactPoint(system = ContactPointSystem.PHONE.asCode(), value = "123-456-7890".asFHIR())),
+        address = Address(country = "USA".asFHIR()),
         physicalType = CodeableConcept(
-            text = "Room",
+            text = "Room".asFHIR(),
             coding = listOf(
                 Coding(
                     code = Code("ro"),
@@ -163,41 +165,44 @@ class AidboxClientTest {
         hoursOfOperation = listOf(
             LocationHoursOfOperation(
                 daysOfWeek = listOf(DayOfWeek.TUESDAY.asCode()),
-                allDay = true
+                allDay = FHIRBoolean.TRUE
             )
         ),
-        availabilityExceptions = "By appointment",
-        endpoint = listOf(Reference(reference = "Endpoint/4322"))
+        availabilityExceptions = "By appointment".asFHIR(),
+        endpoint = listOf(Reference(reference = "Endpoint/4322".asFHIR()))
     )
     private val practitionerRole1 = PractitionerRole(
         id = Id("12347"),
         identifier = listOf(
-            Identifier(system = CodeSystem.NPI.uri, value = "id3")
+            Identifier(system = CodeSystem.NPI.uri, value = "id3".asFHIR())
         ),
-        active = true,
+        active = FHIRBoolean.TRUE,
         period = Period(end = DateTime("2022")),
-        practitioner = Reference(reference = "Practitioner/cmjones"),
-        location = listOf(Reference(reference = "Location/12345")),
-        healthcareService = listOf(Reference(reference = "HealthcareService/3456")),
-        availableTime = listOf(AvailableTime(allDay = false)),
-        notAvailable = listOf(NotAvailable(description = "Not available now")),
-        availabilityExceptions = "exceptions",
-        endpoint = listOf(Reference(reference = "Endpoint/1357"))
+        practitioner = Reference(reference = "Practitioner/cmjones".asFHIR()),
+        location = listOf(Reference(reference = "Location/12345".asFHIR())),
+        healthcareService = listOf(Reference(reference = "HealthcareService/3456".asFHIR())),
+        availableTime = listOf(AvailableTime(allDay = FHIRBoolean.FALSE)),
+        notAvailable = listOf(NotAvailable(description = "Not available now".asFHIR())),
+        availabilityExceptions = "exceptions".asFHIR(),
+        endpoint = listOf(Reference(reference = "Endpoint/1357".asFHIR()))
     )
     private val practitionerRole2 = PractitionerRole(
         id = Id("12348"),
         identifier = listOf(
-            Identifier(system = CodeSystem.NPI.uri, value = "id4")
+            Identifier(system = CodeSystem.NPI.uri, value = "id4".asFHIR())
         ),
-        active = true,
+        active = FHIRBoolean.TRUE,
         period = Period(end = DateTime("2022")),
-        practitioner = Reference(reference = "Practitioner/rallyr"),
-        location = listOf(Reference(reference = "Location/12346")),
-        healthcareService = listOf(Reference(reference = "HealthcareService/3456")),
-        availableTime = listOf(AvailableTime(allDay = true)),
-        notAvailable = listOf(NotAvailable(description = "Available now")),
-        availabilityExceptions = "No exceptions",
-        endpoint = listOf(Reference(reference = "Endpoint/1358"), Reference(reference = "Endpoint/1359"))
+        practitioner = Reference(reference = "Practitioner/rallyr".asFHIR()),
+        location = listOf(Reference(reference = "Location/12346".asFHIR())),
+        healthcareService = listOf(Reference(reference = "HealthcareService/3456".asFHIR())),
+        availableTime = listOf(AvailableTime(allDay = FHIRBoolean.TRUE)),
+        notAvailable = listOf(NotAvailable(description = "Available now".asFHIR())),
+        availabilityExceptions = "No exceptions".asFHIR(),
+        endpoint = listOf(
+            Reference(reference = "Endpoint/1358".asFHIR()),
+            Reference(reference = "Endpoint/1359".asFHIR())
+        )
     )
     private val practitioners = listOf(practitioner1, practitioner2)
     private val locations = listOf(location1, location2)

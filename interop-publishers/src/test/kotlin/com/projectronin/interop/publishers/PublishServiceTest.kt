@@ -5,6 +5,7 @@ import com.projectronin.interop.fhir.r4.datatype.HumanName
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
+import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import com.projectronin.interop.publishers.exception.AidboxPublishException
 import io.mockk.every
@@ -28,21 +29,21 @@ class PublishServiceTest {
         Practitioner(
             id = Id("cmjones"),
             identifier = listOf(
-                Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = "third")
+                Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = "third".asFHIR())
             ),
             name = listOf(
-                HumanName(family = "Jones", given = listOf("Cordelia", "May"))
+                HumanName(family = "Jones".asFHIR(), given = listOf("Cordelia", "May").asFHIR())
             )
         ),
         Practitioner(
             id = Id("rallyr"),
             identifier = listOf(
-                Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = "second")
+                Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = "second".asFHIR())
             ),
             name = listOf(
                 HumanName(
-                    family = "Llyr",
-                    given = listOf("Regan", "Anne")
+                    family = "Llyr".asFHIR(),
+                    given = listOf("Regan", "Anne").asFHIR()
                 )
             )
         )

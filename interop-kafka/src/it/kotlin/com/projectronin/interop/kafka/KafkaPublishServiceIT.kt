@@ -6,6 +6,7 @@ import com.projectronin.interop.fhir.r4.datatype.Participant
 import com.projectronin.interop.fhir.r4.datatype.Reference
 import com.projectronin.interop.fhir.r4.datatype.primitive.Code
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
+import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Appointment
 import com.projectronin.interop.fhir.r4.resource.Patient
 import com.projectronin.interop.kafka.client.KafkaClient
@@ -56,8 +57,8 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
             id = Id("12345"),
             name = listOf(
                 HumanName(
-                    family = "Public",
-                    given = listOf("John", "Q")
+                    family = "Public".asFHIR(),
+                    given = listOf("John", "Q").asFHIR()
                 )
             )
         )
@@ -93,8 +94,8 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
             id = Id("12345"),
             name = listOf(
                 HumanName(
-                    family = "Public",
-                    given = listOf("John", "Q")
+                    family = "Public".asFHIR(),
+                    given = listOf("John", "Q").asFHIR()
                 )
             )
         )
@@ -102,8 +103,8 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
             id = Id("67890"),
             name = listOf(
                 HumanName(
-                    family = "Doe",
-                    given = listOf("Jane")
+                    family = "Doe".asFHIR(),
+                    given = listOf("Jane").asFHIR()
                 )
             )
         )
@@ -147,8 +148,8 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
             id = Id("12345"),
             name = listOf(
                 HumanName(
-                    family = "Public",
-                    given = listOf("John", "Q")
+                    family = "Public".asFHIR(),
+                    given = listOf("John", "Q").asFHIR()
                 )
             )
         )
@@ -157,7 +158,7 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
             participant = listOf(
                 Participant(
                     actor = Reference(
-                        reference = "Patient/12345"
+                        reference = "Patient/12345".asFHIR()
                     ),
                     status = Code("accepted")
                 )

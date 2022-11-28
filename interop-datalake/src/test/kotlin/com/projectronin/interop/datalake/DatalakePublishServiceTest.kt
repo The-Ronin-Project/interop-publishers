@@ -3,6 +3,7 @@ package com.projectronin.interop.datalake
 import com.projectronin.interop.common.jackson.JacksonManager
 import com.projectronin.interop.datalake.oci.client.OCIClient
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
+import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Location
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import io.mockk.every
@@ -43,11 +44,11 @@ class DatalakePublishServiceTest {
 
         val location1 = Location(
             id = Id("abc"),
-            name = "Location1"
+            name = "Location1".asFHIR()
         )
         val location2 = Location(
             id = Id("def"),
-            name = "Location2"
+            name = "Location2".asFHIR()
         )
         val practitioner = Practitioner(
             id = Id("abc"),
