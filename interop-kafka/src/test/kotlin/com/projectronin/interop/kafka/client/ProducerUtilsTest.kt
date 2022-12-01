@@ -5,6 +5,7 @@ import com.projectronin.interop.kafka.config.KafkaCloudConfig
 import com.projectronin.interop.kafka.config.KafkaConfig
 import com.projectronin.interop.kafka.config.KafkaPropertiesConfig
 import com.projectronin.interop.kafka.config.KafkaPublishConfig
+import com.projectronin.interop.kafka.config.KafkaRetrieveConfig
 import com.projectronin.interop.kafka.config.KafkaSaslConfig
 import com.projectronin.interop.kafka.config.KafkaSaslJaasConfig
 import com.projectronin.interop.kafka.config.KafkaSecurityConfig
@@ -31,13 +32,43 @@ class ProducerUtilsTest {
                     mechanism = "GSSAPI",
                     jaas = KafkaSaslJaasConfig(config = "")
                 )
-            )
+            ),
+            retrieve = KafkaRetrieveConfig(groupId = "interop-kafka-it")
         )
 
         val topic = mockk<KafkaTopic> {
             every { dataSchema } returns "test.topic.name.schema"
+            every { topicName } returns "topicname"
         }
-        val producer = createProducer("topic name", topic, kafkaConfig)
+        val producer = createProducer(topic, kafkaConfig)
         Assertions.assertNotNull(producer)
+    }
+
+    @Test
+    fun `createConsumer works`() {
+        // This test creates an actual RoninProducer, which means that it also creates a KafkaProducer
+        val kafkaConfig = KafkaConfig(
+            cloud = KafkaCloudConfig(
+                vendor = "local",
+                region = "local"
+            ),
+            bootstrap = KafkaBootstrapConfig(servers = "localhost:9092"),
+            publish = KafkaPublishConfig(source = "interop-kafka-it"),
+            properties = KafkaPropertiesConfig(
+                security = KafkaSecurityConfig(protocol = "PLAINTEXT"),
+                sasl = KafkaSaslConfig(
+                    mechanism = "GSSAPI",
+                    jaas = KafkaSaslJaasConfig(config = "")
+                )
+            ),
+            retrieve = KafkaRetrieveConfig(groupId = "interop-kafka-it")
+        )
+
+        val topic = mockk<KafkaTopic> {
+            every { dataSchema } returns "test.topic.name.schema"
+            every { topicName } returns "topicname"
+        }
+        val consumer = createConsumer(topic, mapOf(), kafkaConfig)
+        Assertions.assertNotNull(consumer)
     }
 }

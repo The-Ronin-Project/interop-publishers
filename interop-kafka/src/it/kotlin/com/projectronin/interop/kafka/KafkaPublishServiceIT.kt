@@ -20,10 +20,8 @@ import org.junit.jupiter.api.Test
 
 class KafkaPublishServiceIT : BaseKafkaIT() {
     private val patientTopic = PublishTopic(
-        tenantSpecific = true,
+        topicName = "topic-name-patient",
         systemName = "interop",
-        eventType = "patient",
-        version = "v1",
         dataSchema = "http://localhost/event/interop.patient",
         resourceType = "Patient",
         converter = { tenant, resource ->
@@ -34,10 +32,8 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
         }
     )
     private val appointmentTopic = PublishTopic(
-        tenantSpecific = true,
+        topicName = "topic-name-appointment",
         systemName = "interop",
-        eventType = "appointment",
-        version = "v1",
         dataSchema = "http://localhost/event/interop.appointment",
         resourceType = "Appointment",
         converter = { tenant, resource ->

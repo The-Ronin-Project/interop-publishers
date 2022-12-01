@@ -17,7 +17,8 @@ class SpringConfigTest {
                 "kafka.cloud.vendor" to "oci",
                 "kafka.cloud.region" to "us-phoenix-1",
                 "kafka.bootstrap.servers" to "localhost:9092",
-                "kafka.publish.source" to "interop-kafka-test"
+                "kafka.publish.source" to "interop-kafka-test",
+                "kafka.retrieve.groupId" to "interop-kafka-test"
             )
         )
     }
@@ -31,6 +32,7 @@ class SpringConfigTest {
                 "kafka.cloud.region" to "us-phoenix-1",
                 "kafka.bootstrap.servers" to "localhost:9092",
                 "kafka.publish.source" to "interop-kafka-test",
+                "kafka.retrieve.groupId" to "interop-kafka-test",
                 "kafka.properties.security.protocol" to "SASL_SSL",
                 "kafka.properties.sasl.mechanism" to "SCRAM-SHA-512",
                 "kafka.properties.sasl.username" to "saslUsername",

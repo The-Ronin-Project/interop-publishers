@@ -40,7 +40,7 @@ class KafkaClientTest {
     @BeforeEach
     fun setup() {
         mockkConstructor(RoninProducer::class)
-        mockkStatic("com.projectronin.interop.kafka.client.ProducerUtilsKt")
+        mockkStatic("com.projectronin.interop.kafka.client.KafkaUtilsKt")
 
         producersProperty.isAccessible = true
     }
@@ -53,7 +53,7 @@ class KafkaClientTest {
     @Test
     fun `creates new producer when none exist for topic`() {
         val topic = mockk<KafkaTopic> {
-            every { getTopicName(cloudConfig, tenantId, null) } returns "test.topic.name"
+            every { topicName } returns "test.topic.name"
             every { dataSchema } returns "test.topic.name.schema"
         }
         val event1 = mockk<KafkaEvent<String>> {
@@ -68,7 +68,7 @@ class KafkaClientTest {
             }
         }
 
-        every { createProducer("test.topic.name", topic, kafkaConfig) } returns producer
+        every { createProducer(topic, kafkaConfig) } returns producer
 
         val client = KafkaClient(kafkaConfig)
 
@@ -85,13 +85,13 @@ class KafkaClientTest {
         assertEquals(1, postCallProducers.size)
         assertEquals(producer, postCallProducers["test.topic.name"])
 
-        verify(exactly = 1) { createProducer("test.topic.name", topic, kafkaConfig) }
+        verify(exactly = 1) { createProducer(topic, kafkaConfig) }
     }
 
     @Test
     fun `reuses producer when one exists for topic`() {
         val topic = mockk<KafkaTopic> {
-            every { getTopicName(cloudConfig, tenantId, null) } returns "test.topic.name"
+            every { topicName } returns "test.topic.name"
             every { dataSchema } returns "test.topic.name.schema"
         }
         val event1 = mockk<KafkaEvent<String>> {
@@ -123,13 +123,13 @@ class KafkaClientTest {
         assertEquals(1, postCallProducers.size)
         assertEquals(producer, postCallProducers["test.topic.name"])
 
-        verify(exactly = 0) { createProducer("test.topic.name", topic, kafkaConfig) }
+        verify(exactly = 0) { createProducer(topic, kafkaConfig) }
     }
 
     @Test
     fun `handles send that results in an exception`() {
         val topic = mockk<KafkaTopic> {
-            every { getTopicName(cloudConfig, tenantId, null) } returns "test.topic.name"
+            every { topicName } returns "test.topic.name"
             every { dataSchema } returns "test.topic.name.schema"
         }
         val event1 = mockk<KafkaEvent<String>> {
@@ -144,7 +144,7 @@ class KafkaClientTest {
             }
         }
 
-        every { createProducer("test.topic.name", topic, kafkaConfig) } returns producer
+        every { createProducer(topic, kafkaConfig) } returns producer
 
         val client = KafkaClient(kafkaConfig)
         val response = client.publishEvents(topic, tenantId, null, listOf(event1))
@@ -159,7 +159,7 @@ class KafkaClientTest {
     @Test
     fun `handles send that results in success`() {
         val topic = mockk<KafkaTopic> {
-            every { getTopicName(cloudConfig, tenantId, null) } returns "test.topic.name"
+            every { topicName } returns "test.topic.name"
             every { dataSchema } returns "test.topic.name.schema"
         }
         val event1 = mockk<KafkaEvent<String>> {
@@ -174,7 +174,7 @@ class KafkaClientTest {
             }
         }
 
-        every { createProducer("test.topic.name", topic, kafkaConfig) } returns producer
+        every { createProducer(topic, kafkaConfig) } returns producer
 
         val client = KafkaClient(kafkaConfig)
         val response = client.publishEvents(topic, tenantId, null, listOf(event1))
@@ -187,7 +187,7 @@ class KafkaClientTest {
     @Test
     fun `handles non-null trigger`() {
         val topic = mockk<KafkaTopic> {
-            every { getTopicName(cloudConfig, tenantId, DataTrigger.NIGHTLY) } returns "test.topic.name-nightly"
+            every { topicName } returns "test.topic.name-nightly"
             every { dataSchema } returns "test.topic.name.schema"
         }
         val event1 = mockk<KafkaEvent<String>> {
@@ -202,7 +202,7 @@ class KafkaClientTest {
             }
         }
 
-        every { createProducer("test.topic.name-nightly", topic, kafkaConfig) } returns producer
+        every { createProducer(topic, kafkaConfig) } returns producer
 
         val client = KafkaClient(kafkaConfig)
         val response = client.publishEvents(topic, tenantId, DataTrigger.NIGHTLY, listOf(event1))
@@ -215,7 +215,7 @@ class KafkaClientTest {
     @Test
     fun `handles some results are failure`() {
         val topic = mockk<KafkaTopic> {
-            every { getTopicName(cloudConfig, tenantId, null) } returns "test.topic.name"
+            every { topicName } returns "test.topic.name"
             every { dataSchema } returns "test.topic.name.schema"
         }
         val event1 = mockk<KafkaEvent<String>> {
@@ -246,7 +246,7 @@ class KafkaClientTest {
             }
         }
 
-        every { createProducer("test.topic.name", topic, kafkaConfig) } returns producer
+        every { createProducer(topic, kafkaConfig) } returns producer
 
         val client = KafkaClient(kafkaConfig)
         val response = client.publishEvents(topic, tenantId, null, listOf(event1, event2, event3))
@@ -263,7 +263,7 @@ class KafkaClientTest {
     @Test
     fun `handles all results are success`() {
         val topic = mockk<KafkaTopic> {
-            every { getTopicName(cloudConfig, tenantId, null) } returns "test.topic.name"
+            every { topicName } returns "test.topic.name"
             every { dataSchema } returns "test.topic.name.schema"
         }
         val event1 = mockk<KafkaEvent<String>> {
@@ -294,7 +294,7 @@ class KafkaClientTest {
             }
         }
 
-        every { createProducer("test.topic.name", topic, kafkaConfig) } returns producer
+        every { createProducer(topic, kafkaConfig) } returns producer
 
         val client = KafkaClient(kafkaConfig)
         val response = client.publishEvents(topic, tenantId, null, listOf(event1, event2, event3))

@@ -9,6 +9,7 @@ data class KafkaConfig(
     val cloud: KafkaCloudConfig,
     val bootstrap: KafkaBootstrapConfig,
     val publish: KafkaPublishConfig,
+    val retrieve: KafkaRetrieveConfig,
     val properties: KafkaPropertiesConfig = KafkaPropertiesConfig()
 )
 
@@ -23,6 +24,9 @@ data class KafkaBootstrapConfig(
 
 data class KafkaPublishConfig(
     val source: String
+)
+data class KafkaRetrieveConfig(
+    val groupId: String
 )
 
 data class KafkaPropertiesConfig(

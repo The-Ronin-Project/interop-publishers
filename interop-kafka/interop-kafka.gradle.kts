@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
     implementation(libs.interop.fhir)
+    implementation(libs.interop.common)
     implementation(libs.ronin.kafka)
 
     implementation(platform(libs.spring.boot.parent))

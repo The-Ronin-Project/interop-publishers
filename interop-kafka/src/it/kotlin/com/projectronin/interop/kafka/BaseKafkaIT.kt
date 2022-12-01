@@ -5,6 +5,7 @@ import com.projectronin.interop.kafka.config.KafkaCloudConfig
 import com.projectronin.interop.kafka.config.KafkaConfig
 import com.projectronin.interop.kafka.config.KafkaPropertiesConfig
 import com.projectronin.interop.kafka.config.KafkaPublishConfig
+import com.projectronin.interop.kafka.config.KafkaRetrieveConfig
 import com.projectronin.interop.kafka.config.KafkaSaslConfig
 import com.projectronin.interop.kafka.config.KafkaSaslJaasConfig
 import com.projectronin.interop.kafka.config.KafkaSecurityConfig
@@ -48,7 +49,8 @@ abstract class BaseKafkaIT {
                 mechanism = "GSSAPI",
                 jaas = KafkaSaslJaasConfig(config = "")
             )
-        )
+        ),
+        retrieve = KafkaRetrieveConfig("groupID")
     )
 
     protected fun pollEvents(
@@ -78,7 +80,7 @@ abstract class BaseKafkaIT {
     }
 
     private fun createConsumer(topic: PublishTopic, trigger: DataTrigger?, typeMap: Map<String, KClass<*>>) =
-        consumersByTopic.computeIfAbsent(topic.getTopicName(cloudConfig, tenantId, trigger)) {
+        consumersByTopic.computeIfAbsent(topic.topicName) {
             RoninConsumer(
                 topics = listOf(it),
                 typeMap = typeMap,

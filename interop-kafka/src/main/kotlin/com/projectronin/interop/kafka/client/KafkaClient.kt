@@ -25,8 +25,7 @@ class KafkaClient(private val kafkaConfig: KafkaConfig) {
         trigger: DataTrigger?,
         events: List<KafkaEvent<T>>
     ): PublishResponse<KafkaEvent<T>> {
-        val topicName = topic.getTopicName(kafkaConfig.cloud, tenantId, trigger)
-        val producer = producersByTopicName.computeIfAbsent(topicName) { createProducer(it, topic, kafkaConfig) }
+        val producer = producersByTopicName.computeIfAbsent(topic.topicName) { createProducer(topic, kafkaConfig) }
 
         val results = events.associateWith { event -> producer.send(event.type, event.subject, event.data) }
             .map { (event, future) ->
