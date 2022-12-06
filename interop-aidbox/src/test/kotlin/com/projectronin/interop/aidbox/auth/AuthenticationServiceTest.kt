@@ -2,11 +2,11 @@ package com.projectronin.interop.aidbox.auth
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.projectronin.interop.common.http.exceptions.ServiceUnavailableException
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.toByteArray
-import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -72,7 +72,7 @@ class AuthenticationServiceTest {
 
         val httpClient = makeClient(expectedBody, "", HttpStatusCode.ServiceUnavailable)
         val service = AidboxAuthenticationService(httpClient, baseUrl, AidboxCredentials("client-id", "client-secret"))
-        assertThrows<ServerResponseException> {
+        assertThrows<ServiceUnavailableException> {
             service.getAuthentication()
         }
     }

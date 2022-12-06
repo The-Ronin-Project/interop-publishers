@@ -3,7 +3,7 @@ package com.projectronin.interop.aidbox.client
 import com.projectronin.interop.aidbox.auth.AidboxAuthenticationBroker
 import com.projectronin.interop.aidbox.model.GraphQLPostRequest
 import com.projectronin.interop.aidbox.utils.makeBundleForBatchUpsert
-import com.projectronin.interop.common.http.throwExceptionFromHttpStatus
+import com.projectronin.interop.common.http.request
 import com.projectronin.interop.fhir.r4.resource.Resource
 import io.ktor.client.HttpClient
 import io.ktor.client.request.accept
@@ -51,17 +51,18 @@ class AidboxClient(
         val bundle = makeBundleForBatchUpsert(aidboxURLRest, resourceCollection)
         val authentication = authenticationBroker.getAuthentication()
         val response: HttpResponse = runBlocking {
-            httpClient.post("$aidboxURLRest/fhir") {
-                headers {
-                    append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
-                    append("aidbox-validation-skip", "reference")
+            httpClient.request("Aidbox", "$aidboxURLRest/fhir") { url ->
+                post(url) {
+                    headers {
+                        append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
+                        append("aidbox-validation-skip", "reference")
+                    }
+                    contentType(ContentType.Application.Json)
+                    accept(ContentType.Application.Json)
+                    setBody(bundle)
                 }
-                contentType(ContentType.Application.Json)
-                accept(ContentType.Application.Json)
-                setBody(bundle)
             }
         }
-        response.throwExceptionFromHttpStatus("Aidbox", "$aidboxURLRest/fhir/")
 
         return response
     }
@@ -77,15 +78,16 @@ class AidboxClient(
 
         logger.debug { "Processing Aidbox query: $query" }
         val authentication = authenticationBroker.getAuthentication()
-        val response: HttpResponse = httpClient.post("$aidboxURLRest/\$graphql") {
-            headers {
-                append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
+        val response: HttpResponse = httpClient.request("Aidbox", "$aidboxURLRest/\$graphql") { url ->
+            post(url) {
+                headers {
+                    append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
+                }
+                contentType(ContentType.Application.Json)
+                accept(ContentType.Application.Json)
+                setBody(GraphQLPostRequest(query = query, variables = parameters.toSortedMap()))
             }
-            contentType(ContentType.Application.Json)
-            accept(ContentType.Application.Json)
-            setBody(GraphQLPostRequest(query = query, variables = parameters.toSortedMap()))
         }
-        response.throwExceptionFromHttpStatus("Aidbox", "$aidboxURLRest/graphql")
 
         logger.debug { "Aidbox query returned ${response.status}" }
 
@@ -100,14 +102,16 @@ class AidboxClient(
      */
     suspend fun getResource(resourceType: String, resourceFHIRID: String): HttpResponse {
         val authentication = authenticationBroker.getAuthentication()
-        val response: HttpResponse = httpClient.get("$aidboxURLRest/fhir/$resourceType/$resourceFHIRID") {
-            headers {
-                append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
+        val response: HttpResponse =
+            httpClient.request("Aidbox", "$aidboxURLRest/fhir/$resourceType/$resourceFHIRID") { url ->
+                get(url) {
+                    headers {
+                        append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
+                    }
+                    contentType(ContentType.Application.Json)
+                    accept(ContentType.Application.Json)
+                }
             }
-            contentType(ContentType.Application.Json)
-            accept(ContentType.Application.Json)
-        }
-        response.throwExceptionFromHttpStatus("Aidbox", "$aidboxURLRest/fhir/$resourceType/$resourceFHIRID")
 
         return response
     }
