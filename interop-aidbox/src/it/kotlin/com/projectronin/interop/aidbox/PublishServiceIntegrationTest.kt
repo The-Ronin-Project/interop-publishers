@@ -6,6 +6,7 @@ import com.projectronin.interop.aidbox.spring.AidboxIntegrationConfig
 import com.projectronin.interop.aidbox.testcontainer.AidboxData
 import com.projectronin.interop.aidbox.testcontainer.BaseAidboxTest
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
+import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Address
 import com.projectronin.interop.fhir.r4.datatype.Attachment
 import com.projectronin.interop.fhir.r4.datatype.AvailableTime
@@ -98,13 +99,13 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         type = CodeableConcept(
             coding = listOf(
                 Coding(
-                    system = Uri("http://projectronin.com/id/tenantId"),
+                    system = CodeSystem.RONIN_TENANT.uri,
                     code = Code("TID"),
                     display = "Ronin-specified Tenant Identifier".asFHIR()
                 )
             )
         ),
-        system = Uri("http://projectronin.com/id/tenantId"),
+        system = CodeSystem.RONIN_TENANT.uri,
         value = "mdaoc".asFHIR()
     )
 

@@ -10,6 +10,7 @@ import com.projectronin.interop.aidbox.utils.AIDBOX_PATIENT_FHIR_IDS_QUERY
 import com.projectronin.interop.aidbox.utils.AIDBOX_PATIENT_LIST_QUERY
 import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
+import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
@@ -39,9 +40,9 @@ class PatientServiceTest {
     private val mrn1 = "01111"
     private val mrn2 = "01112"
 
-    private val tenantQueryString = "http://projectronin.com/id/tenantId|$tenantMnemonic"
+    private val tenantQueryString = "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic"
     private val tenantIdentifier =
-        Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic.asFHIR())
+        Identifier(system = CodeSystem.RONIN_TENANT.uri, value = tenantMnemonic.asFHIR())
 
     private val mrnSystemValue1 = SystemValue(system = "mrnSystem", value = mrn1)
     private val mrnIdentifier1 = Identifier(system = Uri("mrnSystem"), value = mrn1.asFHIR())
@@ -272,15 +273,15 @@ class PatientServiceTest {
         assertEquals(3, deserializedLimitedPatientIdentifiers.identifiers.size)
 
         val identifier1 = deserializedLimitedPatientIdentifiers.identifiers[0]
-        assertEquals("http://projectronin.com/id/tenantId", identifier1.system?.value)
+        assertEquals(CodeSystem.RONIN_TENANT.uri.value, identifier1.system?.value)
         assertEquals("mdaoc".asFHIR(), identifier1.value)
 
         val identifier2 = deserializedLimitedPatientIdentifiers.identifiers[1]
-        assertEquals("http://projectronin.com/id/mrn", identifier2.system?.value)
+        assertEquals(CodeSystem.RONIN_MRN.uri.value!!, identifier2.system?.value)
         assertEquals("01111".asFHIR(), identifier2.value)
 
         val identifier3 = deserializedLimitedPatientIdentifiers.identifiers[2]
-        assertEquals("http://projectronin.com/id/fhir", identifier3.system?.value)
+        assertEquals(CodeSystem.RONIN_FHIR_ID.uri.value!!, identifier3.system?.value)
         assertEquals("stu3-01111".asFHIR(), identifier3.value)
     }
 
@@ -340,7 +341,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -361,7 +362,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -380,7 +381,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -399,7 +400,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -419,7 +420,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } throws Exception()
@@ -436,7 +437,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
         } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 
@@ -511,7 +512,7 @@ class PatientServiceTest {
         val patientMock = mockk<Patient>()
         every { patientMock.identifier } returns listOf(
             Identifier(
-                system = Uri("http://projectronin.com/id/tenantId"),
+                system = CodeSystem.RONIN_TENANT.uri,
                 value = tenantMnemonic.asFHIR()
             )
         )
@@ -527,7 +528,7 @@ class PatientServiceTest {
         val patientMock = mockk<Patient>()
         every { patientMock.identifier } returns listOf(
             Identifier(
-                system = Uri("http://projectronin.com/id/tenantId"),
+                system = CodeSystem.RONIN_TENANT.uri,
                 value = tenantMnemonic.asFHIR()
             )
         )
@@ -546,7 +547,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -616,7 +617,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -636,7 +637,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } returns response
@@ -656,7 +657,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PatientList>> { mockHttpResponse.body() } throws Exception()
@@ -673,7 +674,7 @@ class PatientServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = patientListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
         } throws ClientFailureException(HttpStatusCode.ServiceUnavailable, "")
 

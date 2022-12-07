@@ -4,6 +4,7 @@ import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.aidbox.spring.AidboxIntegrationConfig
 import com.projectronin.interop.aidbox.testcontainer.AidboxData
 import com.projectronin.interop.aidbox.testcontainer.BaseAidboxTest
+import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
@@ -48,7 +49,7 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
         val identifiers = practitionerService.getPractitionerIdentifiers("mdaoc", "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
         assertEquals(10, identifiers.size)
 
-        val identifier1 = createIdentifier("http://projectronin.com/id/tenantId", "mdaoc", "Tenant ID")
+        val identifier1 = createIdentifier(CodeSystem.RONIN_TENANT.uri.value!!, "mdaoc", "Tenant ID")
         assertTrue(identifier1 in identifiers)
         val identifier2 = createIdentifier("http://hl7.org/fhir/sid/us-npi", "1100399991", "NPI")
         assertTrue(identifier2 in identifiers)
@@ -133,7 +134,7 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
         val tenantIdentifier =
             Identifier(
                 type = CodeableConcept(text = "Tenant ID".asFHIR()),
-                system = Uri("http://projectronin.com/id/tenantId"),
+                system = CodeSystem.RONIN_TENANT.uri,
                 value = "tenant".asFHIR()
             )
         assertEquals(
@@ -179,7 +180,7 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
         val tenantIdentifier =
             Identifier(
                 type = CodeableConcept(text = "Tenant ID".asFHIR()),
-                system = Uri("http://projectronin.com/id/tenantId"),
+                system = CodeSystem.RONIN_TENANT.uri,
                 value = "tenant".asFHIR()
             )
         assertEquals(

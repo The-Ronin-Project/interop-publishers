@@ -10,7 +10,6 @@ import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.jackson.JacksonManager
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
-import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
@@ -37,9 +36,9 @@ class LocationServiceTest {
     private val location1 = "01111"
     private val location2 = "01112"
 
-    private val tenantQueryString = "http://projectronin.com/id/tenantId|$tenantMnemonic"
+    private val tenantQueryString = "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic"
     private val tenantIdentifier =
-        Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic.asFHIR())
+        Identifier(system = CodeSystem.RONIN_TENANT.uri, value = tenantMnemonic.asFHIR())
 
     private val locationSystemValue1 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = location1)
     private val locationIdentifier1 = Identifier(system = CodeSystem.NPI.uri, value = location1.asFHIR())
@@ -377,7 +376,7 @@ class LocationServiceTest {
         assertEquals("30777".asFHIR(), identifier2.value)
 
         val identifier5 = deserializedLimitedLocationFHIRIdentifiers.identifiers[5]
-        assertEquals("http://projectronin.com/id/tenantId", identifier5.system?.value)
+        assertEquals(CodeSystem.RONIN_TENANT.uri.value!!, identifier5.system?.value)
         assertEquals("mdaoc".asFHIR(), identifier5.value)
     }
 

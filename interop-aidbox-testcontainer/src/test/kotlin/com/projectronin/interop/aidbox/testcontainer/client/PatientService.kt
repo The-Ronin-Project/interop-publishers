@@ -3,6 +3,7 @@ package com.projectronin.interop.aidbox.testcontainer.client
 import com.projectronin.interop.aidbox.testcontainer.client.graphql.GraphQLError
 import com.projectronin.interop.aidbox.testcontainer.client.graphql.GraphQLResponse
 import com.projectronin.interop.aidbox.testcontainer.client.model.AidboxPatientList
+import com.projectronin.interop.fhir.r4.CodeSystem
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.statement.bodyAsText
@@ -20,7 +21,7 @@ class PatientService(private val aidboxClient: AidboxClient) {
         aidboxAuthString: String,
     ): GraphQLResponse<AidboxPatientList> {
         val parameters = mapOf(
-            "tenant" to "http://projectronin.com/id/tenantId|$tenantId",
+            "tenant" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantId",
             "birthDate" to birthDate,
             "givenName" to givenName,
             "familyName" to familyName

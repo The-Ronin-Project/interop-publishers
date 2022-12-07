@@ -1,6 +1,7 @@
 package com.projectronin.interop.aidbox.utils
 
 import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
+import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Extension
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.FHIRString
@@ -42,7 +43,7 @@ class AidboxUtilsTest {
             validateTenantIdentifier(
                 "tenant1",
                 listOf(
-                    Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = "tenant1".asFHIR()),
+                    Identifier(system = CodeSystem.RONIN_TENANT.uri, value = "tenant1".asFHIR()),
                     Identifier(system = Uri("otherIdentifierSystem"), value = "123".asFHIR())
                 ),
                 "Tenant did not match"
@@ -55,7 +56,7 @@ class AidboxUtilsTest {
         assertThrows<InvalidTenantAccessException> {
             validateTenantIdentifier(
                 "tenant1",
-                listOf(Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = "tenant2".asFHIR())),
+                listOf(Identifier(system = CodeSystem.RONIN_TENANT.uri, value = "tenant2".asFHIR())),
                 "Tenant did not match"
             )
         }
@@ -66,7 +67,7 @@ class AidboxUtilsTest {
         assertThrows<InvalidTenantAccessException> {
             validateTenantIdentifier(
                 "tenant1",
-                listOf(Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = null)),
+                listOf(Identifier(system = CodeSystem.RONIN_TENANT.uri, value = null)),
                 "Tenant did not match"
             )
         }
@@ -79,7 +80,7 @@ class AidboxUtilsTest {
                 "tenant1",
                 listOf(
                     Identifier(
-                        system = Uri("http://projectronin.com/id/tenantId"),
+                        system = CodeSystem.RONIN_TENANT.uri,
                         value = FHIRString(
                             value = null,
                             extension = listOf(

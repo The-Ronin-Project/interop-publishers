@@ -15,7 +15,6 @@ import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
-import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import io.ktor.client.call.body
@@ -81,9 +80,9 @@ class PractitionerServiceTest {
     private val practitioner1 = "01111"
     private val practitioner2 = "01112"
 
-    private val tenantQueryString = "http://projectronin.com/id/tenantId|$tenantMnemonic"
+    private val tenantQueryString = "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic"
     private val tenantIdentifier =
-        Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = tenantMnemonic.asFHIR())
+        Identifier(system = CodeSystem.RONIN_TENANT.uri, value = tenantMnemonic.asFHIR())
 
     private val practitionerSystemValue1 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = practitioner1)
     private val practitionerIdentifier1 = Identifier(system = CodeSystem.NPI.uri, value = practitioner1.asFHIR())
@@ -226,7 +225,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
-                parameters = mapOf("id" to fhirID, "tenant" to "http://projectronin.com/id/tenantId|wrongTenant")
+                parameters = mapOf("id" to fhirID, "tenant" to "${CodeSystem.RONIN_TENANT.uri.value}|wrongTenant")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<LimitedPractitioner>> { mockHttpResponse.body() } returns response
@@ -599,7 +598,7 @@ class PractitionerServiceTest {
         assertEquals("30777".asFHIR(), identifier2.value)
 
         val identifier5 = deserializedLimitedPractitionerFHIRIdentifiers.identifiers[5]
-        assertEquals("http://projectronin.com/id/tenantId", identifier5.system?.value)
+        assertEquals(CodeSystem.RONIN_TENANT.uri.value, identifier5.system?.value)
         assertEquals("mdaoc".asFHIR(), identifier5.value)
     }
 
@@ -677,7 +676,7 @@ class PractitionerServiceTest {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
                 parameters = mapOf(
-                    "identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic",
+                    "identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic",
                     "count" to "100",
                     "page" to "1"
                 )
@@ -702,7 +701,7 @@ class PractitionerServiceTest {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
                 parameters = mapOf(
-                    "identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic",
+                    "identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic",
                     "count" to "100",
                     "page" to "1"
                 )
@@ -744,7 +743,7 @@ class PractitionerServiceTest {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
                 parameters = mapOf(
-                    "identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic",
+                    "identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic",
                     "count" to "2",
                     "page" to "1"
                 )
@@ -759,7 +758,7 @@ class PractitionerServiceTest {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
                 parameters = mapOf(
-                    "identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic",
+                    "identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic",
                     "count" to "2",
                     "page" to "2"
                 )
@@ -783,7 +782,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
-                parameters = mapOf("identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic")
+                parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PractitionerList>> { mockHttpResponse.body() } throws Exception()
@@ -801,7 +800,7 @@ class PractitionerServiceTest {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
                 parameters = mapOf(
-                    "identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic",
+                    "identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic",
                     "count" to "100",
                     "page" to "1"
                 )
@@ -882,7 +881,7 @@ class PractitionerServiceTest {
         val practitionerMock = mockk<Practitioner>()
         every { practitionerMock.identifier } returns listOf(
             Identifier(
-                system = Uri("http://projectronin.com/id/tenantId"),
+                system = CodeSystem.RONIN_TENANT.uri,
                 value = tenantMnemonic.asFHIR()
             )
         )
@@ -898,7 +897,7 @@ class PractitionerServiceTest {
         val practitionerMock = mockk<Practitioner>()
         every { practitionerMock.identifier } returns listOf(
             Identifier(
-                system = Uri("http://projectronin.com/id/tenantId"),
+                system = CodeSystem.RONIN_TENANT.uri,
                 value = tenantMnemonic.asFHIR()
             )
         )
@@ -918,7 +917,7 @@ class PractitionerServiceTest {
             aidboxClient.queryGraphQL(
                 query = practitionerListQuery,
                 parameters = mapOf(
-                    "identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic",
+                    "identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic",
                     "count" to "100",
                     "page" to "1"
                 )
@@ -943,7 +942,7 @@ class PractitionerServiceTest {
                 query = query,
                 parameters = mapOf(
                     "id" to fhirID,
-                    "tenant" to "http://projectronin.com/id/tenantId|$tenantMnemonic"
+                    "tenant" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic"
                 )
             )
         } returns mockHttpResponse

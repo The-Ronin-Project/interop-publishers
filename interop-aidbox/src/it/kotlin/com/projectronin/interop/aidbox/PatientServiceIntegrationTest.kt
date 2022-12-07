@@ -5,6 +5,7 @@ import com.projectronin.interop.aidbox.spring.AidboxIntegrationConfig
 import com.projectronin.interop.aidbox.testcontainer.AidboxData
 import com.projectronin.interop.aidbox.testcontainer.BaseAidboxTest
 import com.projectronin.interop.common.http.exceptions.ClientFailureException
+import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
@@ -51,7 +52,7 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
     @Test
     fun `some patient FHIR Ids found for identifiers`() {
         val identifiers = mapOf(
-            1 to SystemValue("1234", "http://projectronin.com/id/mrn"),
+            1 to SystemValue("1234", CodeSystem.RONIN_MRN.uri.value!!),
             2 to SystemValue("5678", "unknown-system-2")
         )
         val fhirIds = patientService.getPatientFHIRIds("mdaoc", identifiers)
@@ -62,7 +63,7 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
     @Test
     fun `all patient FHIR Ids found for identifiers`() {
         val identifiers = mapOf(
-            1 to SystemValue("1234", "http://projectronin.com/id/mrn"),
+            1 to SystemValue("1234", CodeSystem.RONIN_MRN.uri.value!!),
             2 to SystemValue("abcdef", "my-own-system")
         )
         val fhirIds = patientService.getPatientFHIRIds("mdaoc", identifiers)
@@ -74,7 +75,7 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
     @Test
     fun `identifiers are restricted to requested tenant when searching for patient FHIR Ids`() {
         val identifiers = mapOf(
-            1 to SystemValue("1234", "http://projectronin.com/id/mrn"),
+            1 to SystemValue("1234", CodeSystem.RONIN_MRN.uri.value!!),
             2 to SystemValue("abcdef", "my-own-system")
         )
         val fhirIds = patientService.getPatientFHIRIds("newtenant", identifiers)
@@ -95,7 +96,7 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
         val tenantIdentifier =
             Identifier(
                 type = CodeableConcept(text = "Tenant ID".asFHIR()),
-                system = Uri("http://projectronin.com/id/tenantId"),
+                system = CodeSystem.RONIN_TENANT.uri,
                 value = "mdaoc".asFHIR()
             )
         assertEquals(
@@ -103,12 +104,12 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
                 tenantIdentifier,
                 Identifier(
                     type = CodeableConcept(text = "MRN".asFHIR()),
-                    system = Uri("http://projectronin.com/id/mrn"),
+                    system = CodeSystem.RONIN_MRN.uri,
                     value = "1234".asFHIR()
                 ),
                 Identifier(
                     type = CodeableConcept(text = "FHIR STU3".asFHIR()),
-                    system = Uri("http://projectronin.com/id/fhir"),
+                    system = CodeSystem.RONIN_FHIR_ID.uri,
                     value = "12345678901".asFHIR()
                 )
             ),
@@ -119,12 +120,12 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
                 tenantIdentifier,
                 Identifier(
                     type = CodeableConcept(text = "MRN".asFHIR()),
-                    system = Uri("http://projectronin.com/id/mrn"),
+                    system = CodeSystem.RONIN_MRN.uri,
                     value = "5678".asFHIR()
                 ),
                 Identifier(
                     type = CodeableConcept(text = "FHIR STU3".asFHIR()),
-                    system = Uri("http://projectronin.com/id/fhir"),
+                    system = CodeSystem.RONIN_FHIR_ID.uri,
                     value = "12345678902".asFHIR()
                 ),
                 Identifier(

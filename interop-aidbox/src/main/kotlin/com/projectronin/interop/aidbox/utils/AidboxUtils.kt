@@ -4,6 +4,7 @@ import com.projectronin.interop.aidbox.exception.InvalidTenantAccessException
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.common.http.exceptions.HttpException
+import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.BundleEntry
 import com.projectronin.interop.fhir.r4.datatype.BundleRequest
 import com.projectronin.interop.fhir.r4.datatype.Identifier
@@ -59,7 +60,7 @@ fun makeBundleEntry(aidboxURLRest: String, method: HttpVerb, resource: Resource<
  * throws [InvalidTenantAccessException] with the supplied [errorMessage] if failed.
  */
 fun validateTenantIdentifier(tenantMnemonic: String, identifiers: List<Identifier>, errorMessage: String) {
-    if (identifiers.none { it.value?.value == tenantMnemonic && it.system?.value == "http://projectronin.com/id/tenantId" }) {
+    if (identifiers.none { it.value?.value == tenantMnemonic && it.system?.value == CodeSystem.RONIN_TENANT.uri.value }) {
         throw InvalidTenantAccessException(errorMessage)
     }
 }

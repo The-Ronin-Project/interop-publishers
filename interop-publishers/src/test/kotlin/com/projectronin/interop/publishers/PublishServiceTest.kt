@@ -1,10 +1,10 @@
 package com.projectronin.interop.publishers
 
 import com.projectronin.interop.datalake.DatalakePublishService
+import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.HumanName
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
-import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import com.projectronin.interop.publishers.exception.AidboxPublishException
@@ -29,7 +29,7 @@ class PublishServiceTest {
         Practitioner(
             id = Id("cmjones"),
             identifier = listOf(
-                Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = "third".asFHIR())
+                Identifier(system = CodeSystem.RONIN_TENANT.uri, value = "third".asFHIR())
             ),
             name = listOf(
                 HumanName(family = "Jones".asFHIR(), given = listOf("Cordelia", "May").asFHIR())
@@ -38,7 +38,7 @@ class PublishServiceTest {
         Practitioner(
             id = Id("rallyr"),
             identifier = listOf(
-                Identifier(system = Uri("http://projectronin.com/id/tenantId"), value = "second".asFHIR())
+                Identifier(system = CodeSystem.RONIN_TENANT.uri, value = "second".asFHIR())
             ),
             name = listOf(
                 HumanName(

@@ -4,6 +4,7 @@ import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.aidbox.spring.AidboxIntegrationConfig
 import com.projectronin.interop.aidbox.testcontainer.AidboxData
 import com.projectronin.interop.aidbox.testcontainer.BaseAidboxTest
+import com.projectronin.interop.fhir.r4.CodeSystem
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -72,9 +73,9 @@ class LocationServiceIntegrationTest : BaseAidboxTest() {
     @Test
     fun `all location identifers found for FHIR ID`() {
         val identifiers = listOf(
-            SystemValue("e0nTqDB9tPOCaY4ODzeTeSWBZBT0YlpU8phB88YramOI3", "http://projectronin.com/id/fhir"),
-            SystemValue("e1O7rbysoLddQsbsvfjKJvLOvBMDJwrf06OE6bKCBN4c3", "http://projectronin.com/id/fhir"),
-            SystemValue("e3HhsZW6y9UW.W6TkIYuVk5kdFQV3gMSB.S-V6TTYxAI3", "http://projectronin.com/id/fhir")
+            SystemValue("e0nTqDB9tPOCaY4ODzeTeSWBZBT0YlpU8phB88YramOI3", CodeSystem.RONIN_FHIR_ID.uri.value!!),
+            SystemValue("e1O7rbysoLddQsbsvfjKJvLOvBMDJwrf06OE6bKCBN4c3", CodeSystem.RONIN_FHIR_ID.uri.value!!),
+            SystemValue("e3HhsZW6y9UW.W6TkIYuVk5kdFQV3gMSB.S-V6TTYxAI3", CodeSystem.RONIN_FHIR_ID.uri.value!!)
         )
         val locationList = locationService.getAllLocationIdentifiers("ronin", identifiers)
         assertEquals(3, locationList.size)

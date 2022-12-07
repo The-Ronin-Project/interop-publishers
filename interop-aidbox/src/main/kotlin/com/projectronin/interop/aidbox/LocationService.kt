@@ -7,6 +7,7 @@ import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.aidbox.utils.AIDBOX_LOCATION_FHIR_IDS_QUERY
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.common.exceptions.LogMarkingException
+import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
@@ -76,7 +77,7 @@ class LocationService(
         val query = AIDBOX_LOCATION_FHIR_IDS_QUERY
         val parameters = mapOf(
             "tenant" to SystemValue(
-                system = "http://projectronin.com/id/tenantId",
+                system = CodeSystem.RONIN_TENANT.uri.value!!,
                 value = tenantMnemonic
             ).queryString,
             "identifiers" to batch.joinToString(separator = ",") { it.queryString }

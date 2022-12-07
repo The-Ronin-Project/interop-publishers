@@ -10,6 +10,7 @@ import com.projectronin.interop.aidbox.utils.AIDBOX_PRACTITIONER_LIST_QUERY
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.aidbox.utils.validateTenantIdentifier
 import com.projectronin.interop.common.exceptions.LogMarkingException
+import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
@@ -42,7 +43,7 @@ class PractitionerService(
         val parameters = mapOf(
             "id" to practitionerFHIRID,
             "tenant" to SystemValue(
-                system = "http://projectronin.com/id/tenantId",
+                system = CodeSystem.RONIN_TENANT.uri.value!!,
                 value = tenantMnemonic
             ).queryString
         )
@@ -133,7 +134,7 @@ class PractitionerService(
         val query = AIDBOX_PRACTITIONER_FHIR_IDS_QUERY
         val parameters = mapOf(
             "tenant" to SystemValue(
-                system = "http://projectronin.com/id/tenantId",
+                system = CodeSystem.RONIN_TENANT.uri.value!!,
                 value = tenantMnemonic
             ).queryString,
             "identifiers" to batch.joinToString(separator = ",") { it.queryString }
@@ -164,7 +165,7 @@ class PractitionerService(
         var currentPage = 1
         do {
             val parameters = mapOf(
-                "identifier" to "http://projectronin.com/id/tenantId|$tenantMnemonic",
+                "identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic",
                 "count" to batchSize.toString(),
                 "page" to currentPage.toString()
             )
