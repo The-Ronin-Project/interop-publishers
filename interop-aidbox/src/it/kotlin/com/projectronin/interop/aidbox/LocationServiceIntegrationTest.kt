@@ -53,7 +53,7 @@ class LocationServiceIntegrationTest : BaseAidboxTest() {
         )
         val fhirIds = locationService.getLocationFHIRIds("ronin", identifiers)
         assertEquals(1, fhirIds.size)
-        assertEquals("ronin-e1O7rbysoLddQsbsvfjKJvLOvBMDJwrf06OE6bKCBN4c3", fhirIds[1])
+        assertEquals("e1O7rbysoLddQsbsvfjKJvLOvBMDJwrf06OE6bKCBN4c3", fhirIds[1])
     }
 
     @Test
@@ -65,9 +65,9 @@ class LocationServiceIntegrationTest : BaseAidboxTest() {
         )
         val fhirIds = locationService.getLocationFHIRIds("ronin", identifiers)
         assertEquals(3, fhirIds.size)
-        assertEquals("ronin-e0nTqDB9tPOCaY4ODzeTeSWBZBT0YlpU8phB88YramOI3", fhirIds[1])
-        assertEquals("ronin-e1O7rbysoLddQsbsvfjKJvLOvBMDJwrf06OE6bKCBN4c3", fhirIds[2])
-        assertEquals("ronin-e3HhsZW6y9UW.W6TkIYuVk5kdFQV3gMSB.S-V6TTYxAI3", fhirIds[3])
+        assertEquals("e0nTqDB9tPOCaY4ODzeTeSWBZBT0YlpU8phB88YramOI3", fhirIds[1])
+        assertEquals("e1O7rbysoLddQsbsvfjKJvLOvBMDJwrf06OE6bKCBN4c3", fhirIds[2])
+        assertEquals("e3HhsZW6y9UW.W6TkIYuVk5kdFQV3gMSB.S-V6TTYxAI3", fhirIds[3])
     }
 
     @Test

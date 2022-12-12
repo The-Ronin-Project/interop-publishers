@@ -2,18 +2,19 @@ package com.projectronin.interop.aidbox
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.projectronin.interop.aidbox.client.AidboxClient
+import com.projectronin.interop.aidbox.model.AidboxIdentifiers
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.aidbox.utils.AIDBOX_LIMITED_PRACTITIONER_IDS_QUERY
 import com.projectronin.interop.aidbox.utils.AIDBOX_PRACTITIONER_FHIR_IDS_QUERY
 import com.projectronin.interop.aidbox.utils.AIDBOX_PRACTITIONER_LIST_QUERY
+import com.projectronin.interop.aidbox.utils.findFhirID
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.aidbox.utils.validateTenantIdentifier
 import com.projectronin.interop.common.exceptions.LogMarkingException
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Identifier
-import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Practitioner
@@ -41,13 +42,16 @@ class PractitionerService(
         logger.info { "Retrieving Practitioner Identifiers from Aidbox using FHIR ID" }
         val query = AIDBOX_LIMITED_PRACTITIONER_IDS_QUERY
         val parameters = mapOf(
-            "id" to practitionerFHIRID,
             "tenant" to SystemValue(
                 system = CodeSystem.RONIN_TENANT.uri.value!!,
                 value = tenantMnemonic
+            ).queryString,
+            "fhirId" to SystemValue(
+                system = CodeSystem.RONIN_FHIR_ID.uri.value!!,
+                value = practitionerFHIRID
             ).queryString
         )
-        val response: GraphQLResponse<LimitedPractitioner> = runBlocking {
+        val response: GraphQLResponse<PractitionersIdentifiers> = runBlocking {
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
                 httpResponse.body()
@@ -61,7 +65,7 @@ class PractitionerService(
         response.errors?.let { return emptyList() }
         logger.info { "Completed retrieving Practitioner Identifiers from Aidbox using FHIR ID" }
         // Practitioner list will have at most 1 practitioner due to direct id reference.
-        return response.data?.practitionerList?.firstOrNull()?.identifier ?: listOf()
+        return response.data?.practitionerList?.firstOrNull()?.identifiers ?: listOf()
     }
 
     /**
@@ -112,7 +116,7 @@ class PractitionerService(
         }
 
         val identifierToFhirIdMap = collectedPractitioners.flatMap {
-            it.identifiers.map { identifier -> identifier to it.id }
+            it.identifiers.map { identifier -> identifier to it.identifiers.findFhirID() }
         }.toMap()
 
         return identifiers.mapNotNull {
@@ -130,7 +134,7 @@ class PractitionerService(
     private fun queryPractitionerFHIRIds(
         tenantMnemonic: String,
         batch: List<SystemValue>
-    ): GraphQLResponse<LimitedPractitionersFHIR> {
+    ): GraphQLResponse<PractitionersIdentifiers> {
         val query = AIDBOX_PRACTITIONER_FHIR_IDS_QUERY
         val parameters = mapOf(
             "tenant" to SystemValue(
@@ -139,7 +143,7 @@ class PractitionerService(
             ).queryString,
             "identifiers" to batch.joinToString(separator = ",") { it.queryString }
         )
-        val response: GraphQLResponse<LimitedPractitionersFHIR> = runBlocking {
+        val response: GraphQLResponse<PractitionersIdentifiers> = runBlocking {
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
                 httpResponse.body()
@@ -161,7 +165,7 @@ class PractitionerService(
         logger.info { "Retrieving Practitioners for $tenantMnemonic" }
         val query = AIDBOX_PRACTITIONER_LIST_QUERY
 
-        val allPractitioners = mutableListOf<PartialPractitioner>()
+        val allPractitioners = mutableListOf<AidboxIdentifiers>()
         var currentPage = 1
         do {
             val parameters = mapOf(
@@ -169,7 +173,7 @@ class PractitionerService(
                 "count" to batchSize.toString(),
                 "page" to currentPage.toString()
             )
-            val response: GraphQLResponse<PractitionerList> = runBlocking {
+            val response: GraphQLResponse<PractitionersIdentifiers> = runBlocking {
                 try {
                     val httpResponse = aidboxClient.queryGraphQL(query, parameters)
                     httpResponse.body()
@@ -187,39 +191,33 @@ class PractitionerService(
             currentPage++
         } while (practitioners.size == batchSize)
 
-        val idMap = allPractitioners.associate { it.id.value!! to it.identifier }
+        val idMap = allPractitioners.associate { it.identifiers.findFhirID() to it.identifiers }
         logger.info { "Completed retrieving Practitioners from Aidbox for $tenantMnemonic" }
         return idMap
     }
 
     /**
-     * Fetches a [Practitioner] from Aidbox for the [tenantMnemonic] and [practitionerFHIRID]
+     * Fetches a [Practitioner] from Aidbox for the [tenantMnemonic] and [udpId]
      */
     @Trace
-    fun getPractitioner(tenantMnemonic: String, practitionerFHIRID: String): Practitioner {
+    fun getPractitionerByUDPId(tenantMnemonic: String, udpId: String): Practitioner {
         val practitioner = runBlocking<Practitioner> {
-            val httpResponse = aidboxClient.getResource("Practitioner", practitionerFHIRID)
+            val httpResponse = aidboxClient.getResource("Practitioner", udpId)
             httpResponse.body()
         }
 
         validateTenantIdentifier(
             tenantMnemonic,
             practitioner.identifier,
-            "Tenant $tenantMnemonic cannot access practitioner $practitionerFHIRID"
+            "Tenant $tenantMnemonic cannot access practitioner $udpId"
         )
 
         return practitioner
     }
+    @Deprecated("Please use getPractitionerByUDPId", ReplaceWith("getPractitionerByUDPId(tenantMnemonic, udpId)"))
+    fun getPractitioner(tenantMnemonic: String, fhirId: String): Practitioner {
+        return getPractitionerByUDPId(tenantMnemonic, fhirId)
+    }
 }
 
-data class LimitedPractitioner(@JsonProperty("PractitionerList") val practitionerList: List<LimitedPractitionerIdentifiers>?)
-data class LimitedPractitionerIdentifiers(val identifier: List<Identifier>)
-
-data class PractitionerList(@JsonProperty("PractitionerList") val practitionerList: List<PartialPractitioner>?)
-data class PartialPractitioner(val identifier: List<Identifier>, val id: Id)
-
-data class LimitedPractitionersFHIR(@JsonProperty("PractitionerList") val practitionerList: List<LimitedPractitionerFHIRIdentifiers>?)
-data class LimitedPractitionerFHIRIdentifiers(
-    val id: String,
-    @JsonProperty("identifier") val identifiers: List<Identifier>
-)
+data class PractitionersIdentifiers(@JsonProperty("PractitionerList") val practitionerList: List<AidboxIdentifiers>?)

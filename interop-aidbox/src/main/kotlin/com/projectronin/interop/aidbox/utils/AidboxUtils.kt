@@ -64,3 +64,8 @@ fun validateTenantIdentifier(tenantMnemonic: String, identifiers: List<Identifie
         throw InvalidTenantAccessException(errorMessage)
     }
 }
+
+/** Finds the FHIR ID from a list of identifiers based on the Ronin System information
+ *
+ */
+fun List<Identifier>.findFhirID(): String = this.first { it.system?.value == CodeSystem.RONIN_FHIR_ID.uri.value }.value?.value!!

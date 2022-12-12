@@ -57,7 +57,7 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
         )
         val fhirIds = patientService.getPatientFHIRIds("mdaoc", identifiers)
         assertEquals(1, fhirIds.size)
-        assertEquals("mdaoc-12345678901", fhirIds[1])
+        assertEquals("12345678901", fhirIds[1])
     }
 
     @Test
@@ -68,8 +68,8 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
         )
         val fhirIds = patientService.getPatientFHIRIds("mdaoc", identifiers)
         assertEquals(2, fhirIds.size)
-        assertEquals("mdaoc-12345678901", fhirIds[1])
-        assertEquals("mdaoc-12345678902", fhirIds[2])
+        assertEquals("12345678901", fhirIds[1])
+        assertEquals("12345678902", fhirIds[2])
     }
 
     @Test
@@ -113,7 +113,7 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
                     value = "12345678901".asFHIR()
                 )
             ),
-            identifiersByFHIRId["mdaoc-12345678901"]
+            identifiersByFHIRId["12345678901"]
         )
         assertEquals(
             listOf(
@@ -133,7 +133,7 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
                     value = "abcdef".asFHIR()
                 )
             ),
-            identifiersByFHIRId["mdaoc-12345678902"]
+            identifiersByFHIRId["12345678902"]
         )
     }
 
@@ -141,8 +141,8 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
     fun `getFHIRIdsForTenant - success`() {
         val fhirIds = patientService.getPatientFHIRIdsByTenant("mdaoc")
         assertEquals(2, fhirIds.size)
-        assertEquals("mdaoc-12345678901", fhirIds.get(0))
-        assertEquals("mdaoc-12345678902", fhirIds.get(1))
+        assertEquals("12345678901", fhirIds.get(0))
+        assertEquals("12345678902", fhirIds.get(1))
     }
 
     @Test
@@ -154,17 +154,17 @@ class PatientServiceIntegrationTest : BaseAidboxTest() {
 
     @Test
     fun `return and deserialize full patient`() {
-        val patient = patientService.getPatient("mdaoc", "mdaoc-12345678901")
+        val patient = patientService.getPatientByUDPId("mdaoc", "mdaoc-12345678901")
         assertEquals(patient.id?.value, "mdaoc-12345678901")
     }
 
     @Test
     fun `patient error`() {
-        assertThrows<ClientFailureException> { patientService.getPatient("mdaoc", "mdaoc-12345") }
+        assertThrows<ClientFailureException> { patientService.getPatientByUDPId("mdaoc", "mdaoc-12345") }
     }
 
     @Test
     fun `patient from a different tenant throws exception`() {
-        assertThrows<Exception> { patientService.getPatient("newTenant", "mdaoc-12345678901") }
+        assertThrows<Exception> { patientService.getPatientByUDPId("newTenant", "mdaoc-12345678901") }
     }
 }

@@ -46,8 +46,8 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
 
     @Test
     fun `get identifiers for known practitioner FHIR ID`() {
-        val identifiers = practitionerService.getPractitionerIdentifiers("mdaoc", "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
-        assertEquals(10, identifiers.size)
+        val identifiers = practitionerService.getPractitionerIdentifiers("mdaoc", "ef9TegF2nfECi-0Skirbvpg3")
+        assertEquals(11, identifiers.size)
 
         val identifier1 = createIdentifier(CodeSystem.RONIN_TENANT.uri.value!!, "mdaoc", "Tenant ID")
         assertTrue(identifier1 in identifiers)
@@ -69,6 +69,8 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
         assertTrue(identifier9 in identifiers)
         val identifier10 = createIdentifier("urn:oid:1.2.840.114350.1.13.0.1.7.2.836982", "E1003", "EXTERNAL")
         assertTrue(identifier10 in identifiers)
+        val identifier11 = createIdentifier("http://projectronin.com/id/fhir", "ef9TegF2nfECi-0Skirbvpg3", "FHIR ID")
+        assertTrue(identifier11 in identifiers)
     }
 
     @Test
@@ -95,7 +97,7 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
         )
         val fhirIds = practitionerService.getPractitionerFHIRIds("tenant", identifiers)
         assertEquals(1, fhirIds.size)
-        assertEquals("tenant-practitioner1", fhirIds[1])
+        assertEquals("practitioner1", fhirIds[1])
     }
 
     @Test
@@ -106,8 +108,8 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
         )
         val fhirIds = practitionerService.getPractitionerFHIRIds("tenant", identifiers)
         assertEquals(2, fhirIds.size)
-        assertEquals("tenant-practitioner1", fhirIds[1])
-        assertEquals("tenant-practitioner2", fhirIds[2])
+        assertEquals("practitioner1", fhirIds[1])
+        assertEquals("practitioner2", fhirIds[2])
     }
 
     @Test
@@ -149,9 +151,14 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
                     type = CodeableConcept(text = "INTERNAL".asFHIR()),
                     system = Uri("internal-system"),
                     value = "internal-value".asFHIR()
+                ),
+                Identifier(
+                    type = CodeableConcept(text = "FHIR ID".asFHIR()),
+                    system = Uri("http://projectronin.com/id/fhir"),
+                    value = "practitioner1".asFHIR()
                 )
             ),
-            identifiersByFHIRId["tenant-practitioner1"]
+            identifiersByFHIRId["practitioner1"]
         )
         assertEquals(
             listOf(
@@ -165,9 +172,14 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
                     type = CodeableConcept(text = "INTERNAL".asFHIR()),
                     system = Uri("internal-system"),
                     value = "internal-value2".asFHIR()
+                ),
+                Identifier(
+                    type = CodeableConcept(text = "FHIR ID".asFHIR()),
+                    system = Uri("http://projectronin.com/id/fhir"),
+                    value = "practitioner2".asFHIR()
                 )
             ),
-            identifiersByFHIRId["tenant-practitioner2"]
+            identifiersByFHIRId["practitioner2"]
         )
     }
 
@@ -195,9 +207,14 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
                     type = CodeableConcept(text = "INTERNAL".asFHIR()),
                     system = Uri("internal-system"),
                     value = "internal-value".asFHIR()
+                ),
+                Identifier(
+                    type = CodeableConcept(text = "FHIR ID".asFHIR()),
+                    system = Uri("http://projectronin.com/id/fhir"),
+                    value = "practitioner1".asFHIR()
                 )
             ),
-            identifiersByFHIRId["tenant-practitioner1"]
+            identifiersByFHIRId["practitioner1"]
         )
         assertEquals(
             listOf(
@@ -211,22 +228,27 @@ class PractitionerServiceIntegrationTest : BaseAidboxTest() {
                     type = CodeableConcept(text = "INTERNAL".asFHIR()),
                     system = Uri("internal-system"),
                     value = "internal-value2".asFHIR()
+                ),
+                Identifier(
+                    type = CodeableConcept(text = "FHIR ID".asFHIR()),
+                    system = Uri("http://projectronin.com/id/fhir"),
+                    value = "practitioner2".asFHIR()
                 )
             ),
-            identifiersByFHIRId["tenant-practitioner2"]
+            identifiersByFHIRId["practitioner2"]
         )
     }
 
     @Test
     fun `return and deserialize full practitioner`() {
-        val practitioner = practitionerService.getPractitioner("mdaoc", "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
+        val practitioner = practitionerService.getPractitionerByUDPId("mdaoc", "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
         assertEquals(practitioner.id?.value, "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
     }
 
     @Test
     fun `practitioner from a different tenant throws exception`() {
         assertThrows<Exception> {
-            practitionerService.getPractitioner("newTenant", "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
+            practitionerService.getPractitionerByUDPId("newTenant", "mdaoc-ef9TegF2nfECi-0Skirbvpg3")
         }
     }
 

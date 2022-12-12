@@ -1,7 +1,8 @@
 package com.projectronin.interop.aidbox.utils
 
-const val AIDBOX_LIMITED_PRACTITIONER_IDS_QUERY = "query Practitioner(\$tenant:string, \$id:string) {" +
-    "    PractitionerList(_id:\$id, identifier: \$tenant) {" +
+const val AIDBOX_LIMITED_PRACTITIONER_IDS_QUERY = "query Practitioner(\$tenant:string, \$fhirId:string) {" +
+    "    PractitionerList(identifier_list: [\$tenant, \$fhirId]) {" +
+    "        id" +
     "        identifier{" +
     "            system" +
     "            type{" +

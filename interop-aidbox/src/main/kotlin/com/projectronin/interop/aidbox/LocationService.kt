@@ -2,9 +2,11 @@ package com.projectronin.interop.aidbox
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.projectronin.interop.aidbox.client.AidboxClient
+import com.projectronin.interop.aidbox.model.AidboxIdentifiers
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.aidbox.utils.AIDBOX_LOCATION_FHIR_IDS_QUERY
+import com.projectronin.interop.aidbox.utils.findFhirID
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.common.exceptions.LogMarkingException
 import com.projectronin.interop.fhir.r4.CodeSystem
@@ -39,7 +41,7 @@ class LocationService(
         }
 
         val identifierToFHIRIdMap = collectedLocations.flatMap { location ->
-            location.identifiers.map { it to location.id }
+            location.identifiers.map { it to location.identifiers.findFhirID() }
         }.toMap()
 
         return identifiers.mapNotNull {
@@ -62,7 +64,7 @@ class LocationService(
     fun getAllLocationIdentifiers(
         tenantMnemonic: String,
         identifiers: List<SystemValue>
-    ): List<LimitedLocationFHIRIdentifiers> {
+    ): List<AidboxIdentifiers> {
         logger.info { "Retrieving Location Identifiers IDs from Aidbox" }
 
         return identifiers.chunked(batchSize).flatMap { batch ->
@@ -73,7 +75,7 @@ class LocationService(
     private fun queryLocationFHIRIds(
         tenantMnemonic: String,
         batch: List<SystemValue>
-    ): GraphQLResponse<LimitedLocationsFHIR> {
+    ): GraphQLResponse<LocationsIdentifiers> {
         val query = AIDBOX_LOCATION_FHIR_IDS_QUERY
         val parameters = mapOf(
             "tenant" to SystemValue(
@@ -82,7 +84,7 @@ class LocationService(
             ).queryString,
             "identifiers" to batch.joinToString(separator = ",") { it.queryString }
         )
-        val response: GraphQLResponse<LimitedLocationsFHIR> = runBlocking {
+        val response: GraphQLResponse<LocationsIdentifiers> = runBlocking {
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
                 httpResponse.body()
@@ -95,8 +97,4 @@ class LocationService(
     }
 }
 
-data class LimitedLocationsFHIR(@JsonProperty("LocationList") val locationList: List<LimitedLocationFHIRIdentifiers>?)
-data class LimitedLocationFHIRIdentifiers(
-    val id: String,
-    @JsonProperty("identifier") val identifiers: List<Identifier>
-)
+data class LocationsIdentifiers(@JsonProperty("LocationList") val locationList: List<AidboxIdentifiers>?)

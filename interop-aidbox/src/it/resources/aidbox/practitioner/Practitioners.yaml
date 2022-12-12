@@ -54,6 +54,14 @@
         text: "EXTERNAL"
       system: "urn:oid:1.2.840.114350.1.13.0.1.7.2.836982"
       value: "E1003"
+    - type:
+        coding:
+          - code: "FHIR ID"
+            system: "http://projectronin.com/id/fhir"
+            display: "FHIR Identifier"
+        text: "FHIR ID"
+      value: "ef9TegF2nfECi-0Skirbvpg3"
+      system: "http://projectronin.com/id/fhir"
   name:
     - family: "Doctor"
 
@@ -78,6 +86,14 @@
         text: "INTERNAL"
       system: "internal-system"
       value: "internal-value"
+    - type:
+        coding:
+          - code: "FHIR ID"
+            system: "http://projectronin.com/id/fhir"
+            display: "FHIR Identifier"
+        text: "FHIR ID"
+      value: "practitioner1"
+      system: "http://projectronin.com/id/fhir"
   name:
     - family: "Doe"
       given: [ "John" ]
@@ -103,6 +119,14 @@
         text: "INTERNAL"
       system: "internal-system"
       value: "internal-value2"
+    - type:
+        coding:
+          - code: "FHIR ID"
+            system: "http://projectronin.com/id/fhir"
+            display: "FHIR Identifier"
+        text: "FHIR ID"
+      value: "practitioner2"
+      system: "http://projectronin.com/id/fhir"
   name:
     - family: "Doe"
       given: [ "Jane" ]

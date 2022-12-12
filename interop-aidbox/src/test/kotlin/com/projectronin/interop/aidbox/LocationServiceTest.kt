@@ -2,6 +2,7 @@ package com.projectronin.interop.aidbox
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.projectronin.interop.aidbox.client.AidboxClient
+import com.projectronin.interop.aidbox.model.AidboxIdentifiers
 import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
@@ -42,22 +43,26 @@ class LocationServiceTest {
 
     private val locationSystemValue1 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = location1)
     private val locationIdentifier1 = Identifier(system = CodeSystem.NPI.uri, value = location1.asFHIR())
+    private val locationFhirIdentifier1 = Identifier(system = CodeSystem.RONIN_FHIR_ID.uri, value = "fhirId1".asFHIR())
 
     private val locationSystemValue2 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = location2)
     private val locationIdentifier2 = Identifier(system = CodeSystem.NPI.uri, value = location2.asFHIR())
+    private val locationFhirIdentifier = Identifier(system = CodeSystem.RONIN_FHIR_ID.uri, value = "fhirId2".asFHIR())
 
-    private val mockLocationIdentifiers1 = LimitedLocationFHIRIdentifiers(
-        id = "roninLocation01Test",
+    private val mockLocationIdentifiers1 = AidboxIdentifiers(
+        udpId = "udpId1",
         identifiers = listOf(
             tenantIdentifier,
-            locationIdentifier1
+            locationIdentifier1,
+            locationFhirIdentifier1
         )
     )
-    private val mockLocationIdentifiers2 = LimitedLocationFHIRIdentifiers(
-        id = "roninLocation02Test",
+    private val mockLocationIdentifiers2 = AidboxIdentifiers(
+        udpId = "udpId2",
         identifiers = listOf(
             tenantIdentifier,
-            locationIdentifier2
+            locationIdentifier2,
+            locationFhirIdentifier
         )
     )
 
@@ -74,7 +79,7 @@ class LocationServiceTest {
     @Test
     fun `identifier search returns all locations`() {
         val response = GraphQLResponse(
-            data = LimitedLocationsFHIR(listOf(mockLocationIdentifiers1, mockLocationIdentifiers2))
+            data = LocationsIdentifiers(listOf(mockLocationIdentifiers1, mockLocationIdentifiers2))
         )
         val mockHttpResponse = mockk<HttpResponse>()
         coEvery {
@@ -91,7 +96,7 @@ class LocationServiceTest {
                 )
             )
         } returns mockHttpResponse
-        coEvery<GraphQLResponse<LimitedLocationsFHIR>> { mockHttpResponse.body() } returns response
+        coEvery<GraphQLResponse<LocationsIdentifiers>> { mockHttpResponse.body() } returns response
 
         var actualMap = locationService.getAllLocationIdentifiers(
             tenantMnemonic,
@@ -100,8 +105,8 @@ class LocationServiceTest {
 
         assertEquals(2, actualMap.size)
 
-        coEvery<GraphQLResponse<LimitedLocationsFHIR>> { mockHttpResponse.body() } returns GraphQLResponse(
-            data = LimitedLocationsFHIR(emptyList())
+        coEvery<GraphQLResponse<LocationsIdentifiers>> { mockHttpResponse.body() } returns GraphQLResponse(
+            data = LocationsIdentifiers(emptyList())
         )
         actualMap = locationService.getAllLocationIdentifiers(
             tenantMnemonic,
@@ -109,7 +114,7 @@ class LocationServiceTest {
         )
         assertEquals(0, actualMap.size)
 
-        coEvery<GraphQLResponse<LimitedLocationsFHIR>> { mockHttpResponse.body() } returns GraphQLResponse(
+        coEvery<GraphQLResponse<LocationsIdentifiers>> { mockHttpResponse.body() } returns GraphQLResponse(
             data = null
         )
         actualMap = locationService.getAllLocationIdentifiers(
@@ -122,7 +127,7 @@ class LocationServiceTest {
     @Test
     fun `getFHIRIDs returns all locations`() {
         val response = GraphQLResponse(
-            data = LimitedLocationsFHIR(listOf(mockLocationIdentifiers1, mockLocationIdentifiers2))
+            data = LocationsIdentifiers(listOf(mockLocationIdentifiers1, mockLocationIdentifiers2))
         )
         val mockHttpResponse = mockk<HttpResponse>()
         coEvery {
@@ -139,7 +144,7 @@ class LocationServiceTest {
                 )
             )
         } returns mockHttpResponse
-        coEvery<GraphQLResponse<LimitedLocationsFHIR>> { mockHttpResponse.body() } returns response
+        coEvery<GraphQLResponse<LocationsIdentifiers>> { mockHttpResponse.body() } returns response
 
         val actualMap = locationService.getLocationFHIRIds(
             tenantMnemonic,
@@ -147,14 +152,14 @@ class LocationServiceTest {
         )
 
         assertEquals(2, actualMap.size)
-        assertEquals(mockLocationIdentifiers1.id, actualMap["1"])
-        assertEquals(mockLocationIdentifiers2.id, actualMap["2"])
+        assertEquals("fhirId1", actualMap["1"])
+        assertEquals("fhirId2", actualMap["2"])
     }
 
     @Test
     fun `getFHIRIDs returns some locations`() {
         val response = GraphQLResponse(
-            data = LimitedLocationsFHIR(listOf(mockLocationIdentifiers1))
+            data = LocationsIdentifiers(listOf(mockLocationIdentifiers1))
         )
         val mockHttpResponse = mockk<HttpResponse>()
         coEvery {
@@ -171,7 +176,7 @@ class LocationServiceTest {
                 )
             )
         } returns mockHttpResponse
-        coEvery<GraphQLResponse<LimitedLocationsFHIR>> { mockHttpResponse.body() } returns response
+        coEvery<GraphQLResponse<LocationsIdentifiers>> { mockHttpResponse.body() } returns response
 
         val actualMap = locationService.getLocationFHIRIds(
             tenantMnemonic,
@@ -179,13 +184,13 @@ class LocationServiceTest {
         )
 
         assertEquals(1, actualMap.size)
-        assertEquals(mockLocationIdentifiers1.id, actualMap["1"])
+        assertEquals("fhirId1", actualMap["1"])
     }
 
     @Test
     fun `getFHIRIDs with empty data returns no locations`() {
         val response = GraphQLResponse(
-            data = LimitedLocationsFHIR(emptyList())
+            data = LocationsIdentifiers(emptyList())
         )
         val mockHttpResponse = mockk<HttpResponse>()
 
@@ -203,7 +208,7 @@ class LocationServiceTest {
                 )
             )
         } returns mockHttpResponse
-        coEvery<GraphQLResponse<LimitedLocationsFHIR>> { mockHttpResponse.body() } returns response
+        coEvery<GraphQLResponse<LocationsIdentifiers>> { mockHttpResponse.body() } returns response
 
         val actualMap = locationService.getLocationFHIRIds(
             tenantMnemonic,
@@ -216,7 +221,7 @@ class LocationServiceTest {
     @Test
     fun `getFHIRIDs with null data returns no locations`() {
         val response = GraphQLResponse(
-            data = LimitedLocationsFHIR(null)
+            data = LocationsIdentifiers(null)
         )
         val mockHttpResponse = mockk<HttpResponse>()
 
@@ -234,7 +239,7 @@ class LocationServiceTest {
                 )
             )
         } returns mockHttpResponse
-        coEvery<GraphQLResponse<LimitedLocationsFHIR>> { mockHttpResponse.body() } returns response
+        coEvery<GraphQLResponse<LocationsIdentifiers>> { mockHttpResponse.body() } returns response
 
         val actualMap = locationService.getLocationFHIRIds(
             tenantMnemonic,
@@ -246,7 +251,7 @@ class LocationServiceTest {
 
     @Test
     fun `getFHIRIDs returns GraphQL errors`() {
-        val response = GraphQLResponse<LimitedLocationsFHIR>(
+        val response = GraphQLResponse<LocationsIdentifiers>(
             errors = listOf(GraphQLError("GraphQL Error"))
         )
         val mockHttpResponse = mockk<HttpResponse>()
@@ -264,7 +269,7 @@ class LocationServiceTest {
                 )
             )
         } returns mockHttpResponse
-        coEvery<GraphQLResponse<LimitedLocationsFHIR>> { mockHttpResponse.body() } returns response
+        coEvery<GraphQLResponse<LocationsIdentifiers>> { mockHttpResponse.body() } returns response
 
         val actualMap = locationService.getLocationFHIRIds(
             tenantMnemonic,
@@ -329,58 +334,6 @@ class LocationServiceTest {
     }
 
     @Test
-    fun `can deserialize actual Aidbox LimitedLocationFHIRIdentifiers JSON`() {
-        val actualJson = """
-        {
-          "id": "mdaoc-e3Dt5qIBhMpHNwBK2q370pg3",
-          "identifier": [
-            {
-              "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.697780",
-              "value": "  30777"
-            },
-            {
-              "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.697780",
-              "value": "30777"
-            },
-            {
-              "system": "POTFID",
-              "value": "30777"
-            },
-            {
-              "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.836982",
-              "value": "   30777"
-            },
-            {
-              "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.836982",
-              "value": "30777"
-            },
-            {
-              "system": "http://projectronin.com/id/tenantId",
-              "value": "mdaoc"
-            }
-          ]
-        }
-        """.trimIndent()
-        val deserializedLimitedLocationFHIRIdentifiers =
-            JacksonManager.objectMapper.readValue<LimitedLocationFHIRIdentifiers>(actualJson)
-
-        assertEquals("mdaoc-e3Dt5qIBhMpHNwBK2q370pg3", deserializedLimitedLocationFHIRIdentifiers.id)
-        assertEquals(6, deserializedLimitedLocationFHIRIdentifiers.identifiers.size)
-
-        val identifier1 = deserializedLimitedLocationFHIRIdentifiers.identifiers[1]
-        assertEquals("urn:oid:1.2.840.114350.1.13.0.1.7.2.697780", identifier1.system?.value)
-        assertEquals("30777".asFHIR(), identifier1.value)
-
-        val identifier2 = deserializedLimitedLocationFHIRIdentifiers.identifiers[2]
-        assertEquals("POTFID", identifier2.system?.value)
-        assertEquals("30777".asFHIR(), identifier2.value)
-
-        val identifier5 = deserializedLimitedLocationFHIRIdentifiers.identifiers[5]
-        assertEquals(CodeSystem.RONIN_TENANT.uri.value!!, identifier5.system?.value)
-        assertEquals("mdaoc".asFHIR(), identifier5.value)
-    }
-
-    @Test
     fun `can deserialize actual Aidbox LimitedLocationsFHIR JSON`() {
         val actualJson = """
           {
@@ -439,26 +392,28 @@ class LocationServiceTest {
           }
         """.trimIndent()
         val deserializedLimitedLocation =
-            JacksonManager.objectMapper.readValue<LimitedLocationsFHIR>(actualJson)
+            JacksonManager.objectMapper.readValue<LocationsIdentifiers>(actualJson)
 
-        assertEquals(2, deserializedLimitedLocation.locationList?.size)
+        assertEquals(deserializedLimitedLocation.locationList?.size, 2)
     }
 
     @Test
     fun `getFHIRIDs returns all batched locations`() {
         val locationSystemValue3 = SystemValue(system = CodeSystem.NPI.uri.value!!, value = "01113")
         val locationIdentifier3 = Identifier(system = CodeSystem.NPI.uri, value = "01113".asFHIR())
+        val locationFhirIdentifier3 = Identifier(system = CodeSystem.RONIN_FHIR_ID.uri, value = "fhirId3".asFHIR())
 
-        val mockLocationIdentifiers3 = LimitedLocationFHIRIdentifiers(
-            id = "roninLocation01Test",
+        val mockLocationIdentifiers3 = AidboxIdentifiers(
+            udpId = "udpId",
             identifiers = listOf(
                 tenantIdentifier,
-                locationIdentifier3
+                locationIdentifier3,
+                locationFhirIdentifier3
             )
         )
 
         val response1 = GraphQLResponse(
-            data = LimitedLocationsFHIR(listOf(mockLocationIdentifiers1, mockLocationIdentifiers2))
+            data = LocationsIdentifiers(listOf(mockLocationIdentifiers1, mockLocationIdentifiers2))
         )
         val mockHttpResponse1 = mockk<HttpResponse>()
         coEvery {
@@ -475,10 +430,10 @@ class LocationServiceTest {
                 )
             )
         } returns mockHttpResponse1
-        coEvery<GraphQLResponse<LimitedLocationsFHIR>> { mockHttpResponse1.body() } returns response1
+        coEvery<GraphQLResponse<LocationsIdentifiers>> { mockHttpResponse1.body() } returns response1
 
         val response2 = GraphQLResponse(
-            data = LimitedLocationsFHIR(listOf(mockLocationIdentifiers3))
+            data = LocationsIdentifiers(listOf(mockLocationIdentifiers3))
         )
         val mockHttpResponse2 = mockk<HttpResponse>()
         coEvery {
@@ -494,7 +449,7 @@ class LocationServiceTest {
                 )
             )
         } returns mockHttpResponse2
-        coEvery<GraphQLResponse<LimitedLocationsFHIR>> { mockHttpResponse2.body() } returns response2
+        coEvery<GraphQLResponse<LocationsIdentifiers>> { mockHttpResponse2.body() } returns response2
 
         val actualMap = locationService.getLocationFHIRIds(
             tenantMnemonic,
@@ -502,8 +457,8 @@ class LocationServiceTest {
         )
 
         assertEquals(3, actualMap.size)
-        assertEquals(mockLocationIdentifiers1.id, actualMap["1"])
-        assertEquals(mockLocationIdentifiers2.id, actualMap["2"])
-        assertEquals(mockLocationIdentifiers3.id, actualMap["3"])
+        assertEquals("fhirId1", actualMap["1"])
+        assertEquals("fhirId2", actualMap["2"])
+        assertEquals("fhirId3", actualMap["3"])
     }
 }

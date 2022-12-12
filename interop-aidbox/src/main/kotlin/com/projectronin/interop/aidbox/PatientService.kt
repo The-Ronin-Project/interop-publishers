@@ -1,19 +1,18 @@
 package com.projectronin.interop.aidbox
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.projectronin.interop.aidbox.client.AidboxClient
+import com.projectronin.interop.aidbox.model.AidboxIdentifiers
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.aidbox.utils.AIDBOX_PATIENT_FHIR_IDS_QUERY
 import com.projectronin.interop.aidbox.utils.AIDBOX_PATIENT_LIST_QUERY
+import com.projectronin.interop.aidbox.utils.findFhirID
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.aidbox.utils.validateTenantIdentifier
 import com.projectronin.interop.common.exceptions.LogMarkingException
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
-import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Patient
@@ -46,7 +45,7 @@ class PatientService(
         }
 
         val identifierToFhirIdMap = collectedPatients.flatMap {
-            it.identifiers.map { identifier -> identifier to it.id }
+            it.identifiers.map { identifier -> identifier to it.identifiers.findFhirID() }
         }.toMap()
 
         return identifiers.mapNotNull {
@@ -64,7 +63,7 @@ class PatientService(
     private fun queryForPatientFHIRIds(
         tenantMnemonic: String,
         batch: List<SystemValue>
-    ): GraphQLResponse<LimitedPatient> {
+    ): GraphQLResponse<PatientsIdentifiers> {
         val query = AIDBOX_PATIENT_FHIR_IDS_QUERY
         val parameters = mapOf(
             "tenant" to SystemValue(
@@ -74,7 +73,7 @@ class PatientService(
             "identifiers" to batch.joinToString(separator = ",") { it.queryString }
         )
 
-        val response: GraphQLResponse<LimitedPatient> = runBlocking {
+        val response: GraphQLResponse<PatientsIdentifiers> = runBlocking {
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
                 httpResponse.body()
@@ -96,7 +95,7 @@ class PatientService(
         logger.info { "Retrieving Patients for $tenantMnemonic" }
         val query = AIDBOX_PATIENT_LIST_QUERY
         val parameters = mapOf("identifier" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantMnemonic")
-        val response: GraphQLResponse<PatientList> = runBlocking {
+        val response: GraphQLResponse<PatientsIdentifiers> = runBlocking {
             try {
                 val httpResponse = aidboxClient.queryGraphQL(query, parameters)
                 httpResponse.body()
@@ -106,7 +105,7 @@ class PatientService(
             }
         }
         response.errors?.let { return emptyMap() }
-        val idMap = response.data?.patientList?.associate { it.id.value!! to it.identifier } ?: emptyMap()
+        val idMap = response.data?.patientList?.associate { it.identifiers.findFhirID() to it.identifiers } ?: emptyMap()
         logger.info { "Completed retrieving Patients from Aidbox for $tenantMnemonic" }
         return idMap
     }
@@ -120,28 +119,32 @@ class PatientService(
     }
 
     /**
-     * Fetches a [Patient] from Aidbox for the [tenantMnemonic] and [patientFHIRID]
+     * Fetches a [Patient] from Aidbox for the [tenantMnemonic] and [udpId]
      */
     @Trace
-    fun getPatient(tenantMnemonic: String, patientFHIRID: String): Patient {
+    fun getPatientByUDPId(tenantMnemonic: String, udpId: String): Patient {
         val patient = runBlocking<Patient> {
-            val httpResponse = aidboxClient.getResource("Patient", patientFHIRID)
+            val httpResponse = aidboxClient.getResource("Patient", udpId)
             httpResponse.body()
         }
 
         validateTenantIdentifier(
             tenantMnemonic,
             patient.identifier,
-            "Tenant $tenantMnemonic cannot access patient $patientFHIRID"
+            "Tenant $tenantMnemonic cannot access patient $udpId"
         )
 
         return patient
     }
+
+    /**
+     * Fetches a [Patient] from Aidbox for the [tenantMnemonic] and [fhirId]
+     */
+    @Trace
+    @Deprecated("Please use getPatientByUDP", ReplaceWith("getPatientByUDPId(tenantMnemonic, udpId)"))
+    fun getPatient(tenantMnemonic: String, fhirId: String): Patient {
+        return getPatientByUDPId(tenantMnemonic, fhirId)
+    }
 }
 
-@JsonNaming(PropertyNamingStrategies.UpperCamelCaseStrategy::class)
-data class LimitedPatient(val patientList: List<LimitedPatientIdentifiers>?)
-data class LimitedPatientIdentifiers(val id: String, @JsonProperty("identifier") val identifiers: List<Identifier>)
-
-data class PatientList(@JsonProperty("PatientList") val patientList: List<PartialPatient>?)
-data class PartialPatient(val identifier: List<Identifier>, val id: Id)
+data class PatientsIdentifiers(@JsonProperty("PatientList") val patientList: List<AidboxIdentifiers>?)
