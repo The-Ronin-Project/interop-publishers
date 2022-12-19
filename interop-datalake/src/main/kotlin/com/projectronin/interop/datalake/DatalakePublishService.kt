@@ -7,6 +7,7 @@ import com.projectronin.interop.datalake.hl7.getMSH9
 import com.projectronin.interop.datalake.oci.client.OCIClient
 import com.projectronin.interop.fhir.r4.resource.Resource
 import mu.KotlinLogging
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.LocalTime
@@ -16,7 +17,7 @@ import java.time.format.DateTimeFormatter
  * Service allowing access to push data updates to the datalake
  */
 @Service
-class DatalakePublishService(private val ociClient: OCIClient) {
+class DatalakePublishService(private val ociClient: OCIClient, private val taskExecutor: ThreadPoolTaskExecutor) {
     private val logger = KotlinLogging.logger { }
 
     /**
@@ -46,15 +47,20 @@ class DatalakePublishService(private val ociClient: OCIClient) {
 
         val resourcesToWrite = resources.filter { it.id?.value?.isNotEmpty() ?: false }
 
-        resourcesToWrite.forEach {
-            val resourceType = it.resourceType
-            val resourceId = it.id?.value
-            val filePathString =
-                "$root/date=$dateOfExport/tenant_id=$tenantId/resource_type=$resourceType/$resourceId.json"
-            logger.debug { "Publishing Ronin clinical data to $filePathString" }
-            val serialized = JacksonManager.objectMapper.writeValueAsString(it)
-            ociClient.uploadToDatalake(filePathString, serialized)
+        val jobs = resourcesToWrite.map {
+            taskExecutor.submit {
+                val resourceType = it.resourceType
+                val resourceId = it.id?.value
+                val filePathString =
+                    "$root/date=$dateOfExport/tenant_id=$tenantId/resource_type=$resourceType/$resourceId.json"
+                logger.debug { "Publishing Ronin clinical data to $filePathString" }
+                val serialized = JacksonManager.objectMapper.writeValueAsString(it)
+                ociClient.uploadToDatalake(filePathString, serialized)
+            }
         }
+
+        // Force completion of each job
+        jobs.forEach { it.get() }
 
         if (resourcesToWrite.size < resources.size) {
             throw IllegalStateException(

@@ -17,13 +17,22 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 class DatalakePublishServiceTest {
-    private val mockClient = mockk<OCIClient> {}
-    private val service = DatalakePublishService(mockClient)
+    private val mockClient = mockk<OCIClient>()
+    private val mockExecutor = mockk<ThreadPoolTaskExecutor> {
+        every { submit(any()) } answers {
+            val result = firstArg<Runnable>().run()
+            mockk {
+                every { get() } returns result
+            }
+        }
+    }
+    private val service = DatalakePublishService(mockClient, mockExecutor)
     private val tenantId = "mockTenant"
 
     @Test
