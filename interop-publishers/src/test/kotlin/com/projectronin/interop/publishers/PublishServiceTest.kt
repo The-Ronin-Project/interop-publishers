@@ -1,5 +1,6 @@
 package com.projectronin.interop.publishers
 
+import com.projectronin.interop.aidbox.AidboxPublishService
 import com.projectronin.interop.datalake.DatalakePublishService
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.HumanName
@@ -16,7 +17,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import com.projectronin.interop.aidbox.PublishService as AidboxPublishService
 
 class PublishServiceTest {
     private lateinit var aidboxPublishService: AidboxPublishService

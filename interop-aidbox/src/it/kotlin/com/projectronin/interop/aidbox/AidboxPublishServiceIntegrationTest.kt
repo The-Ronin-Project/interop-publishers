@@ -80,7 +80,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
 @ContextConfiguration(classes = [AidboxIntegrationConfig::class])
-class PublishServiceIntegrationTest : BaseAidboxTest() {
+class AidboxPublishServiceIntegrationTest : BaseAidboxTest() {
     companion object {
         // allows us to dynamically change the aidbox port to the testcontainer instance
         @JvmStatic
@@ -93,7 +93,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     }
 
     @Autowired
-    private lateinit var publishService: PublishService
+    private lateinit var aidboxPublishService: AidboxPublishService
 
     private val tenantIdentifier = Identifier(
         type = CodeableConcept(
@@ -120,7 +120,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             identifier = listOf(tenantIdentifier),
             name = listOf(HumanName(family = "Smith".asFHIR(), given = listOf("Josh").asFHIR()))
         )
-        val published = publishService.publish(listOf(practitioner))
+        val published = aidboxPublishService.publish(listOf(practitioner))
         assertTrue(published)
 
         val resource = getResource<Practitioner>("Practitioner", "mdaoc-new-resource")
@@ -142,7 +142,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         // And that it isn't what we are about to make it.
         assertNotEquals(practitioner, initialResource)
 
-        val published = publishService.publish(listOf(practitioner))
+        val published = aidboxPublishService.publish(listOf(practitioner))
         assertTrue(published)
 
         val resource = getResource<Practitioner>("Practitioner", "mdaoc-existing-resource")
@@ -167,7 +167,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         assertTrue(allResourcesNull("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr")))
 
         // Test
-        val published = publishService.publish(testPractitioners)
+        val published = aidboxPublishService.publish(testPractitioners)
         assertTrue(published)
         assertTrue(allResourcesExist("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr")))
 
@@ -267,7 +267,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         assertTrue(allResourcesNull("Location", listOf("${idPrefix}12345", "${idPrefix}12346")))
 
         // Test
-        val published = publishService.publish(testLocations)
+        val published = aidboxPublishService.publish(testLocations)
         assertTrue(published)
         assertTrue(allResourcesExist("Location", listOf("${idPrefix}12345", "${idPrefix}12346")))
 
@@ -307,7 +307,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
             )
         )
 
-        val published = publishService.publish(listOf(practitioner, patient))
+        val published = aidboxPublishService.publish(listOf(practitioner, patient))
         assertTrue(published)
 
         val resource1 = getResource<Practitioner>("Practitioner", "mdaoc-practitioner")
@@ -450,7 +450,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         assertTrue(allResourcesNull("PractitionerRole", listOf("${idPrefix}12347", "${idPrefix}12348")))
 
         // Test
-        val published = publishService.publish(fullRoles)
+        val published = aidboxPublishService.publish(fullRoles)
         assertTrue(published)
         assertTrue(allResourcesExist("Location", listOf("${idPrefix}12345", "${idPrefix}12346")))
         assertTrue(allResourcesExist("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr")))
@@ -563,7 +563,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         assertTrue(allResourcesNull("Appointment", listOf("${idPrefix}12345")))
 
         // Test
-        val published = publishService.publish(fullAppointment)
+        val published = aidboxPublishService.publish(fullAppointment)
         assertTrue(published)
         assertTrue(allResourcesExist("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr")))
         assertTrue(allResourcesExist("Patient", listOf("${idPrefix}12345")))
@@ -720,7 +720,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         assertTrue(allResourcesNull("PractitionerRole", listOf("${idPrefix}12347", "${idPrefix}12348")))
 
         // Test
-        val published = publishService.publish(unrelatedResourceInList)
+        val published = aidboxPublishService.publish(unrelatedResourceInList)
         assertTrue(published)
         assertTrue(allResourcesExist("Location", listOf("${idPrefix}12345", "${idPrefix}12346")))
         assertTrue(
@@ -936,7 +936,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         assertTrue(allResourcesNull("Appointment", listOf("${idPrefix}12345")))
 
         // Test
-        val published = publishService.publish(unrelatedResourceInList)
+        val published = aidboxPublishService.publish(unrelatedResourceInList)
         assertTrue(published)
         assertTrue(allResourcesExist("Location", listOf("${idPrefix}12345", "${idPrefix}12346")))
         assertTrue(
@@ -1047,7 +1047,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         assertTrue(allResourcesNull("PractitionerRole", listOf("${idPrefix}12347", "${idPrefix}12348")))
 
         // Test
-        val published = publishService.publish(practitionerRoles)
+        val published = aidboxPublishService.publish(practitionerRoles)
         assertTrue(published)
         assertTrue(allResourcesExist("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr")))
         assertTrue(allResourcesExist("Location", listOf("${idPrefix}12345")))
@@ -1161,7 +1161,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
         assertTrue(allResourcesNull("Appointment", listOf("${idPrefix}12345")))
 
         // Test
-        val published = publishService.publish(resourceList)
+        val published = aidboxPublishService.publish(resourceList)
         assertTrue(published)
         assertTrue(allResourcesExist("Practitioner", listOf("${idPrefix}cmjones", "${idPrefix}rallyr")))
         assertTrue(allResourcesExist("Patient", listOf("${idPrefix}12345")))
@@ -1175,7 +1175,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
     @Test
     fun `empty list of resources does not error`() {
         val collection = listOf<Resource<*>>()
-        val published = publishService.publish(collection)
+        val published = aidboxPublishService.publish(collection)
         assertTrue(published)
     }
 
@@ -1193,7 +1193,7 @@ class PublishServiceIntegrationTest : BaseAidboxTest() {
 
         assertTrue(allResourcesNull("Practitioner", resourceIds))
 
-        val published = publishService.publish(resources)
+        val published = aidboxPublishService.publish(resources)
         assertTrue(published)
         assertTrue(allResourcesExist("Practitioner", resourceIds))
 

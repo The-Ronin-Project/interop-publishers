@@ -1,13 +1,15 @@
 package com.projectronin.interop.publishers
 
+import com.projectronin.interop.aidbox.AidboxPublishService
 import com.projectronin.interop.datalake.DatalakePublishService
 import com.projectronin.interop.fhir.r4.resource.Resource
 import com.projectronin.interop.publishers.exception.AidboxPublishException
-import com.projectronin.interop.aidbox.PublishService as AidboxPublishService
+import org.springframework.stereotype.Service
 
 /**
  * Service managing the publication of data to one or more downstream repositories.
  */
+@Service
 class PublishService(
     private val aidboxPublishService: AidboxPublishService,
     private val datalakePublishService: DatalakePublishService

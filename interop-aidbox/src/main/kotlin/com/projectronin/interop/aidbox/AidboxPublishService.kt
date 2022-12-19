@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service
  * Service allowing access to push data updates to the Ronin clinical data store.
  */
 @Service
-class PublishService(
+class AidboxPublishService(
     private val aidboxClient: AidboxClient,
     @Value("\${aidbox.publishBatchSize:25}") private val batchSize: Int = 25
 ) {

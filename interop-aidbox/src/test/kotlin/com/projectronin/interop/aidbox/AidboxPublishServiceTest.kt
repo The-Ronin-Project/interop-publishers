@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-class PublishServiceTest {
+class AidboxPublishServiceTest {
     private val collection = listOf(
         Practitioner(
             id = Id("cmjones"),
@@ -46,7 +46,7 @@ class PublishServiceTest {
         )
     )
     private val aidboxClient = mockk<AidboxClient>()
-    private val publishService = PublishService(aidboxClient, 2)
+    private val aidboxPublishService = AidboxPublishService(aidboxClient, 2)
 
     @Test
     fun `publish list of 2 Practitioner resources to aidbox, response 200 true`() {
@@ -54,7 +54,7 @@ class PublishServiceTest {
         coEvery { httpResponse.status } returns HttpStatusCode.OK
         coEvery { aidboxClient.batchUpsert(collection) } returns httpResponse
         val actualSuccess: Boolean = runBlocking {
-            publishService.publish(collection)
+            aidboxPublishService.publish(collection)
         }
         assertTrue(actualSuccess)
     }
@@ -66,7 +66,7 @@ class PublishServiceTest {
         coEvery { httpResponse.status } returns HttpStatusCode.OK
         coEvery { aidboxClient.batchUpsert(collection) } returns httpResponse
         val actualSuccess: Boolean = runBlocking {
-            publishService.publish(collection)
+            aidboxPublishService.publish(collection)
         }
         assertTrue(actualSuccess)
     }
@@ -77,7 +77,7 @@ class PublishServiceTest {
         coEvery { httpResponse.status } returns HttpStatusCode.Continue
         coEvery { aidboxClient.batchUpsert(collection) } returns httpResponse
         val actualSuccess: Boolean = runBlocking {
-            publishService.publish(collection)
+            aidboxPublishService.publish(collection)
         }
         assertFalse(actualSuccess)
     }
@@ -88,7 +88,7 @@ class PublishServiceTest {
         coEvery { httpResponse.status } returns HttpStatusCode.ServiceUnavailable
         coEvery { aidboxClient.batchUpsert(collection) } returns httpResponse
         val actualSuccess: Boolean = runBlocking {
-            publishService.publish(collection)
+            aidboxPublishService.publish(collection)
         }
         assertFalse(actualSuccess)
     }
@@ -109,7 +109,7 @@ class PublishServiceTest {
         coEvery { aidboxClient.batchUpsert(listOf(resource5)) } returns httpResponse
 
         val actualSuccess: Boolean = runBlocking {
-            publishService.publish(listOf(resource1, resource2, resource3, resource4, resource5))
+            aidboxPublishService.publish(listOf(resource1, resource2, resource3, resource4, resource5))
         }
         assertTrue(actualSuccess)
     }
@@ -133,7 +133,7 @@ class PublishServiceTest {
         coEvery { aidboxClient.batchUpsert(listOf(resource5)) } returns okHttpResponse
 
         val actualSuccess: Boolean = runBlocking {
-            publishService.publish(listOf(resource1, resource2, resource3, resource4, resource5))
+            aidboxPublishService.publish(listOf(resource1, resource2, resource3, resource4, resource5))
         }
         assertFalse(actualSuccess)
 
