@@ -108,7 +108,7 @@ class DatalakePublishServiceIT {
     private fun getR4Name(tenantId: String, resourceType: String, resourceId: String): String {
         val date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
         // OCI doesn't encode all characters, use their API so we don't encode '='
-        val objectName = "fhir-r4/date=$date/tenant_id=$tenantId/resource_type=$resourceType/$resourceId.json"
+        val objectName = "ehr/${resourceType.lowercase()}/fhir_tenant_id=$tenantId/_date=$date/$resourceId.json"
         return ParamEncoder.encodePathParam(objectName)
     }
 

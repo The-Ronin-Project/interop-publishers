@@ -5,10 +5,13 @@ import com.projectronin.interop.fhir.r4.datatype.HumanName
 import com.projectronin.interop.fhir.r4.datatype.Participant
 import com.projectronin.interop.fhir.r4.datatype.Reference
 import com.projectronin.interop.fhir.r4.datatype.primitive.Code
+import com.projectronin.interop.fhir.r4.datatype.primitive.Date
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Appointment
 import com.projectronin.interop.fhir.r4.resource.Patient
+import com.projectronin.interop.fhir.r4.valueset.AdministrativeGender
+import com.projectronin.interop.fhir.util.asCode
 import com.projectronin.interop.kafka.client.KafkaClient
 import com.projectronin.interop.kafka.event.AppointmentEvent
 import com.projectronin.interop.kafka.event.PatientEvent
@@ -56,7 +59,9 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
                     family = "Public".asFHIR(),
                     given = listOf("John", "Q").asFHIR()
                 )
-            )
+            ),
+            gender = AdministrativeGender.MALE.asCode(),
+            birthDate = Date("1975-07-05")
         )
 
         val response = publishService.publishResources(tenantId, DataTrigger.AD_HOC, listOf(patient))
@@ -93,7 +98,9 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
                     family = "Public".asFHIR(),
                     given = listOf("John", "Q").asFHIR()
                 )
-            )
+            ),
+            gender = AdministrativeGender.MALE.asCode(),
+            birthDate = Date("1975-07-05")
         )
         val patient2 = Patient(
             id = Id("67890"),
@@ -102,7 +109,9 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
                     family = "Doe".asFHIR(),
                     given = listOf("Jane").asFHIR()
                 )
-            )
+            ),
+            gender = AdministrativeGender.FEMALE.asCode(),
+            birthDate = Date("1975-07-05")
         )
 
         val response = publishService.publishResources(tenantId, DataTrigger.AD_HOC, listOf(patient1, patient2))
@@ -147,7 +156,9 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
                     family = "Public".asFHIR(),
                     given = listOf("John", "Q").asFHIR()
                 )
-            )
+            ),
+            gender = AdministrativeGender.MALE.asCode(),
+            birthDate = Date("1975-07-05")
         )
         val appointment1 = Appointment(
             id = Id("67890"),

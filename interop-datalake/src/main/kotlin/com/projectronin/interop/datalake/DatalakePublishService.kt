@@ -28,8 +28,7 @@ class DatalakePublishService(private val ociClient: OCIClient, private val taskE
      * A resourceId could be any valid FHIR id.
      *
      * Each resource in [resources] is published to a distinct file in the datalake container.
-     * The file path supports Data Platform needs for code optimization and bronze directory layout:
-     * "/fhir-r4/tenant_id={tenantId}/date={today's date}/resource_type={resourceType}/{resourceId}.json"
+     * The file path supports Data Platform needs for code optimization and bronze directory layout, root: ehr
      *
      * @param tenantId The tenant mnemonic for the specific resource
      * @param resources List of FHIR resources to publish. May be a mixed List with different resourceTypes,
@@ -37,7 +36,7 @@ class DatalakePublishService(private val ociClient: OCIClient, private val taskE
      * @throws IllegalStateException if any of the resources lacked FHIR id values so were not published.
      */
     fun publishFHIRR4(tenantId: String, resources: List<Resource<*>>) {
-        val root = "fhir-r4"
+        val root = "ehr"
         logger.info { "Publishing Ronin clinical data to datalake at $root" }
         if (resources.isEmpty()) {
             logger.debug { "Publishing nothing to datalake because the supplied data is empty" }
@@ -52,7 +51,7 @@ class DatalakePublishService(private val ociClient: OCIClient, private val taskE
                 val resourceType = it.resourceType
                 val resourceId = it.id?.value
                 val filePathString =
-                    "$root/date=$dateOfExport/tenant_id=$tenantId/resource_type=$resourceType/$resourceId.json"
+                    "$root/${resourceType.lowercase()}/fhir_tenant_id=$tenantId/_date=$dateOfExport/$resourceId.json"
                 logger.debug { "Publishing Ronin clinical data to $filePathString" }
                 val serialized = JacksonManager.objectMapper.writeValueAsString(it)
                 ociClient.uploadToDatalake(filePathString, serialized)
@@ -77,8 +76,7 @@ class DatalakePublishService(private val ociClient: OCIClient, private val taskE
      * For JSON response data from all other APIs, use publishAPIJSON().
      *
      * publishAPIJSON() publishes the JSON data to a file in the datalake container.
-     * The file path supports Data Platform needs for code optimization and bronze directory layout:
-     * "/api-json/schema={schema}/tenant_id={tenantId}/date={today’s date}/{millisecond timestamp}.json"
+     * The file path supports Data Platform needs for code optimization and bronze directory layout, root: api-json
      *
      * The data schema is defined by the API, so this method requires input of the [method] and [url]
      * to uniquely identify the API call. When writing the data, publishAPIJSON() joins these input values
@@ -111,7 +109,7 @@ class DatalakePublishService(private val ociClient: OCIClient, private val taskE
         val dateOfExport = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
         val timeOfExport = LocalTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME)
             .replace(pathCleanup, "-")
-        val filePathString = "$root/schema=$schema/date=$dateOfExport/tenant_id=$tenantId/$timeOfExport.json"
+        val filePathString = "$root/schema=$schema/fhir_tenant_id=$tenantId/_date=$dateOfExport/$timeOfExport.json"
         logger.debug { "Publishing Ronin clinical data to $filePathString" }
         ociClient.uploadToDatalake(filePathString, data)
     }
@@ -120,8 +118,7 @@ class DatalakePublishService(private val ociClient: OCIClient, private val taskE
      * Publishes HL7v2 data to the OCI datalake.
      *
      * publishHL7v2() publishes the HL7v2 data to a file in the datalake container.
-     * The file path supports Data Platform needs for code optimization and bronze directory layout:
-     * "/hl7v2/tenant_id={tenantId}/date={today's date}/message_type={messageType}/message_event={messageEvent}/{millisecond timestamp}.hl7"
+     * The file path supports Data Platform needs for code optimization and bronze directory layout, root: hl7v2
      *
      * Gets messageType and messageEvent from the HL7v2 message MSH segment.
      * The file name in the path replaces punctuation in the millisecond timestamp with hyphens.
@@ -158,7 +155,7 @@ class DatalakePublishService(private val ociClient: OCIClient, private val taskE
             val messageType = messageStructure[0]
             val messageEvent = "$messageType${messageStructure[1]}"
             val filePathString =
-                "$root/date=$dateOfExport/tenant_id=$tenantId/message_type=$messageType/message_event=$messageEvent/$forEachTimeOfExport.json"
+                "$root/message_type=$messageType/message_event=$messageEvent/fhir_tenant_id=$tenantId/_date=$dateOfExport/$forEachTimeOfExport.json"
             if ((MessageType.values().find { it.toString() == messageType } == null) ||
                 (EventType.values().find { it.toString() == messageEvent } == null)
             ) {
