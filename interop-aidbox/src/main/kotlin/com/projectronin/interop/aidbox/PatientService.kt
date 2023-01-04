@@ -11,6 +11,7 @@ import com.projectronin.interop.aidbox.utils.findFhirID
 import com.projectronin.interop.aidbox.utils.respondToGraphQLException
 import com.projectronin.interop.aidbox.utils.validateTenantIdentifier
 import com.projectronin.interop.common.exceptions.LogMarkingException
+import com.projectronin.interop.common.exceptions.VendorIdentifierNotFoundException
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
@@ -105,7 +106,8 @@ class PatientService(
             }
         }
         response.errors?.let { return emptyMap() }
-        val idMap = response.data?.patientList?.associate { it.identifiers.findFhirID() to it.identifiers } ?: emptyMap()
+        val idMap =
+            response.data?.patientList?.associate { it.identifiers.findFhirID() to it.identifiers } ?: emptyMap()
         logger.info { "Completed retrieving Patients from Aidbox for $tenantMnemonic" }
         return idMap
     }
@@ -135,6 +137,22 @@ class PatientService(
         )
 
         return patient
+    }
+
+    /**
+     * Fetches a [Patient] from Aidbox for the [tenantMnemonic] and [fhirId]
+     */
+    @Trace
+    fun getPatientByFHIRId(tenantMnemonic: String, fhirId: String): Patient {
+        val fhirSystemValue = SystemValue(system = CodeSystem.RONIN_FHIR_ID.uri.value!!, value = fhirId)
+        val patients = queryForPatientFHIRIds(tenantMnemonic, listOf(fhirSystemValue)).data?.patientList
+            ?: emptyList()
+        val udpId = when (patients.size) {
+            1 -> patients.first().udpId
+            else -> throw VendorIdentifierNotFoundException("Single patient could not be matched for ID $fhirId in $tenantMnemonic. Found ${patients.size}")
+        }
+
+        return getPatientByUDPId(tenantMnemonic, udpId)
     }
 
     /**

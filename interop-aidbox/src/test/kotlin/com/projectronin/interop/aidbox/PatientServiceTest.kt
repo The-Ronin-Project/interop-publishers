@@ -9,6 +9,7 @@ import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.aidbox.model.SystemValue
 import com.projectronin.interop.aidbox.utils.AIDBOX_PATIENT_FHIR_IDS_QUERY
 import com.projectronin.interop.aidbox.utils.AIDBOX_PATIENT_LIST_QUERY
+import com.projectronin.interop.common.exceptions.VendorIdentifierNotFoundException
 import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.fhir.r4.CodeSystem
@@ -685,5 +686,83 @@ class PatientServiceTest {
         val actual = patientService.getPatientFHIRIdsByTenant(tenantMnemonic)
 
         assertEquals(emptyList<String>(), actual)
+    }
+
+    @Test
+    fun `getPatientByFHIRID - no patients found`() {
+        val response = GraphQLResponse(
+            data = PatientsIdentifiers(null)
+        )
+        val mockHttpResponse = mockk<HttpResponse>()
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = query,
+                parameters = mapOf(
+                    "tenant" to tenantQueryString,
+                    "identifiers" to "${CodeSystem.RONIN_FHIR_ID.uri.value}|fhirId"
+                )
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<PatientsIdentifiers>> { mockHttpResponse.body() } returns response
+
+        val exception = assertThrows<VendorIdentifierNotFoundException> {
+            patientService.getPatientByFHIRId(tenantMnemonic, "fhirId")
+        }
+        assertEquals("Single patient could not be matched for ID fhirId in $tenantMnemonic. Found 0", exception.message)
+    }
+
+    @Test
+    fun `getPatientByFHIRID - multiple patients found`() {
+        val response = GraphQLResponse(
+            data = PatientsIdentifiers(listOf(mockPatientIdentifiers1, mockPatientIdentifiers2))
+        )
+        val mockHttpResponse = mockk<HttpResponse>()
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = query,
+                parameters = mapOf(
+                    "tenant" to tenantQueryString,
+                    "identifiers" to "${CodeSystem.RONIN_FHIR_ID.uri.value}|fhirId"
+                )
+            )
+        } returns mockHttpResponse
+        coEvery<GraphQLResponse<PatientsIdentifiers>> { mockHttpResponse.body() } returns response
+
+        val exception = assertThrows<VendorIdentifierNotFoundException> {
+            patientService.getPatientByFHIRId(tenantMnemonic, "fhirId")
+        }
+        assertEquals("Single patient could not be matched for ID fhirId in $tenantMnemonic. Found 2", exception.message)
+    }
+
+    @Test
+    fun `getPatientByFHIRID - single patient found`() {
+        val identifiersResponse = GraphQLResponse(
+            data = PatientsIdentifiers(listOf(mockPatientIdentifiers1))
+        )
+        val mockQueryResponse = mockk<HttpResponse>()
+        coEvery {
+            aidboxClient.queryGraphQL(
+                query = query,
+                parameters = mapOf(
+                    "tenant" to tenantQueryString,
+                    "identifiers" to "${CodeSystem.RONIN_FHIR_ID.uri.value}|fhirId"
+                )
+            )
+        } returns mockQueryResponse
+        coEvery<GraphQLResponse<PatientsIdentifiers>> { mockQueryResponse.body() } returns identifiersResponse
+
+        val resourceMock = mockk<HttpResponse>()
+        val mockPatient = mockk<Patient>()
+        every { mockPatient.identifier } returns listOf(
+            Identifier(
+                system = CodeSystem.RONIN_TENANT.uri,
+                value = tenantMnemonic.asFHIR()
+            )
+        )
+        coEvery { resourceMock.body<Patient>() } returns mockPatient
+        coEvery { aidboxClient.getResource("Patient", "udpId1") } returns resourceMock
+
+        val patient = patientService.getPatientByFHIRId(tenantMnemonic, "fhirId")
+        assertEquals(mockPatient, patient)
     }
 }
