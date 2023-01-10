@@ -2,13 +2,13 @@ package com.projectronin.interop.kafka
 
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
 import com.projectronin.interop.fhir.r4.datatype.HumanName
-import com.projectronin.interop.fhir.r4.datatype.Participant
 import com.projectronin.interop.fhir.r4.datatype.Reference
 import com.projectronin.interop.fhir.r4.datatype.primitive.Code
 import com.projectronin.interop.fhir.r4.datatype.primitive.Date
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Appointment
+import com.projectronin.interop.fhir.r4.resource.Participant
 import com.projectronin.interop.fhir.r4.resource.Patient
 import com.projectronin.interop.fhir.r4.valueset.AdministrativeGender
 import com.projectronin.interop.fhir.util.asCode

@@ -5,12 +5,12 @@ import com.projectronin.interop.aidbox.model.GraphQLError
 import com.projectronin.interop.aidbox.model.GraphQLResponse
 import com.projectronin.interop.common.http.exceptions.HttpException
 import com.projectronin.interop.fhir.r4.CodeSystem
-import com.projectronin.interop.fhir.r4.datatype.BundleEntry
-import com.projectronin.interop.fhir.r4.datatype.BundleRequest
 import com.projectronin.interop.fhir.r4.datatype.Identifier
 import com.projectronin.interop.fhir.r4.datatype.primitive.Code
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.resource.Bundle
+import com.projectronin.interop.fhir.r4.resource.BundleEntry
+import com.projectronin.interop.fhir.r4.resource.BundleRequest
 import com.projectronin.interop.fhir.r4.resource.Resource
 import com.projectronin.interop.fhir.r4.valueset.BundleType
 import com.projectronin.interop.fhir.r4.valueset.HttpVerb

@@ -9,22 +9,14 @@ import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMa
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.Address
 import com.projectronin.interop.fhir.r4.datatype.Attachment
-import com.projectronin.interop.fhir.r4.datatype.AvailableTime
 import com.projectronin.interop.fhir.r4.datatype.CodeableConcept
 import com.projectronin.interop.fhir.r4.datatype.Coding
-import com.projectronin.interop.fhir.r4.datatype.Communication
-import com.projectronin.interop.fhir.r4.datatype.Contact
 import com.projectronin.interop.fhir.r4.datatype.ContactPoint
 import com.projectronin.interop.fhir.r4.datatype.DynamicValue
 import com.projectronin.interop.fhir.r4.datatype.DynamicValueType
 import com.projectronin.interop.fhir.r4.datatype.HumanName
 import com.projectronin.interop.fhir.r4.datatype.Identifier
-import com.projectronin.interop.fhir.r4.datatype.LocationHoursOfOperation
-import com.projectronin.interop.fhir.r4.datatype.LocationPosition
 import com.projectronin.interop.fhir.r4.datatype.Narrative
-import com.projectronin.interop.fhir.r4.datatype.NotAvailable
-import com.projectronin.interop.fhir.r4.datatype.Participant
-import com.projectronin.interop.fhir.r4.datatype.PatientLink
 import com.projectronin.interop.fhir.r4.datatype.Period
 import com.projectronin.interop.fhir.r4.datatype.Reference
 import com.projectronin.interop.fhir.r4.datatype.primitive.Base64Binary
@@ -39,8 +31,16 @@ import com.projectronin.interop.fhir.r4.datatype.primitive.Instant
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Appointment
+import com.projectronin.interop.fhir.r4.resource.AvailableTime
+import com.projectronin.interop.fhir.r4.resource.Communication
 import com.projectronin.interop.fhir.r4.resource.Location
+import com.projectronin.interop.fhir.r4.resource.LocationHoursOfOperation
+import com.projectronin.interop.fhir.r4.resource.LocationPosition
+import com.projectronin.interop.fhir.r4.resource.NotAvailable
+import com.projectronin.interop.fhir.r4.resource.Participant
 import com.projectronin.interop.fhir.r4.resource.Patient
+import com.projectronin.interop.fhir.r4.resource.PatientContact
+import com.projectronin.interop.fhir.r4.resource.PatientLink
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import com.projectronin.interop.fhir.r4.resource.PractitionerRole
 import com.projectronin.interop.fhir.r4.resource.Resource
@@ -500,7 +500,7 @@ class AidboxPublishServiceIntegrationTest : BaseAidboxTest() {
             maritalStatus = CodeableConcept(text = "M".asFHIR()),
             multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2),
             photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
-            contact = listOf(Contact(name = HumanName(text = "Jane Doe".asFHIR()))),
+            contact = listOf(PatientContact(name = HumanName(text = "Jane Doe".asFHIR()))),
             communication = listOf(Communication(language = CodeableConcept(text = "English".asFHIR()))),
             generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones".asFHIR())),
             managingOrganization = Reference(display = "organization".asFHIR()),
@@ -864,7 +864,7 @@ class AidboxPublishServiceIntegrationTest : BaseAidboxTest() {
             maritalStatus = CodeableConcept(text = "M".asFHIR()),
             multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2),
             photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
-            contact = listOf(Contact(name = HumanName(text = "Jane Doe".asFHIR()))),
+            contact = listOf(PatientContact(name = HumanName(text = "Jane Doe".asFHIR()))),
             communication = listOf(Communication(language = CodeableConcept(text = "English".asFHIR()))),
             generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones".asFHIR())),
             managingOrganization = Reference(display = "organization".asFHIR()),
@@ -1091,7 +1091,7 @@ class AidboxPublishServiceIntegrationTest : BaseAidboxTest() {
             maritalStatus = CodeableConcept(text = "M".asFHIR()),
             multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2),
             photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
-            contact = listOf(Contact(name = HumanName(text = "Jane Doe".asFHIR()))),
+            contact = listOf(PatientContact(name = HumanName(text = "Jane Doe".asFHIR()))),
             communication = listOf(Communication(language = CodeableConcept(text = "English".asFHIR()))),
             generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones".asFHIR())),
             managingOrganization = Reference(display = "organization".asFHIR()),
