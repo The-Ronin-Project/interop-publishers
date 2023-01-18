@@ -1,4 +1,4 @@
-package com.projectronin.interop.kafka.config
+package com.projectronin.interop.kafka.spring
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
@@ -25,6 +25,7 @@ data class KafkaBootstrapConfig(
 data class KafkaPublishConfig(
     val source: String
 )
+
 data class KafkaRetrieveConfig(
     val groupId: String
 )

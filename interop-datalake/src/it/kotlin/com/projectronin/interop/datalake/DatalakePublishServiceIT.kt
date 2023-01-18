@@ -11,7 +11,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import org.bouncycastle.util.encoders.Base64
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -35,7 +34,7 @@ class DatalakePublishServiceIT {
     companion object {
         @Container
         private val mockserver =
-            GenericContainer("docker-proxy.devops.projectronin.io/mockserver/mockserver").withExposedPorts(1080)
+            GenericContainer("docker-proxy.devops.projectronin.io/mockserver/mockserver:5.15.0").withExposedPorts(1080)
                 .waitingFor(Wait.forLogMessage(".*started on port: 1080.*", 1))
 
         fun getPort() = mockserver.getMappedPort(1080)
@@ -79,12 +78,6 @@ class DatalakePublishServiceIT {
         mockkStatic(Region::fromRegionId)
         every { Region.fromRegionId("us-phoenix-1") } returns region
         client.reset()
-    }
-
-    @AfterEach
-    fun test() {
-        val test = 1
-        println(test)
     }
 
     @Test

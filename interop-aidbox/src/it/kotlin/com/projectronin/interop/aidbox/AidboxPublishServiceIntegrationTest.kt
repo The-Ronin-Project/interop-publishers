@@ -2,7 +2,7 @@ package com.projectronin.interop.aidbox
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.projectronin.interop.aidbox.spring.AidboxIntegrationConfig
+import com.projectronin.interop.aidbox.spring.AidboxSpringConfig
 import com.projectronin.interop.aidbox.testcontainer.AidboxData
 import com.projectronin.interop.aidbox.testcontainer.BaseAidboxTest
 import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
@@ -79,7 +79,7 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
-@ContextConfiguration(classes = [AidboxIntegrationConfig::class])
+@ContextConfiguration(classes = [AidboxSpringConfig::class])
 class AidboxPublishServiceIntegrationTest : BaseAidboxTest() {
     companion object {
         // allows us to dynamically change the aidbox port to the testcontainer instance

@@ -10,4 +10,5 @@ dependencies {
     implementation(project(":interop-datalake"))
 
     testImplementation(libs.mockk)
+    testImplementation("org.springframework:spring-test")
 }

@@ -1,7 +1,7 @@
 package com.projectronin.interop.aidbox
 
 import com.projectronin.interop.aidbox.model.SystemValue
-import com.projectronin.interop.aidbox.spring.AidboxIntegrationConfig
+import com.projectronin.interop.aidbox.spring.AidboxSpringConfig
 import com.projectronin.interop.aidbox.testcontainer.AidboxData
 import com.projectronin.interop.aidbox.testcontainer.BaseAidboxTest
 import com.projectronin.interop.common.http.exceptions.ClientFailureException
@@ -22,7 +22,7 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
-@ContextConfiguration(classes = [AidboxIntegrationConfig::class])
+@ContextConfiguration(classes = [AidboxSpringConfig::class])
 @AidboxData("/aidbox/patient/Patients.yaml")
 class PatientServiceIntegrationTest : BaseAidboxTest() {
     @Autowired

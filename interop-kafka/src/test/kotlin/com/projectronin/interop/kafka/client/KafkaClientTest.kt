@@ -1,10 +1,10 @@
 package com.projectronin.interop.kafka.client
 
-import com.projectronin.interop.kafka.config.KafkaCloudConfig
-import com.projectronin.interop.kafka.config.KafkaConfig
 import com.projectronin.interop.kafka.model.DataTrigger
 import com.projectronin.interop.kafka.model.KafkaEvent
 import com.projectronin.interop.kafka.model.KafkaTopic
+import com.projectronin.interop.kafka.spring.KafkaCloudConfig
+import com.projectronin.interop.kafka.spring.KafkaConfig
 import com.projectronin.kafka.RoninProducer
 import io.mockk.every
 import io.mockk.mockk

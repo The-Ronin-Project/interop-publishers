@@ -13,6 +13,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot")
 
     testImplementation(libs.mockk)
+    testImplementation("org.springframework:spring-test")
     testImplementation("org.springframework.boot:spring-boot-starter")
 
     testImplementation(platform(libs.testcontainers.bom))

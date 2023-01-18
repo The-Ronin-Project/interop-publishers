@@ -6,6 +6,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 
 @Configuration
-@Import(HttpSpringConfig::class)
 @ComponentScan("com.projectronin.interop.aidbox")
-class AidboxIntegrationConfig
+@Import(HttpSpringConfig::class)
+class AidboxSpringConfig

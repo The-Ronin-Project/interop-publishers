@@ -1,11 +1,11 @@
 package com.projectronin.interop.kafka.client
 
-import com.projectronin.interop.kafka.config.KafkaConfig
 import com.projectronin.interop.kafka.model.DataTrigger
 import com.projectronin.interop.kafka.model.Failure
 import com.projectronin.interop.kafka.model.KafkaEvent
 import com.projectronin.interop.kafka.model.KafkaTopic
 import com.projectronin.interop.kafka.model.PublishResponse
+import com.projectronin.interop.kafka.spring.KafkaConfig
 import com.projectronin.kafka.RoninProducer
 import org.springframework.stereotype.Component
 
