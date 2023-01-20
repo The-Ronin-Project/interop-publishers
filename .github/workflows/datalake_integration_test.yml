@@ -14,7 +14,21 @@ jobs:
         with:
           java-version: 17
           distribution: 'zulu'
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Install DataDog CI
+        run:
+          npm install -g @datadog/datadog-ci
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Gradlew Integration Tests
         run: ./gradlew :interop-datalake:it --stacktrace
+
+      - name: Upload report to DataDog
+        if: always() && !cancelled()
+        env:
+          DD_ENV: ci
+          DATADOG_SITE: datadoghq.com
+          DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+        run: datadog-ci junit upload --service interop-datalake-it ./interop-datalake/build/test-results/it
