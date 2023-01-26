@@ -1,16 +1,23 @@
 package com.projectronin.interop.kafka.client
 
-import com.projectronin.interop.kafka.model.DataTrigger
+import com.projectronin.event.interop.resource.publish.v1.InteropResourcePublishV1
 import com.projectronin.interop.kafka.model.KafkaEvent
 import com.projectronin.interop.kafka.model.KafkaTopic
 import com.projectronin.interop.kafka.spring.KafkaCloudConfig
 import com.projectronin.interop.kafka.spring.KafkaConfig
+import com.projectronin.kafka.RoninConsumer
 import com.projectronin.kafka.RoninProducer
+import com.projectronin.kafka.data.RoninEvent
+import com.projectronin.kafka.data.RoninEventResult
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.invoke
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkConstructor
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
+import io.mockk.unmockkStatic
 import io.mockk.verify
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -75,7 +82,7 @@ class KafkaClientTest {
         val preCallProducers = producersProperty.get(client)
         assertTrue(preCallProducers.isEmpty())
 
-        val response = client.publishEvents(topic, tenantId, null, listOf(event1))
+        val response = client.publishEvents(topic, listOf(event1))
         assertEquals(1, response.successful.size)
         assertEquals(event1, response.successful[0])
 
@@ -113,7 +120,7 @@ class KafkaClientTest {
 
         preCallProducers["test.topic.name"] = producer
 
-        val response = client.publishEvents(topic, tenantId, null, listOf(event1))
+        val response = client.publishEvents(topic, listOf(event1))
         assertEquals(1, response.successful.size)
         assertEquals(event1, response.successful[0])
 
@@ -147,7 +154,7 @@ class KafkaClientTest {
         every { createProducer(topic, kafkaConfig) } returns producer
 
         val client = KafkaClient(kafkaConfig)
-        val response = client.publishEvents(topic, tenantId, null, listOf(event1))
+        val response = client.publishEvents(topic, listOf(event1))
         assertEquals(0, response.successful.size)
 
         assertEquals(1, response.failures.size)
@@ -177,7 +184,7 @@ class KafkaClientTest {
         every { createProducer(topic, kafkaConfig) } returns producer
 
         val client = KafkaClient(kafkaConfig)
-        val response = client.publishEvents(topic, tenantId, null, listOf(event1))
+        val response = client.publishEvents(topic, listOf(event1))
         assertEquals(1, response.successful.size)
         assertEquals(event1, response.successful[0])
 
@@ -205,7 +212,7 @@ class KafkaClientTest {
         every { createProducer(topic, kafkaConfig) } returns producer
 
         val client = KafkaClient(kafkaConfig)
-        val response = client.publishEvents(topic, tenantId, DataTrigger.NIGHTLY, listOf(event1))
+        val response = client.publishEvents(topic, listOf(event1))
         assertEquals(1, response.successful.size)
         assertEquals(event1, response.successful[0])
 
@@ -249,7 +256,7 @@ class KafkaClientTest {
         every { createProducer(topic, kafkaConfig) } returns producer
 
         val client = KafkaClient(kafkaConfig)
-        val response = client.publishEvents(topic, tenantId, null, listOf(event1, event2, event3))
+        val response = client.publishEvents(topic, listOf(event1, event2, event3))
         assertEquals(2, response.successful.size)
         assertEquals(event1, response.successful[0])
         assertEquals(event3, response.successful[1])
@@ -297,12 +304,36 @@ class KafkaClientTest {
         every { createProducer(topic, kafkaConfig) } returns producer
 
         val client = KafkaClient(kafkaConfig)
-        val response = client.publishEvents(topic, tenantId, null, listOf(event1, event2, event3))
+        val response = client.publishEvents(topic, listOf(event1, event2, event3))
         assertEquals(3, response.successful.size)
         assertEquals(event1, response.successful[0])
         assertEquals(event2, response.successful[1])
         assertEquals(event3, response.successful[2])
 
         assertEquals(0, response.failures.size)
+    }
+
+    @Test
+    fun `retrieve events works`() {
+        val mockEvent = mockk<RoninEvent<InteropResourcePublishV1>>()
+        every { mockEvent.data } returns InteropResourcePublishV1(
+            "TENANT",
+            "Patient",
+            InteropResourcePublishV1.DataTrigger.nightly,
+            resourceJson = "json"
+        )
+        every { mockEvent.id } returns "messageID"
+        mockkStatic(::createConsumer)
+        val mockConsumer = mockk<RoninConsumer>()
+        every { createConsumer(any(), any(), any()) } returns mockConsumer
+        every { mockConsumer.process(handler = captureLambda()) } answers {
+            lambda<(RoninEvent<*>) -> RoninEventResult>().invoke(mockEvent)
+        }
+        every { mockConsumer.stop() } just Runs
+        every { mockConsumer.unsubscribe() } just Runs
+        val client = KafkaClient(kafkaConfig)
+        val ret = client.retrieveEvents(mockk(), mapOf())
+        assertEquals(ret.size, 1)
+        unmockkStatic(::createConsumer)
     }
 }

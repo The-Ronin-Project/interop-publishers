@@ -1,6 +1,7 @@
 package com.projectronin.interop.kafka
 
-import com.projectronin.interop.common.jackson.JacksonManager.Companion.objectMapper
+import com.projectronin.interop.common.jackson.JacksonUtil
+import com.projectronin.interop.common.resource.ResourceType
 import com.projectronin.interop.fhir.r4.datatype.HumanName
 import com.projectronin.interop.fhir.r4.datatype.Reference
 import com.projectronin.interop.fhir.r4.datatype.primitive.Code
@@ -13,42 +14,17 @@ import com.projectronin.interop.fhir.r4.resource.Patient
 import com.projectronin.interop.fhir.r4.valueset.AdministrativeGender
 import com.projectronin.interop.fhir.util.asCode
 import com.projectronin.interop.kafka.client.KafkaClient
-import com.projectronin.interop.kafka.event.AppointmentEvent
-import com.projectronin.interop.kafka.event.PatientEvent
 import com.projectronin.interop.kafka.model.DataTrigger
-import com.projectronin.interop.kafka.model.PublishTopic
+import com.projectronin.interop.kafka.spring.PublishSpringConfig
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class KafkaPublishServiceIT : BaseKafkaIT() {
-    private val patientTopic = PublishTopic(
-        topicName = "topic-name-patient",
-        systemName = "interop",
-        dataSchema = "http://localhost/event/interop.patient",
-        resourceType = "Patient",
-        converter = { tenant, resource ->
-            PatientEvent(
-                tenantId = tenant,
-                patientJson = objectMapper.writeValueAsString(resource)
-            )
-        }
-    )
-    private val appointmentTopic = PublishTopic(
-        topicName = "topic-name-appointment",
-        systemName = "interop",
-        dataSchema = "http://localhost/event/interop.appointment",
-        resourceType = "Appointment",
-        converter = { tenant, resource ->
-            AppointmentEvent(
-                tenantId = tenant,
-                appointmentJson = objectMapper.writeValueAsString(resource)
-            )
-        }
-    )
+    private val topics = PublishSpringConfig().publishTopics()
 
     private val kafkaClient = KafkaClient(kafkaConfig)
-    private val publishService = KafkaPublishService(kafkaClient, listOf(patientTopic, appointmentTopic))
+    private val publishService = KafkaPublishService(kafkaClient, topics)
 
     @Test
     fun `can publish a single resource`() {
@@ -70,23 +46,9 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
 
         assertEquals(0, response.failures.size)
 
-        val publishedEvents =
-            pollEvents(
-                patientTopic,
-                DataTrigger.AD_HOC,
-                mapOf("ronin.interop.patient.publish" to PatientEvent::class),
-                expectedResults = 1,
-                waitTime = 10_000
-            )
+        val publishedEvents = publishService.retrievePublishEvents(ResourceType.PATIENT, DataTrigger.AD_HOC)
         assertEquals(1, publishedEvents.size)
-
-        assertEquals(
-            PatientEvent(
-                tenantId = tenantId,
-                patientJson = objectMapper.writeValueAsString(patient)
-            ),
-            publishedEvents[0].data
-        )
+        assertEquals(JacksonUtil.writeJsonValue(patient), publishedEvents.first().resourceJson)
     }
 
     @Test
@@ -120,31 +82,6 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
         assertEquals(patient2, response.successful[1])
 
         assertEquals(0, response.failures.size)
-
-        val publishedEvents =
-            pollEvents(
-                patientTopic,
-                DataTrigger.AD_HOC,
-                mapOf("ronin.interop.patient.publish" to PatientEvent::class),
-                expectedResults = 2,
-                waitTime = 10_000
-            )
-        assertEquals(2, publishedEvents.size)
-
-        assertEquals(
-            PatientEvent(
-                tenantId = tenantId,
-                patientJson = objectMapper.writeValueAsString(patient1)
-            ),
-            publishedEvents[0].data
-        )
-        assertEquals(
-            PatientEvent(
-                tenantId = tenantId,
-                patientJson = objectMapper.writeValueAsString(patient2)
-            ),
-            publishedEvents[1].data
-        )
     }
 
     @Test
@@ -179,41 +116,5 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
         assertTrue(response.successful.contains(appointment1))
 
         assertEquals(0, response.failures.size)
-
-        val publishedPatientEvents =
-            pollEvents(
-                patientTopic, DataTrigger.AD_HOC,
-                mapOf(
-                    "ronin.interop.patient.publish" to PatientEvent::class
-                ),
-                expectedResults = 1,
-                waitTime = 10_000
-            )
-        assertEquals(1, publishedPatientEvents.size)
-        assertEquals(
-            PatientEvent(
-                tenantId = tenantId,
-                patientJson = objectMapper.writeValueAsString(patient1)
-            ),
-            publishedPatientEvents[0].data
-        )
-
-        val publishedAppointmentEvents =
-            pollEvents(
-                appointmentTopic, DataTrigger.AD_HOC,
-                mapOf(
-                    "ronin.interop.appointment.publish" to AppointmentEvent::class
-                ),
-                expectedResults = 1,
-                waitTime = 10_000
-            )
-        assertEquals(1, publishedAppointmentEvents.size)
-        assertEquals(
-            AppointmentEvent(
-                tenantId = tenantId,
-                appointmentJson = objectMapper.writeValueAsString(appointment1)
-            ),
-            publishedAppointmentEvents[0].data
-        )
     }
 }

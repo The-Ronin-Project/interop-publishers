@@ -1,13 +1,15 @@
 package com.projectronin.interop.kafka
 
+import com.projectronin.event.interop.resource.publish.v1.InteropResourcePublishV1
+import com.projectronin.interop.common.resource.ResourceType
 import com.projectronin.interop.fhir.r4.resource.Resource
 import com.projectronin.interop.kafka.client.KafkaClient
 import com.projectronin.interop.kafka.model.DataTrigger
 import com.projectronin.interop.kafka.model.Failure
 import com.projectronin.interop.kafka.model.KafkaAction
 import com.projectronin.interop.kafka.model.KafkaEvent
-import com.projectronin.interop.kafka.model.PublishResponse
 import com.projectronin.interop.kafka.model.PublishTopic
+import com.projectronin.interop.kafka.model.PushResponse
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 
@@ -18,7 +20,7 @@ import org.springframework.stereotype.Service
 class KafkaPublishService(private val kafkaClient: KafkaClient, topics: List<PublishTopic>) {
     private val logger = KotlinLogging.logger { }
 
-    private val publishTopicsByResourceType = topics.groupBy { it.resourceType.lowercase() }
+    private val publishTopicsByResourceType = topics.groupBy { getTopicKey(it.resourceType, it.dataTrigger) }
 
     /**
      * Publishes the [resources] to the appropriate Kafka topics for [tenantId].
@@ -27,13 +29,13 @@ class KafkaPublishService(private val kafkaClient: KafkaClient, topics: List<Pub
         tenantId: String,
         trigger: DataTrigger,
         resources: List<Resource<*>>
-    ): PublishResponse<Resource<*>> {
-        val resourcesByType = resources.groupBy { it.resourceType.lowercase() }
+    ): PushResponse<Resource<*>> {
+        val resourcesByType = resources.groupBy { it.resourceType }
         val results = resourcesByType.map { (type, resources) ->
-            val publishTopic = publishTopicsByResourceType[type]?.singleOrNull()
+            val publishTopic = getTopic(type, trigger)
             if (publishTopic == null) {
-                logger.error { "Zero or multiple PublishTopics associated to resource type $type" }
-                PublishResponse(
+                logger.error { "No matching PublishTopics associated to resource type $type and trigger $trigger" }
+                PushResponse(
                     failures = resources.map {
                         Failure(
                             it,
@@ -45,32 +47,49 @@ class KafkaPublishService(private val kafkaClient: KafkaClient, topics: List<Pub
                 val events = resources.associateBy {
                     KafkaEvent(
                         domain = publishTopic.systemName,
-                        resource = type,
+                        resource = "resource",
                         action = KafkaAction.PUBLISH,
                         resourceId = it.id!!.value!!,
                         data = publishTopic.converter(tenantId, it)
                     )
                 }
 
-                runCatching { kafkaClient.publishEvents(publishTopic, tenantId, trigger, events.keys.toList()) }.fold(
+                runCatching { kafkaClient.publishEvents(publishTopic, events.keys.toList()) }.fold(
                     onSuccess = { response ->
-                        PublishResponse(
+                        PushResponse(
                             successful = response.successful.map { events[it]!! },
                             failures = response.failures.map { Failure(events[it.data]!!, it.error) }
                         )
                     },
                     onFailure = { exception ->
                         logger.error(exception) { "Exception while attempting to publish events to $publishTopic" }
-                        PublishResponse(
+                        PushResponse(
                             failures = events.map { Failure(it.value, exception) }
                         )
                     }
                 )
             }
         }
-        return PublishResponse(
+        return PushResponse(
             successful = results.flatMap { it.successful },
             failures = results.flatMap { it.failures }
         )
     }
+
+    fun retrievePublishEvents(resourceType: ResourceType, dataTrigger: DataTrigger): List<InteropResourcePublishV1> {
+        val topic = getTopic(resourceType.name, dataTrigger)
+            ?: return emptyList()
+        val typeMap = mapOf("ronin.interop-platform.resource.publish" to InteropResourcePublishV1::class)
+        val events = kafkaClient.retrieveEvents(topic, typeMap)
+        return events.map {
+            it.data as InteropResourcePublishV1
+        }
+    }
+
+    private fun getTopic(resourceType: String, dataTrigger: DataTrigger): PublishTopic? {
+        return publishTopicsByResourceType[getTopicKey(resourceType, dataTrigger)]?.singleOrNull()
+    }
+
+    private fun getTopicKey(resourceType: String, dataTrigger: DataTrigger): Pair<String, DataTrigger> =
+        Pair(resourceType.lowercase(), dataTrigger)
 }

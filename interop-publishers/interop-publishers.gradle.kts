@@ -8,6 +8,7 @@ dependencies {
     implementation(libs.interop.fhir)
     implementation(project(":interop-aidbox"))
     implementation(project(":interop-datalake"))
+    implementation(project(":interop-kafka"))
 
     testImplementation(libs.mockk)
     testImplementation("org.springframework:spring-test")

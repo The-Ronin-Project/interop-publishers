@@ -10,5 +10,6 @@ data class PublishTopic(
     override val topicName: String,
     override val dataSchema: String,
     val resourceType: String,
+    val dataTrigger: DataTrigger,
     val converter: (String, Resource<*>) -> Any
 ) : KafkaTopic
