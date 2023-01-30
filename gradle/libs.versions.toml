@@ -1,9 +1,9 @@
 [libraries]
 commons-codec = "commons-codec:commons-codec:1.15"
 dd-trace-api = "com.datadoghq:dd-trace-api:1.5.0"
-interop-common = "com.projectronin.interop:interop-common:3.2.1"
-interop-commonHttp = "com.projectronin.interop:interop-common-http:3.2.1"
-interop-commonJackson = "com.projectronin.interop:interop-common-jackson:3.2.1"
+interop-common = "com.projectronin.interop:interop-common:3.2.2"
+interop-commonHttp = "com.projectronin.interop:interop-common-http:3.2.2"
+interop-commonJackson = "com.projectronin.interop:interop-common-jackson:3.2.2"
 interop-fhir = "com.projectronin.interop.fhir:interop-fhir:6.0.0"
 junit-pioneer = "org.junit-pioneer:junit-pioneer:1.9.1"
 ktor-client-mock = "io.ktor:ktor-client-mock:2.2.2"
