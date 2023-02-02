@@ -9,7 +9,7 @@ interop-commonJackson = "com.projectronin.interop:interop-common-jackson:3.2.2"
 interop-fhir = "com.projectronin.interop.fhir:interop-fhir:6.1.0"
 
 junit-pioneer = "org.junit-pioneer:junit-pioneer:1.9.1"
-ktor-client-mock = "io.ktor:ktor-client-mock:2.2.2"
+ktor-client-mock = "io.ktor:ktor-client-mock:2.2.3"
 mockk = "io.mockk:mockk:1.13.4"
 mockserver-client-java = "org.mock-server:mockserver-client-java-no-dependencies:5.15.0"
 oci-common = "com.oracle.oci.sdk:oci-java-sdk-common:3.2.3"
