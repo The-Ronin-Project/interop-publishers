@@ -7,7 +7,6 @@ import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Location
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import io.mockk.every
-import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.mockkConstructor
 import io.mockk.mockkStatic
@@ -67,24 +66,24 @@ class DatalakePublishServiceTest {
         val locationFilePathString = filePathString.replace("__RESOURCETYPE__", "location")
         val practitionerFilePathString = filePathString.replace("__RESOURCETYPE__", "practitioner")
         val objectMapper = JacksonManager.objectMapper
-        justRun {
+        every {
             mockClient.uploadToDatalake(
                 locationFilePathString.replace("__FHIRID__", "abc"),
                 objectMapper.writeValueAsString(location1)
             )
-        }
-        justRun {
+        } returns true
+        every {
             mockClient.uploadToDatalake(
                 locationFilePathString.replace("__FHIRID__", "def"),
                 objectMapper.writeValueAsString(location2)
             )
-        }
-        justRun {
+        } returns true
+        every {
             mockClient.uploadToDatalake(
                 practitionerFilePathString.replace("__FHIRID__", "abc"),
                 objectMapper.writeValueAsString(practitioner)
             )
-        }
+        } returns true
         service.publishFHIRR4(tenantId, listOf(location1, location2, practitioner))
         verify(exactly = 3) { mockClient.uploadToDatalake(any(), any()) }
     }
@@ -170,7 +169,7 @@ class DatalakePublishServiceTest {
 
         val filePathString =
             "api-json/schema=GET-customAppointmentByPatient/fhir_tenant_id=mockTenant/_date=1990-01-03/06-07-42-999.json"
-        justRun { mockClient.uploadToDatalake(filePathString, data) }
+        every { mockClient.uploadToDatalake(filePathString, data) } returns true
         service.publishAPIJSON(tenantId, data, "GET", "/custom/AppointmentByPatient")
         verify(exactly = 1) { mockClient.uploadToDatalake(any(), any()) }
     }
@@ -260,7 +259,7 @@ class DatalakePublishServiceTest {
         // messageMDMT02 processes at index 0
         val filePathMDMT02 =
             "hl7v2/message_type=MDM/message_event=MDMT02/fhir_tenant_id=mockTenant/_date=1990-01-03/06-07-42-999-0.json"
-        justRun { mockClient.uploadToDatalake(filePathMDMT02, messageMDMT02) }
+        every { mockClient.uploadToDatalake(filePathMDMT02, messageMDMT02) } returns true
         service.publishHL7v2(tenantId, listOf(messageMDMT02))
         verify(exactly = 1) { mockClient.uploadToDatalake(any(), any()) }
     }
@@ -297,7 +296,7 @@ class DatalakePublishServiceTest {
         // messageBadData is skipped at index 0, MDMT02 processed at index 1
         val filePathMDMT02 =
             "hl7v2/message_type=MDM/message_event=MDMT02/fhir_tenant_id=mockTenant/_date=1990-01-03/06-07-42-999-1.json"
-        justRun { mockClient.uploadToDatalake(filePathMDMT02, messageMDMT02) }
+        every { mockClient.uploadToDatalake(filePathMDMT02, messageMDMT02) } returns true
         val exception = assertThrows<IllegalStateException> {
             service.publishHL7v2(tenantId, listOf(messageBadData, messageMDMT02))
         }
@@ -371,9 +370,9 @@ class DatalakePublishServiceTest {
             .replace("__MESSAGE__", "/message_type=MDM/message_event=MDMT06")
             .replace("__REPLACE__", "06-07-42-999-2")
 
-        justRun { mockClient.uploadToDatalake(filePathMDMT02, messageMDMT02) }
-        justRun { mockClient.uploadToDatalake(filePathADTA01, messageADTA01) }
-        justRun { mockClient.uploadToDatalake(filePathMDMT06, messageMDMT06) }
+        every { mockClient.uploadToDatalake(filePathMDMT02, messageMDMT02) } returns true
+        every { mockClient.uploadToDatalake(filePathADTA01, messageADTA01) } returns true
+        every { mockClient.uploadToDatalake(filePathMDMT06, messageMDMT06) } returns true
         val exception = assertThrows<IllegalStateException> {
             service.publishHL7v2(tenantId, listOf(messageMDMT02, messageADTA01, messageMDMT06))
         }

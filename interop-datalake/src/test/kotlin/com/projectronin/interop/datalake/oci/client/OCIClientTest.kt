@@ -1,6 +1,7 @@
 package com.projectronin.interop.datalake.oci.client
 
 import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider.SimpleAuthenticationDetailsProviderBuilder
+import com.oracle.bmc.model.BmcException
 import com.oracle.bmc.objectstorage.ObjectStorageClient
 import com.oracle.bmc.objectstorage.requests.GetObjectRequest
 import com.oracle.bmc.objectstorage.requests.PutObjectRequest
@@ -13,9 +14,12 @@ import io.mockk.spyk
 import io.mockk.unmockkAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.Base64
 
 class OCIClientTest {
@@ -112,7 +116,9 @@ class OCIClientTest {
         }
         every { anyConstructed<PutObjectRequest.Builder>().objectName("test") } returns mockBuilder
 
-        val mockResponse = mockk<PutObjectResponse> {}
+        val mockResponse = mockk<PutObjectResponse> {
+            every { __httpStatusCode__ } returns 200
+        }
         val mockObjectStorageClient = mockk<ObjectStorageClient> {
             every { putObject(mockRequest) } returns mockResponse
         }
@@ -120,7 +126,101 @@ class OCIClientTest {
         val client = spyk(testClient)
         every { client getProperty "client" } returns mockObjectStorageClient
         every { client.uploadToDatalake("test", "content") } answers { callOriginal() }
-        assertNotNull(client.uploadToDatalake("test", "content"))
+        assertTrue(client.uploadToDatalake("test", "content"))
+    }
+
+    @Test
+    fun `put object - returns false for failure`() {
+        val mockRequest = mockk<PutObjectRequest> {}
+        mockkConstructor(PutObjectRequest.Builder::class)
+        val mockBuilder = mockk<PutObjectRequest.Builder> {
+            every { namespaceName("namespace") } returns this
+            every { bucketName("datalakebucket") } returns this
+            every { putObjectBody(any()) } returns this
+            every { build() } returns mockRequest
+        }
+        every { anyConstructed<PutObjectRequest.Builder>().objectName("test") } returns mockBuilder
+
+        val mockResponse = mockk<PutObjectResponse> {
+            every { __httpStatusCode__ } returns 404
+        }
+        val mockObjectStorageClient = mockk<ObjectStorageClient> {
+            every { putObject(mockRequest) } returns mockResponse
+        }
+
+        val client = spyk(testClient)
+        every { client getProperty "client" } returns mockObjectStorageClient
+        every { client.uploadToDatalake("test", "content") } answers { callOriginal() }
+        assertFalse(client.uploadToDatalake("test", "content"))
+    }
+
+    @Test
+    fun `put object retries on failure`() {
+        val mockRequest = mockk<PutObjectRequest> {}
+        mockkConstructor(PutObjectRequest.Builder::class)
+        val mockBuilder = mockk<PutObjectRequest.Builder> {
+            every { namespaceName("namespace") } returns this
+            every { bucketName("datalakebucket") } returns this
+            every { putObjectBody(any()) } returns this
+            every { build() } returns mockRequest
+        }
+        every { anyConstructed<PutObjectRequest.Builder>().objectName("test") } returns mockBuilder
+
+        val mockResponse = mockk<PutObjectResponse> {
+            every { __httpStatusCode__ } returns 200
+        }
+        val mockObjectStorageClient = mockk<ObjectStorageClient> {
+            every { putObject(mockRequest) } throws BmcException(-1, "", "", "") andThen mockResponse
+        }
+
+        val client = spyk(testClient)
+        every { client getProperty "client" } returns mockObjectStorageClient
+        every { client.uploadToDatalake("test", "content") } answers { callOriginal() }
+        assertTrue(client.uploadToDatalake("test", "content"))
+    }
+
+    @Test
+    fun `put object retries on failure and then throws error`() {
+        val mockRequest = mockk<PutObjectRequest> {}
+        mockkConstructor(PutObjectRequest.Builder::class)
+        val mockBuilder = mockk<PutObjectRequest.Builder> {
+            every { namespaceName("namespace") } returns this
+            every { bucketName("datalakebucket") } returns this
+            every { putObjectBody(any()) } returns this
+            every { build() } returns mockRequest
+        }
+        every { anyConstructed<PutObjectRequest.Builder>().objectName("test") } returns mockBuilder
+
+        val mockObjectStorageClient = mockk<ObjectStorageClient> {
+            every { putObject(mockRequest) } throws BmcException(-1, "", "", "")
+        }
+
+        val client = spyk(testClient)
+        every { client getProperty "client" } returns mockObjectStorageClient
+        every { client.uploadToDatalake("test", "content") } answers { callOriginal() }
+        assertThrows<BmcException> { (client.uploadToDatalake("test", "content")) }
+    }
+
+    @Test
+    fun `put object doesn't retry in case that doesn't actually happen`() {
+        val mockRequest = mockk<PutObjectRequest> {}
+        mockkConstructor(PutObjectRequest.Builder::class)
+        val mockBuilder = mockk<PutObjectRequest.Builder> {
+            every { namespaceName("namespace") } returns this
+            every { bucketName("datalakebucket") } returns this
+            every { putObjectBody(any()) } returns this
+            every { build() } returns mockRequest
+        }
+        every { anyConstructed<PutObjectRequest.Builder>().objectName("test") } returns mockBuilder
+
+        val mockObjectStorageClient = mockk<ObjectStorageClient> {
+            every { putObject(mockRequest) } throws BmcException(200, "", "", "")
+        }
+
+        val client = spyk(testClient)
+        every { client getProperty "client" } returns mockObjectStorageClient
+        every { client.uploadToDatalake("test", "content") } answers { callOriginal() }
+        assertFalse((client.uploadToDatalake("test", "content")))
     }
 
     @AfterEach

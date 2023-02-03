@@ -8,6 +8,7 @@ dependencies {
     implementation(libs.interop.common)
     implementation(libs.interop.commonJackson)
     implementation(libs.interop.fhir)
+    implementation(libs.kotlinx.coroutines.core)
     implementation(libs.oci.common)
     implementation(libs.oci.objectstorage)
     implementation(libs.oci.http.client)

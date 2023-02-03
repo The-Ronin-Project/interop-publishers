@@ -2,9 +2,12 @@ package com.projectronin.interop.datalake.oci.client
 
 import com.oracle.bmc.Region
 import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider
+import com.oracle.bmc.model.BmcException
 import com.oracle.bmc.objectstorage.ObjectStorageClient
 import com.oracle.bmc.objectstorage.requests.GetObjectRequest
 import com.oracle.bmc.objectstorage.requests.PutObjectRequest
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.io.ByteArrayInputStream
@@ -55,22 +58,39 @@ class OCIClient(
 
     /**
      * Upload the string found in [data] to [fileName] to the datalake bucket
+     *  Returns true if it was successful
      */
-    fun uploadToDatalake(fileName: String, data: String) {
-        upload(datalakeBucket, fileName, data)
+    fun uploadToDatalake(fileName: String, data: String): Boolean {
+        return upload(datalakeBucket, fileName, data)
     }
 
     /**
      * Upload the string found in [data] to [fileName]
+     * Returns true if it was successful
      */
-    fun upload(bucket: String, fileName: String, data: String) {
+    fun upload(bucket: String, fileName: String, data: String): Boolean {
         val putObjectRequest = PutObjectRequest.builder()
             .objectName(fileName)
             .putObjectBody(ByteArrayInputStream(data.toByteArray()))
             .namespaceName(namespace)
             .bucketName(bucket)
             .build()
-        client.putObject(putObjectRequest)
+
+        // OCI JDK natively supports retrying, but errors occasionally when something unexpected happens
+        // https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/javasdkconcepts.htm
+
+        val responseStatusCode = try {
+            client.putObject(putObjectRequest).__httpStatusCode__
+            // client side exception in the OCI JDK
+        } catch (bmcException: BmcException) {
+            if (bmcException.statusCode == -1) {
+                runBlocking { delay(5000) }
+                client.putObject(putObjectRequest).__httpStatusCode__
+            } else {
+                null
+            }
+        }
+        return responseStatusCode in (200..202)
     }
 
     /**
