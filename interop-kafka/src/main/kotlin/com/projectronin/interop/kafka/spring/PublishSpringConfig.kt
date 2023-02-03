@@ -12,39 +12,63 @@ class PublishSpringConfig {
 
     @Bean
     fun publishTopics(): List<PublishTopic> {
-        val system = "interop-platform"
-
-        return listOf(
-            PublishTopic(
-                systemName = system,
-                topicName = "azure.centralus.interop-platform.patient-publish-nightly.v1",
-                dataSchema = "https://github.com/projectronin/contract-event-interop-resource-publish/blob/main/v1/resource-publish-v1.schema.json",
-                resourceType = "Patient",
-                dataTrigger = DataTrigger.NIGHTLY,
-                converter = { tenant, resource ->
-                    InteropResourcePublishV1(
-                        tenantId = tenant,
-                        resourceJson = objectMapper.writeValueAsString(resource),
-                        resourceType = resource.resourceType,
-                        dataTrigger = InteropResourcePublishV1.DataTrigger.nightly
-                    )
-                }
-            ),
-            PublishTopic(
-                systemName = system,
-                topicName = "azure.centralus.interop-platform.patient-publish-adhoc.v1",
-                dataSchema = "https://github.com/projectronin/contract-event-interop-resource-publish/blob/main/v1/resource-publish-v1.schema.json",
-                resourceType = "Patient",
-                dataTrigger = DataTrigger.AD_HOC,
-                converter = { tenant, resource ->
-                    InteropResourcePublishV1(
-                        tenantId = tenant,
-                        resourceJson = objectMapper.writeValueAsString(resource),
-                        resourceType = resource.resourceType,
-                        dataTrigger = InteropResourcePublishV1.DataTrigger.adhoc
-                    )
-                }
-            )
+        val supportedResources = listOf(
+            "Patient",
+            "Binary",
+            "Practitioner",
+            "Appointment",
+            "CarePlan",
+            "CareTeam",
+            "Communication",
+            "Condition",
+            "DocumentReference",
+            "Location",
+            "Medication",
+            "MedicationRequest",
+            "MedicationStatement",
+            "Observation",
+            "Organization",
+            "PractitionerRole"
         )
+        return supportedResources.map {
+            generateTopics(it)
+        }.flatten()
+    }
+
+    fun generateTopics(resourceType: String): List<PublishTopic> {
+        val system = "interop-platform"
+        val nightlyTopic = PublishTopic(
+            systemName = system,
+            topicName = "azure.centralus.interop-platform.${resourceType.lowercase()}-publish-nightly.v1",
+            dataSchema = "https://github.com/projectronin/contract-event-interop-resource-publish/blob/main/v1/resource-publish-v1.schema.json",
+            resourceType = resourceType,
+            dataTrigger = DataTrigger.NIGHTLY,
+            converter = { tenant, resource ->
+                InteropResourcePublishV1(
+                    tenantId = tenant,
+                    resourceJson = objectMapper.writeValueAsString(resource),
+                    resourceType = resource.resourceType,
+                    dataTrigger = InteropResourcePublishV1.DataTrigger.nightly
+                )
+            }
+        )
+
+        val adHocTopic = PublishTopic(
+            systemName = system,
+            topicName = "azure.centralus.interop-platform.${resourceType.lowercase()}-publish-adhoc.v1",
+            dataSchema = "https://github.com/projectronin/contract-event-interop-resource-publish/blob/main/v1/resource-publish-v1.schema.json",
+            resourceType = resourceType,
+            dataTrigger = DataTrigger.AD_HOC,
+            converter = { tenant, resource ->
+                InteropResourcePublishV1(
+                    tenantId = tenant,
+                    resourceJson = objectMapper.writeValueAsString(resource),
+                    resourceType = resource.resourceType,
+                    dataTrigger = InteropResourcePublishV1.DataTrigger.adhoc
+                )
+            }
+        )
+
+        return listOf(nightlyTopic, adHocTopic)
     }
 }

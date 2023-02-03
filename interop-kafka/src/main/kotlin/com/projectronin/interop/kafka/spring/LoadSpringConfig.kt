@@ -9,15 +9,35 @@ class LoadSpringConfig {
 
     @Bean
     fun loadTopics(): List<LoadTopic> {
-        val system = "interop-platform"
+        val supportedResources = listOf(
+            "Patient",
+            "Binary",
+            "Practitioner",
+            "Appointment",
+            "CarePlan",
+            "CareTeam",
+            "Communication",
+            "Condition",
+            "DocumentReference",
+            "Location",
+            "Medication",
+            "MedicationRequest",
+            "MedicationStatement",
+            "Observation",
+            "Organization",
+            "PractitionerRole"
+        )
+        return supportedResources.map {
+            generateTopics(it)
+        }
+    }
 
-        return listOf(
-            LoadTopic(
-                systemName = system,
-                topicName = "azure.centralus.interop-platform.patient-load.v1",
-                dataSchema = "https://github.com/projectronin/contract-event-interop-resource-load/blob/main/v1/resource-load-v1.schema.json",
-                resourceType = "Patient"
-            )
+    fun generateTopics(resourceType: String): LoadTopic {
+        return LoadTopic(
+            systemName = "interop-platform",
+            topicName = "azure.centralus.interop-platform.${resourceType.lowercase()}-load.v1",
+            dataSchema = "https://github.com/projectronin/contract-event-interop-resource-load/blob/main/v1/resource-load-v1.schema.json",
+            resourceType = resourceType
         )
     }
 }
