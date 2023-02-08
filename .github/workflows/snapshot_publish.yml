@@ -1,7 +1,7 @@
 name: Publish Snapshots to Nexus
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   publish:

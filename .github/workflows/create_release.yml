@@ -6,7 +6,7 @@ on:
         description: 'Branch to release'
         type: string
         required: true
-        default: 'master'
+        default: 'main'
       version:
         description: 'Specific version to release as. Leave unset if discoverable'
         type: string
