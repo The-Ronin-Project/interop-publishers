@@ -32,13 +32,13 @@ import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Appointment
 import com.projectronin.interop.fhir.r4.resource.AvailableTime
-import com.projectronin.interop.fhir.r4.resource.Communication
 import com.projectronin.interop.fhir.r4.resource.Location
 import com.projectronin.interop.fhir.r4.resource.LocationHoursOfOperation
 import com.projectronin.interop.fhir.r4.resource.LocationPosition
 import com.projectronin.interop.fhir.r4.resource.NotAvailable
 import com.projectronin.interop.fhir.r4.resource.Participant
 import com.projectronin.interop.fhir.r4.resource.Patient
+import com.projectronin.interop.fhir.r4.resource.PatientCommunication
 import com.projectronin.interop.fhir.r4.resource.PatientContact
 import com.projectronin.interop.fhir.r4.resource.PatientLink
 import com.projectronin.interop.fhir.r4.resource.Practitioner
@@ -501,7 +501,7 @@ class AidboxPublishServiceIntegrationTest : BaseAidboxTest() {
             multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2),
             photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
             contact = listOf(PatientContact(name = HumanName(text = "Jane Doe".asFHIR()))),
-            communication = listOf(Communication(language = CodeableConcept(text = "English".asFHIR()))),
+            communication = listOf(PatientCommunication(language = CodeableConcept(text = "English".asFHIR()))),
             generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones".asFHIR())),
             managingOrganization = Reference(display = "organization".asFHIR()),
             link = listOf(
@@ -865,7 +865,7 @@ class AidboxPublishServiceIntegrationTest : BaseAidboxTest() {
             multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2),
             photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
             contact = listOf(PatientContact(name = HumanName(text = "Jane Doe".asFHIR()))),
-            communication = listOf(Communication(language = CodeableConcept(text = "English".asFHIR()))),
+            communication = listOf(PatientCommunication(language = CodeableConcept(text = "English".asFHIR()))),
             generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones".asFHIR())),
             managingOrganization = Reference(display = "organization".asFHIR()),
             link = listOf(
@@ -1092,7 +1092,7 @@ class AidboxPublishServiceIntegrationTest : BaseAidboxTest() {
             multipleBirth = DynamicValue(type = DynamicValueType.INTEGER, value = 2),
             photo = listOf(Attachment(contentType = Code("text"), data = Base64Binary("abcd"))),
             contact = listOf(PatientContact(name = HumanName(text = "Jane Doe".asFHIR()))),
-            communication = listOf(Communication(language = CodeableConcept(text = "English".asFHIR()))),
+            communication = listOf(PatientCommunication(language = CodeableConcept(text = "English".asFHIR()))),
             generalPractitioner = listOf(Reference(reference = "Practitioner/${idPrefix}cmjones".asFHIR())),
             managingOrganization = Reference(display = "organization".asFHIR()),
             link = listOf(
