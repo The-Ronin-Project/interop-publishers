@@ -9,8 +9,7 @@ import com.projectronin.kafka.RoninProducer
 import com.projectronin.kafka.data.RoninEvent
 import com.projectronin.kafka.data.RoninEventResult
 import org.springframework.stereotype.Component
-import java.util.Timer
-import kotlin.concurrent.schedule
+import java.time.Duration
 import kotlin.reflect.KClass
 
 /**
@@ -46,15 +45,29 @@ class KafkaClient(private val kafkaConfig: KafkaConfig) {
         topic: KafkaTopic,
         typeMap: Map<String, KClass<*>>,
         groupId: String? = null,
+        duration: Duration = Duration.ofMillis(5000),
+        limit: Int = 100000
     ): List<RoninEvent<*>> {
         val messageList = mutableListOf<RoninEvent<*>>()
         val consumer = createConsumer(topic, typeMap, kafkaConfig, groupId)
-        Timer("poll").schedule(5000) {
-            consumer.stop() // stop processing if 5 seconds have passed
-        }
-        consumer.process {
+
+        // initial poll, will return immediately if events exist. Otherwise waits for [duration]
+        consumer.pollOnce(duration) {
             messageList.add(it)
             RoninEventResult.ACK
+        }
+        if (messageList.isNotEmpty()) {
+            // keep pulling events in case they are still arriving when the initial poll returns
+            var gotMessage = true
+            while (gotMessage) {
+                gotMessage = false
+                if (messageList.size >= limit) break
+                consumer.pollOnce(Duration.ofMillis(500)) {
+                    gotMessage = true
+                    messageList.add(it)
+                    RoninEventResult.ACK
+                }
+            }
         }
         consumer.unsubscribe()
         return messageList

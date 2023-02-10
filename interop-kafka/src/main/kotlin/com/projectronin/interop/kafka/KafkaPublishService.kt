@@ -12,6 +12,7 @@ import com.projectronin.interop.kafka.model.PublishTopic
 import com.projectronin.interop.kafka.model.PushResponse
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
+import java.time.Duration
 
 /**
  * Service responsible for publishing various events to Kafka.
@@ -76,10 +77,24 @@ class KafkaPublishService(private val kafkaClient: KafkaClient, topics: List<Pub
         )
     }
 
-    fun retrievePublishEvents(resourceType: ResourceType, dataTrigger: DataTrigger, groupId: String? = null): List<InteropResourcePublishV1> {
+    /**
+     * Grabs Publish-style events from Kafka.
+     * If [justClear] is set, will simply drain the current events (useful for testing).
+     */
+    fun retrievePublishEvents(
+        resourceType: ResourceType,
+        dataTrigger: DataTrigger,
+        groupId: String? = null,
+        justClear: Boolean = false
+    ): List<InteropResourcePublishV1> {
         val topic = getTopic(resourceType.name, dataTrigger)
             ?: return emptyList()
         val typeMap = mapOf("ronin.interop-platform.resource.publish" to InteropResourcePublishV1::class)
+        if (justClear) {
+            // shorter wait time because you are assuming events are there or not, no waiting
+            kafkaClient.retrieveEvents(topic, typeMap, groupId, Duration.ofMillis(500))
+            return emptyList()
+        }
         val events = kafkaClient.retrieveEvents(topic, typeMap, groupId)
         return events.map {
             it.data as InteropResourcePublishV1

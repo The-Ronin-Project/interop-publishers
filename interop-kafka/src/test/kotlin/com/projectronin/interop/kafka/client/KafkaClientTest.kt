@@ -326,13 +326,13 @@ class KafkaClientTest {
         mockkStatic(::createConsumer)
         val mockConsumer = mockk<RoninConsumer>()
         every { createConsumer(any(), any(), any()) } returns mockConsumer
-        every { mockConsumer.process(handler = captureLambda()) } answers {
+        every { mockConsumer.pollOnce(timeout = any(), handler = captureLambda()) } answers {
             lambda<(RoninEvent<*>) -> RoninEventResult>().invoke(mockEvent)
         }
         every { mockConsumer.stop() } just Runs
         every { mockConsumer.unsubscribe() } just Runs
         val client = KafkaClient(kafkaConfig)
-        val ret = client.retrieveEvents(mockk(), mapOf())
+        val ret = client.retrieveEvents(topic = mockk(), typeMap = mapOf(), limit = 1)
         assertEquals(ret.size, 1)
         unmockkStatic(::createConsumer)
     }
@@ -350,13 +350,13 @@ class KafkaClientTest {
         mockkStatic(::createConsumer)
         val mockConsumer = mockk<RoninConsumer>()
         every { createConsumer(any(), any(), any(), "override!") } returns mockConsumer
-        every { mockConsumer.process(handler = captureLambda()) } answers {
+        every { mockConsumer.pollOnce(timeout = any(), handler = captureLambda()) } answers {
             lambda<(RoninEvent<*>) -> RoninEventResult>().invoke(mockEvent)
         }
         every { mockConsumer.stop() } just Runs
         every { mockConsumer.unsubscribe() } just Runs
         val client = KafkaClient(kafkaConfig)
-        val ret = client.retrieveEvents(mockk(), mapOf(), "override!")
+        val ret = client.retrieveEvents(topic = mockk(), typeMap = mapOf(), groupId = "override!", limit = 1)
         assertEquals(ret.size, 1)
         unmockkStatic(::createConsumer)
     }

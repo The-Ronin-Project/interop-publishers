@@ -38,7 +38,7 @@ fun createConsumer(
     topic: KafkaTopic,
     typeMap: Map<String, KClass<*>>,
     kafkaConfig: KafkaConfig,
-    overriddenGroupId: String? = kafkaConfig.retrieve.groupId
+    overriddenGroupId: String? = null
 ): RoninConsumer {
     val kafkaProperties = kafkaConfig.properties
     val consumerProperties = RoninConsumerKafkaProperties(
@@ -46,7 +46,7 @@ fun createConsumer(
         "security.protocol" to kafkaProperties.security.protocol,
         "sasl.mechanism" to kafkaProperties.sasl.mechanism,
         "sasl.jaas.config" to kafkaProperties.sasl.jaas.config,
-        "group.id" to overriddenGroupId
+        "group.id" to (overriddenGroupId ?: kafkaConfig.retrieve.groupId)
     )
     return RoninConsumer(
         topics = listOf(topic.topicName),
