@@ -27,6 +27,7 @@ data class KafkaPublishConfig(
 )
 
 data class KafkaRetrieveConfig(
+    // default group ID
     val groupId: String
 )
 

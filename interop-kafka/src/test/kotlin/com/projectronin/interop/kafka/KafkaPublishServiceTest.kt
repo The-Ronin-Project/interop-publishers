@@ -461,4 +461,17 @@ class KafkaPublishServiceTest {
         val ret = service.retrievePublishEvents(ResourceType.PATIENT, DataTrigger.AD_HOC)
         assertEquals(emptyList<InteropResourcePublishV1>(), ret)
     }
+
+    @Test
+    fun `retrieve events works with new group ID`() {
+        val publishEvent = InteropResourcePublishV1(
+            tenantId = tenantId,
+            resourceType = "Patient",
+            dataTrigger = InteropResourcePublishV1.DataTrigger.nightly,
+            resourceJson = "json"
+        )
+        every { kafkaClient.retrieveEvents(any(), any(), "override") } returns listOf(mockk { every { data } returns publishEvent })
+        val ret = service.retrievePublishEvents(ResourceType.PATIENT, DataTrigger.NIGHTLY, "override")
+        assertEquals(publishEvent, ret.first())
+    }
 }

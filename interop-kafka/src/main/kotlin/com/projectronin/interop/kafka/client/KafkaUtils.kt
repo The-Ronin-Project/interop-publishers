@@ -9,7 +9,7 @@ import com.projectronin.kafka.config.RoninProducerKafkaProperties
 import kotlin.reflect.KClass
 
 /**
- * Creates a [RoninProducer] capable of publishing to the Kafka [topic] represented by [topicName].
+ * Creates a [RoninProducer] capable of publishing to the [KafkaTopic] represented by [topic].
  */
 fun createProducer(
     topic: KafkaTopic,
@@ -31,12 +31,14 @@ fun createProducer(
 }
 
 /**
- * Creates a [RoninConsumer] capable of publishing to the Kafka [topic] represented by [topicName].
+ * Creates a [RoninConsumer] capable of publishing to the [KafkaTopic] represented by [topic],
+ * allows for consumer group to be overridden with [overriddenGroupId].
  */
 fun createConsumer(
     topic: KafkaTopic,
     typeMap: Map<String, KClass<*>>,
     kafkaConfig: KafkaConfig,
+    overriddenGroupId: String? = kafkaConfig.retrieve.groupId
 ): RoninConsumer {
     val kafkaProperties = kafkaConfig.properties
     val consumerProperties = RoninConsumerKafkaProperties(
@@ -44,7 +46,7 @@ fun createConsumer(
         "security.protocol" to kafkaProperties.security.protocol,
         "sasl.mechanism" to kafkaProperties.sasl.mechanism,
         "sasl.jaas.config" to kafkaProperties.sasl.jaas.config,
-        "group.id" to kafkaConfig.retrieve.groupId
+        "group.id" to overriddenGroupId
     )
     return RoninConsumer(
         topics = listOf(topic.topicName),

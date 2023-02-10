@@ -336,4 +336,28 @@ class KafkaClientTest {
         assertEquals(ret.size, 1)
         unmockkStatic(::createConsumer)
     }
+
+    @Test
+    fun `retrieve events works with overridden group`() {
+        val mockEvent = mockk<RoninEvent<InteropResourcePublishV1>>()
+        every { mockEvent.data } returns InteropResourcePublishV1(
+            "TENANT",
+            "Patient",
+            InteropResourcePublishV1.DataTrigger.nightly,
+            resourceJson = "json"
+        )
+        every { mockEvent.id } returns "messageID"
+        mockkStatic(::createConsumer)
+        val mockConsumer = mockk<RoninConsumer>()
+        every { createConsumer(any(), any(), any(), "override!") } returns mockConsumer
+        every { mockConsumer.process(handler = captureLambda()) } answers {
+            lambda<(RoninEvent<*>) -> RoninEventResult>().invoke(mockEvent)
+        }
+        every { mockConsumer.stop() } just Runs
+        every { mockConsumer.unsubscribe() } just Runs
+        val client = KafkaClient(kafkaConfig)
+        val ret = client.retrieveEvents(mockk(), mapOf(), "override!")
+        assertEquals(ret.size, 1)
+        unmockkStatic(::createConsumer)
+    }
 }

@@ -76,11 +76,11 @@ class KafkaPublishService(private val kafkaClient: KafkaClient, topics: List<Pub
         )
     }
 
-    fun retrievePublishEvents(resourceType: ResourceType, dataTrigger: DataTrigger): List<InteropResourcePublishV1> {
+    fun retrievePublishEvents(resourceType: ResourceType, dataTrigger: DataTrigger, groupId: String? = null): List<InteropResourcePublishV1> {
         val topic = getTopic(resourceType.name, dataTrigger)
             ?: return emptyList()
         val typeMap = mapOf("ronin.interop-platform.resource.publish" to InteropResourcePublishV1::class)
-        val events = kafkaClient.retrieveEvents(topic, typeMap)
+        val events = kafkaClient.retrieveEvents(topic, typeMap, groupId)
         return events.map {
             it.data as InteropResourcePublishV1
         }

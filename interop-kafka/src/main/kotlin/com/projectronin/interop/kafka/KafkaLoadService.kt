@@ -77,10 +77,10 @@ class KafkaLoadService(private val kafkaClient: KafkaClient, topics: List<LoadTo
         }
     }
 
-    fun retrieveLoadEvents(resourceType: ResourceType): List<InteropResourceLoadV1> {
+    fun retrieveLoadEvents(resourceType: ResourceType, groupId: String? = null): List<InteropResourceLoadV1> {
         val topic = getTopic(resourceType) ?: return emptyList()
         val typeMap = mapOf("ronin.interop-platform.resource.load" to InteropResourceLoadV1::class)
-        val events = kafkaClient.retrieveEvents(topic, typeMap)
+        val events = kafkaClient.retrieveEvents(topic, typeMap, groupId)
         return events.map {
             it.data as InteropResourceLoadV1
         }

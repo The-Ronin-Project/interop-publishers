@@ -1,7 +1,6 @@
 package com.projectronin.interop.kafka
 
 import com.projectronin.event.interop.resource.load.v1.InteropResourceLoadV1
-import com.projectronin.event.interop.resource.publish.v1.InteropResourcePublishV1
 import com.projectronin.interop.common.resource.ResourceType
 import com.projectronin.interop.kafka.client.KafkaClient
 import com.projectronin.interop.kafka.model.DataTrigger
@@ -148,6 +147,19 @@ class KafkaLoadServiceTest {
         )
         every { kafkaClient.retrieveEvents(any(), any()) } returns listOf(mockk { every { data } returns loadData })
         val ret = service.retrieveLoadEvents(ResourceType.PRACTITIONER)
-        assertEquals(emptyList<InteropResourcePublishV1>(), ret)
+        assertEquals(emptyList<InteropResourceLoadV1>(), ret)
+    }
+
+    @Test
+    fun `retrieve events works with new group ID`() {
+        val loadData = InteropResourceLoadV1(
+            tenantId = tenantId,
+            resourceFHIRId = "1234",
+            resourceType = "PATIENT",
+            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly
+        )
+        every { kafkaClient.retrieveEvents(any(), any(), "override") } returns listOf(mockk { every { data } returns loadData })
+        val ret = service.retrieveLoadEvents(ResourceType.PATIENT, "override")
+        assertEquals(loadData, ret.first())
     }
 }

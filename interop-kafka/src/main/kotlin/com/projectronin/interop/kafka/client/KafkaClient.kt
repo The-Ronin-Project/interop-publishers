@@ -45,9 +45,10 @@ class KafkaClient(private val kafkaConfig: KafkaConfig) {
     fun retrieveEvents(
         topic: KafkaTopic,
         typeMap: Map<String, KClass<*>>,
+        groupId: String? = null,
     ): List<RoninEvent<*>> {
         val messageList = mutableListOf<RoninEvent<*>>()
-        val consumer = createConsumer(topic, typeMap, kafkaConfig)
+        val consumer = createConsumer(topic, typeMap, kafkaConfig, groupId)
         Timer("poll").schedule(5000) {
             consumer.stop() // stop processing if 5 seconds have passed
         }
