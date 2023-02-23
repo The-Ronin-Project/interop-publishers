@@ -21,7 +21,7 @@ class DatalakePublishService(private val ociClient: OCIClient, private val taskE
     private val logger = KotlinLogging.logger { }
 
     /**
-     * Publishes serialized FHIR R4 resources to the Azure datalake.
+     * Publishes serialized FHIR R4 resources to the OCI datalake.
      *
      * Gets the resourceType and resourceId from the FHIR R4 resource content.
      * A resourceType is a name defined by the FHIR spec. Examples: Patient, Practitioner, Condition, Observation, etc.
