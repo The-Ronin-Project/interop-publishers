@@ -1,6 +1,6 @@
 [libraries]
 commons-codec = "commons-codec:commons-codec:1.15"
-dd-trace-api = "com.datadoghq:dd-trace-api:1.8.3"
+dd-trace-api = "com.datadoghq:dd-trace-api:1.9.0"
 
 interop-common = "com.projectronin.interop:interop-common:3.3.0"
 interop-commonHttp = "com.projectronin.interop:interop-common-http:3.3.0"
