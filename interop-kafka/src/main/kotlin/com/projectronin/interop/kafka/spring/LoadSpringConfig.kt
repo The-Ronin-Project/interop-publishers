@@ -18,6 +18,7 @@ class LoadSpringConfig {
             "CareTeam",
             "Communication",
             "Condition",
+            "Encounter",
             "DocumentReference",
             "Location",
             "Medication",

@@ -22,6 +22,7 @@ class PublishSpringConfig {
             "Communication",
             "Condition",
             "DocumentReference",
+            "Encounter",
             "Location",
             "Medication",
             "MedicationRequest",

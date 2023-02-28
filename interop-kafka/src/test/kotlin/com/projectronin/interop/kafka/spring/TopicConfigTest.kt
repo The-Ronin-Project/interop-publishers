@@ -17,6 +17,7 @@ class TopicConfigTest {
             "Communication",
             "Condition",
             "DocumentReference",
+            "Encounter",
             "Location",
             "Medication",
             "MedicationRequest",
