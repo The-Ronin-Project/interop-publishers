@@ -9,7 +9,9 @@ import com.projectronin.interop.kafka.model.KafkaAction
 import com.projectronin.interop.kafka.model.KafkaEvent
 import com.projectronin.interop.kafka.model.LoadTopic
 import com.projectronin.interop.kafka.model.PushResponse
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -55,6 +57,12 @@ class KafkaLoadServiceTest {
                 ResourceType.PATIENT
             )
         }
+    }
+
+    @Test
+    fun `delete topic test`() {
+        every { kafkaClient.deleteTopics(any()) } just Runs
+        assertDoesNotThrow { service.deleteAllLoadTopics() }
     }
 
     @Test

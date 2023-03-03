@@ -15,18 +15,21 @@ fun createProducer(
     topic: KafkaTopic,
     kafkaConfig: KafkaConfig
 ): RoninProducer {
-    val kafkaProperties = kafkaConfig.properties
-    val producerProperties = RoninProducerKafkaProperties(
-        "bootstrap.servers" to kafkaConfig.bootstrap.servers,
-        "security.protocol" to kafkaProperties.security.protocol,
-        "sasl.mechanism" to kafkaProperties.sasl.mechanism,
-        "sasl.jaas.config" to kafkaProperties.sasl.jaas.config
-    )
     return RoninProducer(
         topic = topic.topicName,
         source = kafkaConfig.publish.source,
         dataSchema = topic.dataSchema,
-        kafkaProperties = producerProperties
+        kafkaProperties = createProducerProperties(kafkaConfig)
+    )
+}
+
+fun createProducerProperties(kafkaConfig: KafkaConfig): RoninProducerKafkaProperties {
+    val kafkaProperties = kafkaConfig.properties
+    return RoninProducerKafkaProperties(
+        "bootstrap.servers" to kafkaConfig.bootstrap.servers,
+        "security.protocol" to kafkaProperties.security.protocol,
+        "sasl.mechanism" to kafkaProperties.sasl.mechanism,
+        "sasl.jaas.config" to kafkaProperties.sasl.jaas.config
     )
 }
 

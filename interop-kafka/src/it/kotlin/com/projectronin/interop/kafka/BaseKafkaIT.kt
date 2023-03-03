@@ -2,6 +2,7 @@ package com.projectronin.interop.kafka
 
 import com.projectronin.interop.kafka.model.DataTrigger
 import com.projectronin.interop.kafka.model.PublishTopic
+import com.projectronin.interop.kafka.spring.AdminWrapper
 import com.projectronin.interop.kafka.spring.KafkaBootstrapConfig
 import com.projectronin.interop.kafka.spring.KafkaCloudConfig
 import com.projectronin.interop.kafka.spring.KafkaConfig
@@ -52,6 +53,8 @@ abstract class BaseKafkaIT {
         ),
         retrieve = KafkaRetrieveConfig("groupID")
     )
+
+    protected val kafkaAdmin = AdminWrapper(kafkaConfig)
 
     protected fun pollEvents(
         topic: PublishTopic,

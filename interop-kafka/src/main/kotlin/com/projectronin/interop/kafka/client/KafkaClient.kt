@@ -4,6 +4,7 @@ import com.projectronin.interop.kafka.model.Failure
 import com.projectronin.interop.kafka.model.KafkaEvent
 import com.projectronin.interop.kafka.model.KafkaTopic
 import com.projectronin.interop.kafka.model.PushResponse
+import com.projectronin.interop.kafka.spring.AdminWrapper
 import com.projectronin.interop.kafka.spring.KafkaConfig
 import com.projectronin.kafka.RoninProducer
 import com.projectronin.kafka.data.RoninEvent
@@ -16,7 +17,7 @@ import kotlin.reflect.KClass
  * Client for managing communication with Kafka.
  */
 @Component
-class KafkaClient(private val kafkaConfig: KafkaConfig) {
+class KafkaClient(private val kafkaConfig: KafkaConfig, private val kafkaAdmin: AdminWrapper) {
     private val producersByTopicName: MutableMap<String, RoninProducer> = mutableMapOf()
 
     /**
@@ -71,5 +72,9 @@ class KafkaClient(private val kafkaConfig: KafkaConfig) {
         }
         consumer.unsubscribe()
         return messageList
+    }
+
+    fun deleteTopics(topics: List<KafkaTopic>) {
+        kafkaAdmin.client.deleteTopics(topics.map { it.topicName })
     }
 }

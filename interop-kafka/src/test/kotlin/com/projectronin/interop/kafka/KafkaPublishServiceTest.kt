@@ -14,13 +14,16 @@ import com.projectronin.interop.kafka.model.KafkaAction
 import com.projectronin.interop.kafka.model.KafkaEvent
 import com.projectronin.interop.kafka.model.PublishTopic
 import com.projectronin.interop.kafka.model.PushResponse
+import io.mockk.Runs
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 
 class KafkaPublishServiceTest {
     private val selfConverter = { _: String, resource: Resource<*> -> resource }
@@ -63,6 +66,12 @@ class KafkaPublishServiceTest {
         assertEquals(patient, response.successful[0])
 
         assertEquals(0, response.failures.size)
+    }
+
+    @Test
+    fun `delete topic test`() {
+        every { kafkaClient.deleteTopics(any()) } just Runs
+        assertDoesNotThrow { service.deleteAllPublishTopics() }
     }
 
     @Test

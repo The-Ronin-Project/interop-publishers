@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test
 class KafkaPublishServiceIT : BaseKafkaIT() {
     private val topics = PublishSpringConfig().publishTopics()
 
-    private val kafkaClient = KafkaClient(kafkaConfig)
+    private val kafkaClient = KafkaClient(kafkaConfig, kafkaAdmin)
     private val publishService = KafkaPublishService(kafkaClient, topics)
 
     @Disabled
@@ -79,6 +79,30 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
         val publishedEvents = publishService.retrievePublishEvents(ResourceType.PATIENT, DataTrigger.AD_HOC)
         assertEquals(1, publishedEvents.size)
         assertEquals(JacksonUtil.writeJsonValue(patient), publishedEvents.first().resourceJson)
+    }
+
+    @Test
+    fun `can delete a topic `() {
+        val patient = Patient(
+            id = Id("12345"),
+            name = listOf(
+                HumanName(
+                    family = "Public".asFHIR(),
+                    given = listOf("John", "Q").asFHIR()
+                )
+            ),
+            gender = AdministrativeGender.MALE.asCode(),
+            birthDate = Date("1975-07-05")
+        )
+
+        val response = publishService.publishResources(tenantId, DataTrigger.AD_HOC, listOf(patient))
+        assertEquals(1, response.successful.size)
+        assertEquals(patient, response.successful[0])
+
+        assertEquals(0, response.failures.size)
+        publishService.deleteAllPublishTopics()
+        val publishedEvents = publishService.retrievePublishEvents(ResourceType.PATIENT, DataTrigger.AD_HOC)
+        assertEquals(0, publishedEvents.size)
     }
 
     @Test

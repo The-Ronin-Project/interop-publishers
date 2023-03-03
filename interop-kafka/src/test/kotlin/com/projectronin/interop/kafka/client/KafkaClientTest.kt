@@ -3,6 +3,7 @@ package com.projectronin.interop.kafka.client
 import com.projectronin.event.interop.resource.publish.v1.InteropResourcePublishV1
 import com.projectronin.interop.kafka.model.KafkaEvent
 import com.projectronin.interop.kafka.model.KafkaTopic
+import com.projectronin.interop.kafka.spring.AdminWrapper
 import com.projectronin.interop.kafka.spring.KafkaCloudConfig
 import com.projectronin.interop.kafka.spring.KafkaConfig
 import com.projectronin.kafka.RoninConsumer
@@ -38,6 +39,8 @@ class KafkaClientTest {
     private val kafkaConfig = mockk<KafkaConfig> {
         every { cloud } returns cloudConfig
     }
+
+    private val kafkaAdminClient = mockk<AdminWrapper>()
 
     private val tenantId = "test"
 
@@ -77,7 +80,7 @@ class KafkaClientTest {
 
         every { createProducer(topic, kafkaConfig) } returns producer
 
-        val client = KafkaClient(kafkaConfig)
+        val client = KafkaClient(kafkaConfig, kafkaAdminClient)
 
         val preCallProducers = producersProperty.get(client)
         assertTrue(preCallProducers.isEmpty())
@@ -113,7 +116,7 @@ class KafkaClientTest {
             }
         }
 
-        val client = KafkaClient(kafkaConfig)
+        val client = KafkaClient(kafkaConfig, kafkaAdminClient)
 
         val preCallProducers = producersProperty.get(client)
         assertEquals(0, preCallProducers.size)
@@ -153,7 +156,7 @@ class KafkaClientTest {
 
         every { createProducer(topic, kafkaConfig) } returns producer
 
-        val client = KafkaClient(kafkaConfig)
+        val client = KafkaClient(kafkaConfig, kafkaAdminClient)
         val response = client.publishEvents(topic, listOf(event1))
         assertEquals(0, response.successful.size)
 
@@ -183,7 +186,7 @@ class KafkaClientTest {
 
         every { createProducer(topic, kafkaConfig) } returns producer
 
-        val client = KafkaClient(kafkaConfig)
+        val client = KafkaClient(kafkaConfig, kafkaAdminClient)
         val response = client.publishEvents(topic, listOf(event1))
         assertEquals(1, response.successful.size)
         assertEquals(event1, response.successful[0])
@@ -211,7 +214,7 @@ class KafkaClientTest {
 
         every { createProducer(topic, kafkaConfig) } returns producer
 
-        val client = KafkaClient(kafkaConfig)
+        val client = KafkaClient(kafkaConfig, kafkaAdminClient)
         val response = client.publishEvents(topic, listOf(event1))
         assertEquals(1, response.successful.size)
         assertEquals(event1, response.successful[0])
@@ -255,7 +258,7 @@ class KafkaClientTest {
 
         every { createProducer(topic, kafkaConfig) } returns producer
 
-        val client = KafkaClient(kafkaConfig)
+        val client = KafkaClient(kafkaConfig, kafkaAdminClient)
         val response = client.publishEvents(topic, listOf(event1, event2, event3))
         assertEquals(2, response.successful.size)
         assertEquals(event1, response.successful[0])
@@ -303,7 +306,7 @@ class KafkaClientTest {
 
         every { createProducer(topic, kafkaConfig) } returns producer
 
-        val client = KafkaClient(kafkaConfig)
+        val client = KafkaClient(kafkaConfig, kafkaAdminClient)
         val response = client.publishEvents(topic, listOf(event1, event2, event3))
         assertEquals(3, response.successful.size)
         assertEquals(event1, response.successful[0])
@@ -331,7 +334,7 @@ class KafkaClientTest {
         }
         every { mockConsumer.stop() } just Runs
         every { mockConsumer.unsubscribe() } just Runs
-        val client = KafkaClient(kafkaConfig)
+        val client = KafkaClient(kafkaConfig, kafkaAdminClient)
         val ret = client.retrieveEvents(topic = mockk(), typeMap = mapOf(), limit = 1)
         assertEquals(ret.size, 1)
         unmockkStatic(::createConsumer)
@@ -355,7 +358,7 @@ class KafkaClientTest {
         }
         every { mockConsumer.stop() } just Runs
         every { mockConsumer.unsubscribe() } just Runs
-        val client = KafkaClient(kafkaConfig)
+        val client = KafkaClient(kafkaConfig, kafkaAdminClient)
         val ret = client.retrieveEvents(topic = mockk(), typeMap = mapOf(), groupId = "override!", limit = 1)
         assertEquals(ret.size, 1)
         unmockkStatic(::createConsumer)

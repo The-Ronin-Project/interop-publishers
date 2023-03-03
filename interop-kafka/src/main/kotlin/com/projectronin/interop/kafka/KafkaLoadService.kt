@@ -82,7 +82,11 @@ class KafkaLoadService(private val kafkaClient: KafkaClient, topics: List<LoadTo
      * Grabs Load-style events from Kafka.
      * If [justClear] is set, will simply drain the current events (useful for testing).
      */
-    fun retrieveLoadEvents(resourceType: ResourceType, groupId: String? = null, justClear: Boolean = false): List<InteropResourceLoadV1> {
+    fun retrieveLoadEvents(
+        resourceType: ResourceType,
+        groupId: String? = null,
+        justClear: Boolean = false
+    ): List<InteropResourceLoadV1> {
         val topic = getTopic(resourceType) ?: return emptyList()
         val typeMap = mapOf("ronin.interop-platform.resource.load" to InteropResourceLoadV1::class)
         if (justClear) {
@@ -94,6 +98,10 @@ class KafkaLoadService(private val kafkaClient: KafkaClient, topics: List<LoadTo
         return events.map {
             it.data as InteropResourceLoadV1
         }
+    }
+
+    fun deleteAllLoadTopics() {
+        kafkaClient.deleteTopics(loadTopicsByResourceType.values.flatten().distinct())
     }
 
     fun getTopic(resourceType: ResourceType): LoadTopic? {

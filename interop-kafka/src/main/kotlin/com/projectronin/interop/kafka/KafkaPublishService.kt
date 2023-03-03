@@ -101,6 +101,10 @@ class KafkaPublishService(private val kafkaClient: KafkaClient, topics: List<Pub
         }
     }
 
+    fun deleteAllPublishTopics() {
+        kafkaClient.deleteTopics(publishTopicsByResourceType.values.flatten().distinct())
+    }
+
     private fun getTopic(resourceType: String, dataTrigger: DataTrigger): PublishTopic? {
         return publishTopicsByResourceType[getTopicKey(resourceType, dataTrigger)]?.singleOrNull()
     }

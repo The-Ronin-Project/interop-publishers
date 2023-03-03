@@ -19,50 +19,17 @@ class KafkaSpringConfigTest {
         "kafka.cloud.region" to "us-phoenix-1",
         "kafka.bootstrap.servers" to "localhost:9092",
         "kafka.publish.source" to "interop-kafka-test",
-        "kafka.retrieve.groupId" to "interop-kafka-test"
+        "kafka.retrieve.groupId" to "interop-kafka-test",
+        "kafka.properties.sasl.jaas.config" to "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"\${kafka.sasl.username}\" password=\"\${kafka.sasl.password}\";",
+        "kafka.properties.sasl.mechanism" to "SCRAM-SHA-512",
+        "kafka.properties.sasl.username" to "saslUsername",
+        "kafka.properties.sasl.password" to "saslPassword",
+        "kafka.properties.security.protocol" to "SASL_SSL",
     )
 
     @Test
     fun `can build KafkaConfig with minimum required data`() {
         val config = runApplication(minimumConfigMap)
-
-        assertEquals(
-            KafkaConfig(
-                cloud = KafkaCloudConfig(
-                    vendor = "oci",
-                    region = "us-phoenix-1"
-                ),
-                bootstrap = KafkaBootstrapConfig(
-                    servers = "localhost:9092"
-                ),
-                publish = KafkaPublishConfig(
-                    source = "interop-kafka-test"
-                ),
-                retrieve = KafkaRetrieveConfig(
-                    groupId = "interop-kafka-test"
-                )
-            ),
-            config
-        )
-    }
-
-    @Test
-    fun `can build KafkaConfig with additional properties`() {
-        // This test is comprehensive as of 11/2, but there is no expectation that this will continue to be so.
-        val config = runApplication(
-            mapOf(
-                "kafka.cloud.vendor" to "oci",
-                "kafka.cloud.region" to "us-phoenix-1",
-                "kafka.bootstrap.servers" to "localhost:9092",
-                "kafka.publish.source" to "interop-kafka-test",
-                "kafka.retrieve.groupId" to "interop-kafka-test",
-                "kafka.properties.security.protocol" to "SASL_SSL",
-                "kafka.properties.sasl.mechanism" to "SCRAM-SHA-512",
-                "kafka.properties.sasl.username" to "saslUsername",
-                "kafka.properties.sasl.password" to "saslPassword",
-                "kafka.properties.sasl.jaas.config" to "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"\${kafka.sasl.username}\" password=\"\${kafka.sasl.password}\";"
-            )
-        )
 
         assertEquals(
             KafkaConfig(
@@ -84,9 +51,9 @@ class KafkaSpringConfigTest {
                         protocol = "SASL_SSL"
                     ),
                     sasl = KafkaSaslConfig(
-                        mechanism = "SCRAM-SHA-512",
                         username = "saslUsername",
                         password = "saslPassword",
+                        mechanism = "SCRAM-SHA-512",
                         jaas = KafkaSaslJaasConfig(
                             config = "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"\${kafka.sasl.username}\" password=\"\${kafka.sasl.password}\";"
                         )
