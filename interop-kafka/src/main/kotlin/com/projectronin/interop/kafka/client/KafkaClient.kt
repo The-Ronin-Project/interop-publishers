@@ -46,7 +46,7 @@ class KafkaClient(private val kafkaConfig: KafkaConfig, private val kafkaAdmin: 
         topic: KafkaTopic,
         typeMap: Map<String, KClass<*>>,
         groupId: String? = null,
-        duration: Duration = Duration.ofMillis(5000),
+        duration: Duration = Duration.ofMillis(30000),
         limit: Int = 100000
     ): List<RoninEvent<*>> {
         val messageList = mutableListOf<RoninEvent<*>>()
