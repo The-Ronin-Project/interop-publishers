@@ -11,6 +11,7 @@ import com.projectronin.kafka.data.RoninEvent
 import com.projectronin.kafka.data.RoninEventResult
 import org.springframework.stereotype.Component
 import java.time.Duration
+import java.util.concurrent.ConcurrentSkipListMap
 import kotlin.reflect.KClass
 
 /**
@@ -18,8 +19,7 @@ import kotlin.reflect.KClass
  */
 @Component
 class KafkaClient(private val kafkaConfig: KafkaConfig, private val kafkaAdmin: AdminWrapper) {
-    private val producersByTopicName: MutableMap<String, RoninProducer> = mutableMapOf()
-
+    private val producersByTopicName: ConcurrentSkipListMap<String, RoninProducer> = ConcurrentSkipListMap()
     /**
      * Publishes the [events] to the Kafka [topic] on behalf of a tenant.
      */
@@ -46,7 +46,7 @@ class KafkaClient(private val kafkaConfig: KafkaConfig, private val kafkaAdmin: 
         topic: KafkaTopic,
         typeMap: Map<String, KClass<*>>,
         groupId: String? = null,
-        duration: Duration = Duration.ofMillis(5000),
+        duration: Duration = Duration.ofMillis(1000),
         limit: Int = 100000
     ): List<RoninEvent<*>> {
         val messageList = mutableListOf<RoninEvent<*>>()
