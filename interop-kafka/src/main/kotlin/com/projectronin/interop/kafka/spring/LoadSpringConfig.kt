@@ -35,8 +35,8 @@ class LoadSpringConfig {
 
     fun generateTopics(resourceType: String): LoadTopic {
         return LoadTopic(
-            systemName = "interop-platform",
-            topicName = "azure.centralus.interop-platform.${resourceType.lowercase()}-load.v1",
+            systemName = "interop-mirth",
+            topicName = "oci.us-phoenix-1.interop-mirth.${resourceType.lowercase()}-load.v1",
             dataSchema = "https://github.com/projectronin/contract-event-interop-resource-load/blob/main/v1/resource-load-v1.schema.json",
             resourceType = resourceType
         )

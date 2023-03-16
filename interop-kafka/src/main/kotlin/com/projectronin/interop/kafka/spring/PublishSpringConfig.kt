@@ -37,10 +37,10 @@ class PublishSpringConfig {
     }
 
     fun generateTopics(resourceType: String): List<PublishTopic> {
-        val system = "interop-platform"
+        val system = "interop-mirth"
         val nightlyTopic = PublishTopic(
             systemName = system,
-            topicName = "azure.centralus.interop-platform.${resourceType.lowercase()}-publish-nightly.v1",
+            topicName = "oci.us-phoenix-1.interop-mirth.${resourceType.lowercase()}-publish-nightly.v1",
             dataSchema = "https://github.com/projectronin/contract-event-interop-resource-publish/blob/main/v1/resource-publish-v1.schema.json",
             resourceType = resourceType,
             dataTrigger = DataTrigger.NIGHTLY,
@@ -56,7 +56,7 @@ class PublishSpringConfig {
 
         val adHocTopic = PublishTopic(
             systemName = system,
-            topicName = "azure.centralus.interop-platform.${resourceType.lowercase()}-publish-adhoc.v1",
+            topicName = "oci.us-phoenix-1.interop-mirth.${resourceType.lowercase()}-publish-adhoc.v1",
             dataSchema = "https://github.com/projectronin/contract-event-interop-resource-publish/blob/main/v1/resource-publish-v1.schema.json",
             resourceType = resourceType,
             dataTrigger = DataTrigger.AD_HOC,
