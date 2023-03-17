@@ -88,7 +88,7 @@ class KafkaLoadService(private val kafkaClient: KafkaClient, topics: List<LoadTo
         justClear: Boolean = false
     ): List<InteropResourceLoadV1> {
         val topic = getTopic(resourceType) ?: return emptyList()
-        val typeMap = mapOf("ronin.interop-platform.resource.load" to InteropResourceLoadV1::class)
+        val typeMap = mapOf("ronin.interop-mirth.resource.load" to InteropResourceLoadV1::class)
         if (justClear) {
             // shorter wait time because you are assuming events are there or not, no waiting
             kafkaClient.retrieveEvents(topic, typeMap, groupId, Duration.ofMillis(500))
