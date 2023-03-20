@@ -66,11 +66,11 @@ class PractitionerServiceTest {
         practitionerList = listOf(
             AidboxIdentifiers(
                 identifiers = identifiers1,
-                udpId = "123",
+                udpId = "123"
             ),
             AidboxIdentifiers(
                 identifiers = identifiers2,
-                udpId = "456",
+                udpId = "456"
             )
         )
     )
@@ -308,7 +308,7 @@ class PractitionerServiceTest {
         coEvery {
             aidboxClient.queryGraphQL(
                 query = query,
-                parameters = mapOf("tenant" to tenantQueryString, "fhirId" to "http://projectronin.com/id/fhir|$fhirID",)
+                parameters = mapOf("tenant" to tenantQueryString, "fhirId" to "http://projectronin.com/id/fhir|$fhirID")
             )
         } returns mockHttpResponse
         coEvery<GraphQLResponse<PractitionersIdentifiers>> { mockHttpResponse.body() } returns response
@@ -317,7 +317,8 @@ class PractitionerServiceTest {
             practitionerService.getSpecificPractitionerIdentifier(tenantMnemonic, fhirID, CodeableConcept(text = "ser".asFHIR()))
 
         val expected = Identifier(
-            value = "22221".asFHIR(), type = CodeableConcept(text = "ser".asFHIR())
+            value = "22221".asFHIR(),
+            type = CodeableConcept(text = "ser".asFHIR())
         )
         assertEquals(actual, expected)
     }

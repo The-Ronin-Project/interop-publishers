@@ -6,5 +6,5 @@ package com.projectronin.interop.aidbox.testcontainer.client.model
 data class AidboxContactPoint(
     val system: String? = null,
     val use: String? = null,
-    val value: String? = null,
+    val value: String? = null
 )

@@ -24,7 +24,7 @@ class KafkaSpringConfigTest {
         "kafka.properties.sasl.mechanism" to "SCRAM-SHA-512",
         "kafka.properties.sasl.username" to "saslUsername",
         "kafka.properties.sasl.password" to "saslPassword",
-        "kafka.properties.security.protocol" to "SASL_SSL",
+        "kafka.properties.security.protocol" to "SASL_SSL"
     )
 
     @Test

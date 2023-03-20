@@ -65,21 +65,21 @@ class AidboxClientTest {
         identifier = listOf(
             Identifier(system = CodeSystem.NPI.uri, value = "third".asFHIR())
         ),
-        name = listOf(HumanName(family = "Jones".asFHIR(), given = listOf("Cordelia", "May").asFHIR())),
+        name = listOf(HumanName(family = "Jones".asFHIR(), given = listOf("Cordelia", "May").asFHIR()))
     )
     private val practitioner2 = Practitioner(
         id = Id("rallyr"),
         identifier = listOf(
             Identifier(system = CodeSystem.NPI.uri, value = "second".asFHIR())
         ),
-        name = listOf(HumanName(family = "Llyr".asFHIR(), given = listOf("Regan", "Anne").asFHIR())),
+        name = listOf(HumanName(family = "Llyr".asFHIR(), given = listOf("Regan", "Anne").asFHIR()))
     )
     private val practitioner3 = Practitioner(
         id = Id("gwalsh"),
         identifier = listOf(
             Identifier(system = CodeSystem.NPI.uri, value = "first".asFHIR())
         ),
-        name = listOf(HumanName(family = "Walsh".asFHIR(), given = listOf("Goneril").asFHIR())),
+        name = listOf(HumanName(family = "Walsh".asFHIR(), given = listOf("Goneril").asFHIR()))
     )
     private val location1 = Location(
         id = Id("12345"),
@@ -343,7 +343,7 @@ class AidboxClientTest {
         expectedBody: String = "",
         expectedUrl: String,
         baseUrl: String = urlRest,
-        responseStatus: HttpStatusCode = HttpStatusCode.OK,
+        responseStatus: HttpStatusCode = HttpStatusCode.OK
     ): AidboxClient {
         val authenticationBroker = mockk<AidboxAuthenticationBroker> {
             every { getAuthentication() } returns mockk {

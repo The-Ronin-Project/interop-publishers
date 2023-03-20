@@ -75,7 +75,6 @@ class AidboxClient(
      * @return [HttpResponse] containing the raw data from the server. Use HttpResponse.recieve<T>() to deserialize.
      */
     suspend fun queryGraphQL(query: String, parameters: Map<String, String>): HttpResponse {
-
         logger.debug { "Processing Aidbox query: $query" }
         val authentication = authenticationBroker.getAuthentication()
         val response: HttpResponse = httpClient.request("Aidbox", "$aidboxURLRest/\$graphql") { url ->

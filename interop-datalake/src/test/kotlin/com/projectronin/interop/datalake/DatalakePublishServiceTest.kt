@@ -59,7 +59,7 @@ class DatalakePublishServiceTest {
             name = "Location2".asFHIR()
         )
         val practitioner = Practitioner(
-            id = Id("abc"),
+            id = Id("abc")
         )
         val filePathString =
             "ehr/__RESOURCETYPE__/fhir_tenant_id=mockTenant/_date=1990-01-03/__FHIRID__.json"

@@ -18,7 +18,7 @@ class PatientService(private val aidboxClient: AidboxClient) {
         birthDate: String,
         givenName: String,
         familyName: String,
-        aidboxAuthString: String,
+        aidboxAuthString: String
     ): GraphQLResponse<AidboxPatientList> {
         val parameters = mapOf(
             "tenant" to "${CodeSystem.RONIN_TENANT.uri.value}|$tenantId",

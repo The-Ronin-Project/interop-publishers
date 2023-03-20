@@ -10,5 +10,5 @@ data class AidboxPatient(
     val birthDate: String? = null,
     val gender: String? = null,
     val telecom: List<AidboxContactPoint>? = null,
-    val address: List<AidboxAddress>? = null,
+    val address: List<AidboxAddress>? = null
 )

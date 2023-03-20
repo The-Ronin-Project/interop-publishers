@@ -6,5 +6,5 @@ package com.projectronin.interop.aidbox.testcontainer.client.graphql
 data class GraphQLResponse<T>(
     val data: T? = null,
     val errors: List<GraphQLError>? = null,
-    val extensions: Map<String, Any?>? = null,
+    val extensions: Map<String, Any?>? = null
 )

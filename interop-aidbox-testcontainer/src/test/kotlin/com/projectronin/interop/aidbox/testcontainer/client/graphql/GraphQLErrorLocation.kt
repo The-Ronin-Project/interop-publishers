@@ -5,5 +5,5 @@ package com.projectronin.interop.aidbox.testcontainer.client.graphql
  */
 data class GraphQLErrorLocation(
     val line: Int,
-    val column: Int,
+    val column: Int
 )

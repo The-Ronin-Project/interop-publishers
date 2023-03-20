@@ -40,7 +40,8 @@ class AidboxPublishServiceTest {
             ),
             name = listOf(
                 HumanName(
-                    family = "Llyr".asFHIR(), given = listOf("Regan", "Anne").asFHIR()
+                    family = "Llyr".asFHIR(),
+                    given = listOf("Regan", "Anne").asFHIR()
                 )
             )
         )

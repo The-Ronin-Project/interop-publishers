@@ -7,5 +7,5 @@ data class RetrieveTopic(
     override val systemName: String,
     override val topicName: String,
     override val dataSchema: String,
-    val resourceType: String,
+    val resourceType: String
 ) : KafkaTopic

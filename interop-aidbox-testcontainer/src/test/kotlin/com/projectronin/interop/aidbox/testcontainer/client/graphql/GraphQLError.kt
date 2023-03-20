@@ -7,5 +7,5 @@ data class GraphQLError(
     val message: String,
     val locations: List<GraphQLErrorLocation>? = null,
     val path: List<Any>? = null,
-    val extensions: Map<String, Any?>? = null,
+    val extensions: Map<String, Any?>? = null
 )

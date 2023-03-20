@@ -8,5 +8,5 @@ data class AidboxAddress(
     val line: List<String>? = null,
     val city: String? = null,
     val state: String? = null,
-    val postalCode: String? = null,
+    val postalCode: String? = null
 )

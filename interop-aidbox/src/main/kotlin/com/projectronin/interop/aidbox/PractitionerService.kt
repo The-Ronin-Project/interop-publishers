@@ -214,6 +214,7 @@ class PractitionerService(
 
         return practitioner
     }
+
     @Deprecated("Please use getPractitionerByUDPId", ReplaceWith("getPractitionerByUDPId(tenantMnemonic, udpId)"))
     fun getPractitioner(tenantMnemonic: String, fhirId: String): Practitioner {
         return getPractitionerByUDPId(tenantMnemonic, fhirId)

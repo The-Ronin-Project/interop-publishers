@@ -6,5 +6,5 @@ package com.projectronin.interop.aidbox.testcontainer.client.model
 data class AidboxHumanName(
     val use: String? = null,
     val family: String? = null,
-    val given: List<String>? = null,
+    val given: List<String>? = null
 )

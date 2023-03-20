@@ -6,5 +6,5 @@ package com.projectronin.interop.aidbox.testcontainer.client.graphql
 data class GraphQLPostRequest(
     val query: String,
     val operationName: String? = null,
-    val variables: Map<String, Any?>? = null,
+    val variables: Map<String, Any?>? = null
 )

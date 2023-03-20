@@ -20,6 +20,7 @@ import kotlin.reflect.KClass
 @Component
 class KafkaClient(private val kafkaConfig: KafkaConfig, private val kafkaAdmin: AdminWrapper) {
     private val producersByTopicName: ConcurrentSkipListMap<String, RoninProducer> = ConcurrentSkipListMap()
+
     /**
      * Publishes the [events] to the Kafka [topic] on behalf of a tenant.
      */

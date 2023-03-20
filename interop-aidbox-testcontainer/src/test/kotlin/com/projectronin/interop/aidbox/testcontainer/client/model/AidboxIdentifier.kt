@@ -5,5 +5,5 @@ package com.projectronin.interop.aidbox.testcontainer.client.model
  */
 data class AidboxIdentifier(
     val system: String? = null,
-    val value: String? = null,
+    val value: String? = null
 )

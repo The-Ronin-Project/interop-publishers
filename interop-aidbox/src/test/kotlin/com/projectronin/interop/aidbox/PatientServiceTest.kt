@@ -77,7 +77,7 @@ class PatientServiceTest {
                     Identifier(value = "9988776655".asFHIR()),
                     Identifier(system = CodeSystem.RONIN_FHIR_ID.uri, value = "123".asFHIR())
                 ),
-                udpId = "mdaoc-123",
+                udpId = "mdaoc-123"
             ),
             AidboxIdentifiers(
                 identifiers = listOf(
@@ -86,7 +86,7 @@ class PatientServiceTest {
                     Identifier(value = "2281376654".asFHIR()),
                     Identifier(system = CodeSystem.RONIN_FHIR_ID.uri, value = "456".asFHIR())
                 ),
-                udpId = "mdaoc-456",
+                udpId = "mdaoc-456"
             )
         )
     )
