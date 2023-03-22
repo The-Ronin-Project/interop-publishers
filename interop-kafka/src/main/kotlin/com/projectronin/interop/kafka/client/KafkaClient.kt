@@ -6,6 +6,7 @@ import com.projectronin.interop.kafka.model.KafkaTopic
 import com.projectronin.interop.kafka.model.PushResponse
 import com.projectronin.interop.kafka.spring.AdminWrapper
 import com.projectronin.interop.kafka.spring.KafkaConfig
+import com.projectronin.kafka.RoninConsumer
 import com.projectronin.kafka.RoninProducer
 import com.projectronin.kafka.data.RoninEvent
 import com.projectronin.kafka.data.RoninEventResult
@@ -20,6 +21,7 @@ import kotlin.reflect.KClass
 @Component
 class KafkaClient(private val kafkaConfig: KafkaConfig, private val kafkaAdmin: AdminWrapper) {
     private val producersByTopicName: ConcurrentSkipListMap<String, RoninProducer> = ConcurrentSkipListMap()
+    private val consumersByTopicAndGroup: ConcurrentSkipListMap<String, RoninConsumer> = ConcurrentSkipListMap()
 
     /**
      * Publishes the [events] to the Kafka [topic] on behalf of a tenant.
@@ -51,7 +53,14 @@ class KafkaClient(private val kafkaConfig: KafkaConfig, private val kafkaAdmin: 
         limit: Int = 100000
     ): List<RoninEvent<*>> {
         val messageList = mutableListOf<RoninEvent<*>>()
-        val consumer = createConsumer(topic, typeMap, kafkaConfig, groupId)
+        val consumer = consumersByTopicAndGroup.computeIfAbsent("${topic.topicName}|$groupId") {
+            createConsumer(
+                topic,
+                typeMap,
+                kafkaConfig,
+                groupId
+            )
+        }
 
         // initial poll, will return immediately if events exist. Otherwise waits for [duration]
         consumer.pollOnce(duration) {
@@ -71,7 +80,6 @@ class KafkaClient(private val kafkaConfig: KafkaConfig, private val kafkaAdmin: 
                 }
             }
         }
-        consumer.unsubscribe()
         return messageList
     }
 

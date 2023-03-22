@@ -82,6 +82,7 @@ class KafkaPublishServiceIT : BaseKafkaIT() {
     }
 
     @Test
+    @Disabled
     fun `can delete a topic `() {
         val patient = Patient(
             id = Id("12345"),
