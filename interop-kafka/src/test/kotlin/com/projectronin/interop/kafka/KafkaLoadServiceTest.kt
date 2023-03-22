@@ -29,9 +29,14 @@ class KafkaLoadServiceTest {
         every { systemName } returns "interop-platform"
     }
 
+    private val medicationRequestTopic = mockk<LoadTopic> {
+        every { resourceType } returns "MedicationRequest"
+        every { systemName } returns "interop-platform"
+    }
+
     private val kafkaClient = mockk<KafkaClient>()
     private val tenantId = "test"
-    private val service = KafkaLoadService(kafkaClient, listOf(patientTopic, appointmentTopic))
+    private val service = KafkaLoadService(kafkaClient, listOf(patientTopic, appointmentTopic, medicationRequestTopic))
 
     @Test
     fun `publishing single resource is successful`() {
@@ -169,5 +174,19 @@ class KafkaLoadServiceTest {
         every { kafkaClient.retrieveEvents(any(), any(), "override") } returns listOf(mockk { every { data } returns loadData })
         val ret = service.retrieveLoadEvents(ResourceType.PATIENT, "override")
         assertEquals(loadData, ret.first())
+    }
+
+    @Test
+    fun `retrieve events removes special characters`() {
+        val loadData = InteropResourceLoadV1(
+            tenantId = tenantId,
+            resourceFHIRId = "1234",
+            resourceType = "MedicationRequest",
+            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly
+        )
+        every { kafkaClient.retrieveEvents(any(), any(), "any") } returns listOf(mockk { every { data } returns loadData })
+        val ret = service.retrieveLoadEvents(ResourceType.MEDICATION_REQUEST, "any")
+        assertEquals(loadData, ret.first())
+        assertEquals(loadData.resourceType, "MedicationRequest")
     }
 }

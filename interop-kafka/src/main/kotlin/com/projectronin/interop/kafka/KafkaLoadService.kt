@@ -105,6 +105,7 @@ class KafkaLoadService(private val kafkaClient: KafkaClient, topics: List<LoadTo
     }
 
     fun getTopic(resourceType: ResourceType): LoadTopic? {
-        return loadTopicsByResourceType[resourceType.name.lowercase()]?.singleOrNull()
+        val resource = resourceType.name.filter { it.isLetter() }
+        return loadTopicsByResourceType[resource.lowercase()]?.singleOrNull()
     }
 }
