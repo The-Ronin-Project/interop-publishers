@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class LoadSpringConfig {
+class LoadSpringConfig(private val kafkaSpringConfig: KafkaConfig) {
 
     @Bean
     fun loadTopics(): List<LoadTopic> {
@@ -34,9 +34,10 @@ class LoadSpringConfig {
     }
 
     fun generateTopics(resourceType: String): LoadTopic {
+        val topicParameters = listOf(kafkaSpringConfig.cloud.vendor, kafkaSpringConfig.cloud.region, "interop-mirth", "${resourceType.lowercase()}-load", "v1")
         return LoadTopic(
-            systemName = "interop-mirth",
-            topicName = "oci.us-phoenix-1.interop-mirth.${resourceType.lowercase()}-load.v1",
+            systemName = kafkaSpringConfig.retrieve.serviceId,
+            topicName = topicParameters.joinToString("."),
             dataSchema = "https://github.com/projectronin/contract-event-interop-resource-load/blob/main/v1/resource-load-v1.schema.json",
             resourceType = resourceType
         )

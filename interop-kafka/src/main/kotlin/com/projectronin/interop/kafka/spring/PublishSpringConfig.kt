@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class PublishSpringConfig {
+class PublishSpringConfig(private val kafkaSpringConfig: KafkaConfig) {
 
     @Bean
     fun publishTopics(): List<PublishTopic> {
@@ -37,10 +37,11 @@ class PublishSpringConfig {
     }
 
     fun generateTopics(resourceType: String): List<PublishTopic> {
-        val system = "interop-mirth"
+        val system = kafkaSpringConfig.retrieve.serviceId
+        val topicParameters = listOf(kafkaSpringConfig.cloud.vendor, kafkaSpringConfig.cloud.region, "interop-mirth", "${resourceType.lowercase()}-publish-nightly", "v1")
         val nightlyTopic = PublishTopic(
             systemName = system,
-            topicName = "oci.us-phoenix-1.interop-mirth.${resourceType.lowercase()}-publish-nightly.v1",
+            topicName = topicParameters.joinToString("."),
             dataSchema = "https://github.com/projectronin/contract-event-interop-resource-publish/blob/main/v1/resource-publish-v1.schema.json",
             resourceType = resourceType,
             dataTrigger = DataTrigger.NIGHTLY,

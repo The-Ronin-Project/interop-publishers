@@ -28,7 +28,8 @@ data class KafkaPublishConfig(
 
 data class KafkaRetrieveConfig(
     // default group ID
-    val groupId: String
+    val groupId: String,
+    val serviceId: String = "interop-mirth"
 )
 
 data class KafkaPropertiesConfig(

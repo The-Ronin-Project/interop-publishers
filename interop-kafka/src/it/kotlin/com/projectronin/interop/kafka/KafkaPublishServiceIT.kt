@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class KafkaPublishServiceIT : BaseKafkaIT() {
-    private val topics = PublishSpringConfig().publishTopics()
+    private val topics = PublishSpringConfig(kafkaConfig).publishTopics()
 
     private val kafkaClient = KafkaClient(kafkaConfig, kafkaAdmin)
     private val publishService = KafkaPublishService(kafkaClient, topics)
