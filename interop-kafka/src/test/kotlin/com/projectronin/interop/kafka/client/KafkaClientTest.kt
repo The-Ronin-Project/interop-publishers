@@ -335,7 +335,7 @@ class KafkaClientTest {
         every { mockConsumer.stop() } just Runs
         every { mockConsumer.unsubscribe() } just Runs
         val client = KafkaClient(kafkaConfig, kafkaAdminClient)
-        val ret = client.retrieveEvents(topic = mockk { every { topicName } returns topicName }, typeMap = mapOf(), limit = 1)
+        val ret = client.retrieveEvents(topic = mockk { every { topicName } returns "topicName" }, typeMap = mapOf(), limit = 1)
         assertEquals(ret.size, 1)
         unmockkStatic(::createConsumer)
     }
@@ -360,7 +360,7 @@ class KafkaClientTest {
         every { mockConsumer.unsubscribe() } just Runs
         val client = KafkaClient(kafkaConfig, kafkaAdminClient)
         val ret = client.retrieveEvents(
-            topic = mockk { every { topicName } returns topicName },
+            topic = mockk { every { topicName } returns "topicName" },
             typeMap = mapOf(),
             groupId = "override!",
             limit = 1
