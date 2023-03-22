@@ -42,9 +42,16 @@ class KafkaPublishServiceTest {
         every { dataTrigger } returns DataTrigger.NIGHTLY
     }
 
+    private val medicationRequestTopic = mockk<PublishTopic> {
+        every { resourceType } returns "MedicationRequest"
+        every { systemName } returns "interop-platform"
+        every { converter } returns selfConverter
+        every { dataTrigger } returns DataTrigger.NIGHTLY
+    }
+
     private val kafkaClient = mockk<KafkaClient>()
     private val tenantId = "test"
-    private val service = KafkaPublishService(kafkaClient, listOf(patientTopic, appointmentTopic))
+    private val service = KafkaPublishService(kafkaClient, listOf(patientTopic, appointmentTopic, medicationRequestTopic))
 
     @Test
     fun `publishing single resource is successful`() {
@@ -482,5 +489,19 @@ class KafkaPublishServiceTest {
         every { kafkaClient.retrieveEvents(any(), any(), "override") } returns listOf(mockk { every { data } returns publishEvent })
         val ret = service.retrievePublishEvents(ResourceType.PATIENT, DataTrigger.NIGHTLY, "override")
         assertEquals(publishEvent, ret.first())
+    }
+
+    @Test
+    fun `retrieve events removes special characters`() {
+        val publishEvent = InteropResourcePublishV1(
+            tenantId = tenantId,
+            resourceType = "MedicationRequest",
+            dataTrigger = InteropResourcePublishV1.DataTrigger.nightly,
+            resourceJson = "json"
+        )
+        every { kafkaClient.retrieveEvents(any(), any(), "any") } returns listOf(mockk { every { data } returns publishEvent })
+        val ret = service.retrievePublishEvents(ResourceType.MEDICATION_REQUEST, DataTrigger.NIGHTLY, "any")
+        assertEquals(publishEvent, ret.first())
+        assertEquals(publishEvent.resourceType, "MedicationRequest")
     }
 }

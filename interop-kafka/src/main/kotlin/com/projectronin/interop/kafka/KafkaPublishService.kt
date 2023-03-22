@@ -109,6 +109,8 @@ class KafkaPublishService(private val kafkaClient: KafkaClient, topics: List<Pub
         return publishTopicsByResourceType[getTopicKey(resourceType, dataTrigger)]?.singleOrNull()
     }
 
-    private fun getTopicKey(resourceType: String, dataTrigger: DataTrigger): Pair<String, DataTrigger> =
-        Pair(resourceType.lowercase(), dataTrigger)
+    private fun getTopicKey(resourceType: String, dataTrigger: DataTrigger): Pair<String, DataTrigger> {
+        val resource = resourceType.filter { it.isLetter() }
+        return Pair(resource.lowercase(), dataTrigger)
+    }
 }
