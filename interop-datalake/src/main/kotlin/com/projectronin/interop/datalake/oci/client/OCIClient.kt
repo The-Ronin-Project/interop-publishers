@@ -30,12 +30,14 @@ class OCIClient(
     private val privateKey: String,
     @Value("\${oci.namespace}")
     private val namespace: String,
-    @Value("\${oci.conceptmap.bucket.name}")
+    @Value("\${oci.conceptmap.bucket.name:infx-shared}")
     private val infxBucket: String,
+    @Value("\${oci.infx.registry.path:/DataNormalizationRegistry/v1/registry.json}")
+    private val infxPath: String,
     @Value("\${oci.publish.bucket.name}")
     private val datalakeBucket: String,
-    @Value("\${oci.region}")
-    private val regionId: String = "us-phoenix-1"
+    @Value("\${oci.region:us-phoenix-1}")
+    private val regionId: String
 ) {
     private val privateKeySupplier: Supplier<InputStream> = Supplier<InputStream> { Base64.getDecoder().decode(privateKey).inputStream() }
     val authProvider: SimpleAuthenticationDetailsProvider by lazy {
@@ -50,9 +52,11 @@ class OCIClient(
     private val client by lazy { ObjectStorageClient(authProvider) }
 
     /**
-     * Retrieves the contents of the object found at [fileName] in the infx-shared bucket
+     * Retrieves the contents of the object found at [fileName] in the infx-shared bucket. If [fileName] is null,
+     * retrieves the contents of the most recent DataNormalizationRegistry JSON in the infx-shared bucket.
+     * The DataNormalizationRegistry is Informatics' manifest of the most recent ValueSets and ConceptMaps in OCI.
      */
-    fun getObjectFromINFX(fileName: String): String? {
+    fun getObjectFromINFX(fileName: String = infxPath): String? {
         return getObjectBody(infxBucket, fileName)
     }
 

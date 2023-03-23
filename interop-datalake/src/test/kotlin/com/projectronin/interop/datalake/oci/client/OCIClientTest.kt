@@ -30,8 +30,9 @@ class OCIClientTest {
         "key",
         "namespace",
         "infxbucket",
+        "infxpath",
         "datalakebucket",
-        "region"
+        "us-phoenix-1"
     )
 
     @Test
@@ -45,8 +46,10 @@ class OCIClientTest {
             fingerPrint = "a1:",
             privateKey = Base64.getEncoder().encodeToString(privateString.toByteArray()),
             namespace = "Namespace",
-            infxBucket = "iBucket",
-            datalakeBucket = "dBucket"
+            infxBucket = "infxbucket",
+            infxPath = "infxpath",
+            datalakeBucket = "dBucket",
+            regionId = "us-phoenix-1"
         )
         val auth = credentials.authProvider
 
@@ -221,6 +224,30 @@ class OCIClientTest {
         every { client getProperty "client" } returns mockObjectStorageClient
         every { client.uploadToDatalake("test", "content") } answers { callOriginal() }
         assertFalse((client.uploadToDatalake("test", "content")))
+    }
+
+    @Test
+    fun `getObject with missing filename is the value of OCIClient infxPath - works`() {
+        val mockRequest = mockk<GetObjectRequest> {}
+        mockkConstructor(GetObjectRequest.Builder::class)
+        val mockBuilder = mockk<GetObjectRequest.Builder> {
+            every { namespaceName("namespace") } returns this
+            every { bucketName("infxbucket") } returns this
+            every { build() } returns mockRequest
+        }
+        every { anyConstructed<GetObjectRequest.Builder>().objectName("infxpath") } returns mockBuilder
+
+        val mockResponse = mockk<GetObjectResponse> {
+            every { inputStream } returns "blog".byteInputStream()
+        }
+        val mockObjectStorageClient = mockk<ObjectStorageClient> {
+            every { getObject(mockRequest) } returns mockResponse
+        }
+
+        val client = spyk(testClient)
+        every { client getProperty "client" } returns mockObjectStorageClient
+        every { client.getObjectFromINFX() } answers { callOriginal() }
+        assertEquals("blog", client.getObjectFromINFX())
     }
 
     @AfterEach
