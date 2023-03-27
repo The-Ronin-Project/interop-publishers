@@ -32,8 +32,6 @@ class OCIClient(
     private val namespace: String,
     @Value("\${oci.conceptmap.bucket.name:infx-shared}")
     private val infxBucket: String,
-    @Value("\${oci.infx.registry.path:/DataNormalizationRegistry/v1/registry.json}")
-    private val infxPath: String,
     @Value("\${oci.publish.bucket.name}")
     private val datalakeBucket: String,
     @Value("\${oci.region:us-phoenix-1}")
@@ -56,7 +54,7 @@ class OCIClient(
      * retrieves the contents of the most recent DataNormalizationRegistry JSON in the infx-shared bucket.
      * The DataNormalizationRegistry is Informatics' manifest of the most recent ValueSets and ConceptMaps in OCI.
      */
-    fun getObjectFromINFX(fileName: String = infxPath): String? {
+    fun getObjectFromINFX(fileName: String): String? {
         return getObjectBody(infxBucket, fileName)
     }
 

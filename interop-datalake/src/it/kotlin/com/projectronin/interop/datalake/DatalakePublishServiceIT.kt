@@ -46,7 +46,6 @@ class DatalakePublishServiceIT {
 
     private val namespace = "dataplatform"
     private val infxbucketName = "infx-data"
-    private val infxPath = "/DataNormalizationRegistry/v1/registry.json"
     private val dlbucketName = "datalake-data"
     private val ociTenantId = "ociTenant"
     private val ociUserId = "ociUser"
@@ -65,7 +64,7 @@ class DatalakePublishServiceIT {
     }
 
     private val ociClient =
-        OCIClient(ociTenantId, ociUserId, fingerPrint, privateKey, namespace, infxbucketName, infxPath, dlbucketName, regionId)
+        OCIClient(ociTenantId, ociUserId, fingerPrint, privateKey, namespace, infxbucketName, dlbucketName, regionId)
     private val taskExecutor = ThreadPoolTaskExecutor().apply {
         val processors = Runtime.getRuntime().availableProcessors()
         corePoolSize = processors / 2
