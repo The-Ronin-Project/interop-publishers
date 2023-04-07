@@ -8,6 +8,7 @@ interop-commonJackson = "com.projectronin.interop:interop-common-jackson:3.4.0"
 
 interop-fhir = "com.projectronin.interop.fhir:interop-fhir:7.7.0"
 
+junit-jupiter = "org.junit.jupiter:junit-jupiter:5.9.2"
 junit-pioneer = "org.junit-pioneer:junit-pioneer:2.0.0"
 kotlinx-coroutines-core = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
 ktor-client-mock = "io.ktor:ktor-client-mock:2.2.4"
@@ -20,7 +21,7 @@ ronin-kafka = "com.projectronin:ronin-kafka:0.3.0"
 spring-boot-parent = "org.springframework.boot:spring-boot-parent:2.7.5"
 interop-kafka-event-resource-publish = "com.projectronin.contract.event:event-interop-resource-publish:1.0.1"
 interop-kafka-event-resource-load = "com.projectronin.contract.event:event-interop-resource-load:1.0.0"
-testcontainers-bom = "org.testcontainers:testcontainers-bom:1.17.6"
+testcontainers-bom = "org.testcontainers:testcontainers-bom:1.18.0"
 
 [bundles]
-interop-kafka-events = ["interop-kafka-event-resource-publish", "interop-kafka-event-resource-load" ]
+interop-kafka-events = ["interop-kafka-event-resource-publish", "interop-kafka-event-resource-load"]
