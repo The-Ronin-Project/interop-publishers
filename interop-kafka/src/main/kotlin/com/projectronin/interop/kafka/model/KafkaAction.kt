@@ -6,5 +6,7 @@ package com.projectronin.interop.kafka.model
 enum class KafkaAction(val type: String) {
     PUBLISH("publish"),
     RETRIEVE("retrieve"),
-    LOAD("load")
+    LOAD("load"),
+    CREATE("create"),
+    UPDATE("update")
 }
