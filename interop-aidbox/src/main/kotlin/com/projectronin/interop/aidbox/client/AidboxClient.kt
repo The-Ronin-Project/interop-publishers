@@ -4,6 +4,7 @@ import com.projectronin.interop.aidbox.auth.AidboxAuthenticationBroker
 import com.projectronin.interop.aidbox.model.GraphQLPostRequest
 import com.projectronin.interop.aidbox.utils.makeBundleForBatchUpsert
 import com.projectronin.interop.common.http.request
+import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.resource.Resource
 import io.ktor.client.HttpClient
 import io.ktor.client.request.accept
@@ -15,6 +16,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
+import io.ktor.http.encodeURLPathPart
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
@@ -103,6 +105,31 @@ class AidboxClient(
         val authentication = authenticationBroker.getAuthentication()
         val response: HttpResponse =
             httpClient.request("Aidbox", "$aidboxURLRest/fhir/$resourceType/$resourceFHIRID") { url ->
+                get(url) {
+                    headers {
+                        append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
+                    }
+                    contentType(ContentType.Application.Json)
+                    accept(ContentType.Application.Json)
+                }
+            }
+
+        return response
+    }
+
+    /**
+     * Fetches a full FHIR resource from Aidbox based on the Fhir ID.
+     * @param resourceType [String] the type of FHIR resource, i.e. "Patient" (case sensitive)
+     * @param tenantId [String] the FHIR ID of the resource ("id" json element)
+     * @param tenantId [String] the FHIR ID of the resource ("id" json element)
+     * @return [HttpResponse] containing the raw data from the server. Use HttpResponse.recieve<T>() to deserialize.
+     */
+    suspend fun searchForResources(resourceType: String, tenantId: String, identifierToken: String): HttpResponse {
+        val authentication = authenticationBroker.getAuthentication()
+        val tenantIdentifier = "${CodeSystem.RONIN_TENANT.uri.value}|$tenantId".encodeURLPathPart()
+        val encodedIdentifierToken = identifierToken.encodeURLPathPart()
+        val response: HttpResponse =
+            httpClient.request("Aidbox", "$aidboxURLRest/fhir/$resourceType?identifier=$tenantIdentifier&identifier=$encodedIdentifierToken") { url ->
                 get(url) {
                     headers {
                         append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")

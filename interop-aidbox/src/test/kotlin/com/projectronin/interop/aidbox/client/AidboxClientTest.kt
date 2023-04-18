@@ -48,6 +48,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.encodeURLPathPart
 import io.ktor.http.headersOf
 import io.ktor.serialization.jackson.jackson
 import io.mockk.every
@@ -337,6 +338,18 @@ class AidboxClientTest {
                 aidboxClient.batchUpsert(practitioners)
             }
         }
+    }
+
+    @Test
+    fun `search works for aidbox`() {
+        val tenantIdentifier = "${CodeSystem.RONIN_TENANT.uri.value}|test".encodeURLPathPart()
+        val searchToken = "system|value"
+        val expectedUrl = "$urlRest/fhir/Patient?identifier=$tenantIdentifier&identifier=${searchToken.encodeURLPathPart()}"
+        val aidboxClient = createClient("", expectedUrl)
+        val actual: HttpResponse = runBlocking {
+            aidboxClient.searchForResources("Patient", "test", searchToken)
+        }
+        assertEquals(actual.status, HttpStatusCode.OK)
     }
 
     private fun createClient(
