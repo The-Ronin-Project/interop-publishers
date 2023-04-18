@@ -47,7 +47,7 @@ class OCIClient(
             .privateKeySupplier(privateKeySupplier)
             .build()
     }
-    private val client by lazy { ObjectStorageClient(authProvider) }
+    private val client by lazy { ObjectStorageClient.builder().build(authProvider) }
 
     /**
      * Retrieves the contents of the object found at [fileName] in the infx-shared bucket. If [fileName] is null,
@@ -70,14 +70,31 @@ class OCIClient(
      * Upload the string found in [data] to [fileName]
      * Returns true if it was successful
      */
-    fun upload(bucket: String, fileName: String, data: String): Boolean {
-        val putObjectRequest = PutObjectRequest.builder()
+    fun upload(bucket: String, fileName: String, data: String): Boolean = uploadObjectRequest(
+        PutObjectRequest.builder()
             .objectName(fileName)
             .putObjectBody(ByteArrayInputStream(data.toByteArray()))
             .namespaceName(namespace)
             .bucketName(bucket)
             .build()
+    )
 
+    /**
+     * Upload the stream found in [stream] to [fileName].  Useful when we need to upload a large file.  If the file is
+     * a resource, you can use `this.javaClass.getResourceAsStream("name")` to load it.  If the file is in the local
+     * system, use `FileInputStream("name")`.
+     * Returns true if it was successful.
+     */
+    fun upload(bucket: String, fileName: String, stream: InputStream): Boolean = uploadObjectRequest(
+        PutObjectRequest.builder()
+            .objectName(fileName)
+            .putObjectBody(stream)
+            .namespaceName(namespace)
+            .bucketName(bucket)
+            .build()
+    )
+
+    private fun uploadObjectRequest(putObjectRequest: PutObjectRequest): Boolean {
         // OCI JDK natively supports retrying, but errors occasionally when something unexpected happens
         // https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/javasdkconcepts.htm
 

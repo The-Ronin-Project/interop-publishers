@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.io.InputStream
 import java.util.Base64
 
 class OCIClientTest {
@@ -128,6 +129,33 @@ class OCIClientTest {
         every { client getProperty "client" } returns mockObjectStorageClient
         every { client.uploadToDatalake("test", "content") } answers { callOriginal() }
         assertTrue(client.uploadToDatalake("test", "content"))
+    }
+
+    @Test
+    fun `put object stream - works`() {
+        val mockRequest = mockk<PutObjectRequest> {}
+        mockkConstructor(PutObjectRequest.Builder::class)
+        val mockBuilder = mockk<PutObjectRequest.Builder> {
+            every { namespaceName("namespace") } returns this
+            every { bucketName("datalakebucket") } returns this
+            every { putObjectBody(any()) } returns this
+            every { build() } returns mockRequest
+        }
+        every { anyConstructed<PutObjectRequest.Builder>().objectName("test") } returns mockBuilder
+
+        val mockResponse = mockk<PutObjectResponse> {
+            every { __httpStatusCode__ } returns 200
+        }
+        val mockObjectStorageClient = mockk<ObjectStorageClient> {
+            every { putObject(mockRequest) } returns mockResponse
+        }
+
+        val mockInputStream = mockk<InputStream> {}
+
+        val client = spyk(testClient)
+        every { client getProperty "client" } returns mockObjectStorageClient
+        every { client.upload("datalakebucket", "test", mockInputStream) } answers { callOriginal() }
+        assertTrue(client.upload("datalakebucket", "test", mockInputStream))
     }
 
     @Test
