@@ -118,10 +118,10 @@ class AidboxClient(
     }
 
     /**
-     * Fetches a full FHIR resource from Aidbox based on the Fhir ID.
+     * Fetches a full FHIR resource from Aidbox based on the resource identifiers.
      * @param resourceType [String] the type of FHIR resource, i.e. "Patient" (case sensitive)
-     * @param tenantId [String] the FHIR ID of the resource ("id" json element)
-     * @param tenantId [String] the FHIR ID of the resource ("id" json element)
+     * @param tenantId [String] the tenant mnemonic
+     * @param identifierToken [String] system|value token to match system and value on any of the resource identifiers.
      * @return [HttpResponse] containing the raw data from the server. Use HttpResponse.recieve<T>() to deserialize.
      */
     suspend fun searchForResources(resourceType: String, tenantId: String, identifierToken: String): HttpResponse {
