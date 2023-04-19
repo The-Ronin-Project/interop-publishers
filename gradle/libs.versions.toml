@@ -2,9 +2,9 @@
 commons-codec = "commons-codec:commons-codec:1.15"
 dd-trace-api = "com.datadoghq:dd-trace-api:1.12.1"
 
-interop-common = "com.projectronin.interop:interop-common:3.4.0"
-interop-commonHttp = "com.projectronin.interop:interop-common-http:3.4.0"
-interop-commonJackson = "com.projectronin.interop:interop-common-jackson:3.4.0"
+interop-common = "com.projectronin.interop:interop-common:3.6.0"
+interop-commonHttp = "com.projectronin.interop:interop-common-http:3.6.0"
+interop-commonJackson = "com.projectronin.interop:interop-common-jackson:3.6.0"
 
 interop-fhir = "com.projectronin.interop.fhir:interop-fhir:7.7.0"
 
