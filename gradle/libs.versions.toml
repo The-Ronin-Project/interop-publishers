@@ -21,7 +21,12 @@ ronin-kafka = "com.projectronin:ronin-kafka:0.3.0"
 spring-boot-parent = "org.springframework.boot:spring-boot-parent:2.7.5"
 interop-kafka-event-resource-publish = "com.projectronin.contract.event:event-interop-resource-publish:1.0.1"
 interop-kafka-event-resource-load = "com.projectronin.contract.event:event-interop-resource-load:1.0.0"
+interop-kafka-event-resource-request = "com.projectronin.contract.event:event-interop-resource-request:1.0.0"
 testcontainers-bom = "org.testcontainers:testcontainers-bom:1.18.0"
 
 [bundles]
-interop-kafka-events = ["interop-kafka-event-resource-publish", "interop-kafka-event-resource-load"]
+interop-kafka-events = [
+    "interop-kafka-event-resource-publish",
+    "interop-kafka-event-resource-load",
+    "interop-kafka-event-resource-request"
+]

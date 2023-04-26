@@ -46,6 +46,8 @@ class TopicConfigTest {
     fun `topic names generate appropriately`() {
         val loadTopic = LoadSpringConfig(mockProperties).loadTopics().first()
         val publishTopic = PublishSpringConfig(mockProperties).publishTopics().first()
+        val requestTopic = RequestSpringConfig(mockProperties).requestTopic()
+
         val expectedLoadTopicName = "bmrf-cloud.black-mesa-1.interop-mirth.patient-load.v1"
         assertEquals(expectedLoadTopicName, loadTopic.topicName)
         assertEquals("anti-mass-spec-service", loadTopic.systemName)
@@ -53,5 +55,9 @@ class TopicConfigTest {
         val expectedPublishTopicName = "bmrf-cloud.black-mesa-1.interop-mirth.patient-publish-nightly.v1"
         assertEquals(expectedPublishTopicName, publishTopic.topicName)
         assertEquals("anti-mass-spec-service", publishTopic.systemName)
+
+        val expectedRequestTopicName = "bmrf-cloud.black-mesa-1.interop-mirth.resource-request.v1"
+        assertEquals(expectedRequestTopicName, requestTopic.topicName)
+        assertEquals("anti-mass-spec-service", requestTopic.systemName)
     }
 }

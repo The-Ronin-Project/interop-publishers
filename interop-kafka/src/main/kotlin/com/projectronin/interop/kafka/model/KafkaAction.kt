@@ -8,5 +8,6 @@ enum class KafkaAction(val type: String) {
     RETRIEVE("retrieve"),
     LOAD("load"),
     CREATE("create"),
-    UPDATE("update")
+    UPDATE("update"),
+    REQUEST("request")
 }
