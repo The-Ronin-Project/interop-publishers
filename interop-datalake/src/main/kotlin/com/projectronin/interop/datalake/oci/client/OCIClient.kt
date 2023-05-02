@@ -66,6 +66,9 @@ class OCIClient(
         return upload(datalakeBucket, fileName, data)
     }
 
+    fun getDatalakeFullURL(fileName: String): String =
+        "https://objectstorage.$regionId.oraclecloud.com/n/$namespace/b/$datalakeBucket/o/$fileName"
+
     /**
      * Upload the string found in [data] to [fileName]
      * Returns true if it was successful

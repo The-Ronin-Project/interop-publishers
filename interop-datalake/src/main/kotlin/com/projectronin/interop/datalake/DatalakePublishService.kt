@@ -1,17 +1,16 @@
 package com.projectronin.interop.datalake
 
-import com.projectronin.interop.common.hl7.EventType
-import com.projectronin.interop.common.hl7.MessageType
 import com.projectronin.interop.common.jackson.JacksonManager
-import com.projectronin.interop.datalake.hl7.getMSH9
+import com.projectronin.interop.common.jackson.JacksonUtil
 import com.projectronin.interop.datalake.oci.client.OCIClient
 import com.projectronin.interop.fhir.r4.resource.Resource
 import mu.KotlinLogging
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Service
 import java.time.LocalDate
-import java.time.LocalTime
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 /**
  * Service allowing access to push data updates to the datalake
@@ -69,109 +68,33 @@ class DatalakePublishService(private val ociClient: OCIClient, private val taskE
     }
 
     /**
-     * Publishes serialized JSON data to the OCI datalake.
-     * The [data] is expected to be the response payload from an API call whose response content format is JSON.
+     * Publishes raw data to the data lake for a specific tenant.
      *
-     * For JSON response data from FHIR APIs, use publishFHIRR4().
-     * For JSON response data from all other APIs, use publishAPIJSON().
-     *
-     * publishAPIJSON() publishes the JSON data to a file in the datalake container.
-     * The file path supports Data Platform needs for code optimization and bronze directory layout, root: api-json
-     *
-     * The data schema is defined by the API, so this method requires input of the [method] and [url]
-     * to uniquely identify the API call. When writing the data, publishAPIJSON() joins these input values
-     * with a hyphen to generate a label for the schema segment of the file path.
-     *
-     * The file name in the path replaces punctuation in the millisecond timestamp with hyphens.
-     *
-     * @param tenantId The tenant mnemonic
-     * @param data Serialized JSON response data from an API call
-     * @param method Method for the API call, example: GET, POST
-     * @param url URL for the API call
-     * @throws IllegalStateException if the method or url is empty so the API request could not be correctly identified.
+     * @param tenantId The unique identifier for the tenant.
+     * @param data The raw data to be uploaded to the data lake.
+     * @param url The URL of the original API call
+     * @return The URL of the uploaded data.
      */
-    fun publishAPIJSON(tenantId: String, data: String, method: String, url: String) {
-        val root = "api-json"
+    fun publishRawData(tenantId: String, data: String, url: String): String {
+        val transactionID = UUID.randomUUID().toString()
+        val root = "raw_data_response"
         logger.info { "Publishing Ronin clinical data to datalake at $root" }
-        if (method.isEmpty() || url.isEmpty()) {
-            throw IllegalStateException(
-                "Attempted to publish JSON data from an API response without identifying the API request for tenant $tenantId"
-            )
-        }
-        if (data.isEmpty()) {
-            logger.debug { "Publishing nothing to datalake because the supplied data is empty" }
-            return
-        }
-        val pathCleanup: Regex = "[^A-Za-z0-9_-]+".toRegex()
-        // Note: schema contributes to a file path limit of 1024 in the bronze directory. No length issues are expected.
-        val schema = "$method-$url"
-            .replace(pathCleanup, "")
-        val dateOfExport = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-        val timeOfExport = LocalTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME)
-            .replace(pathCleanup, "-")
-        val filePathString = "$root/schema=$schema/fhir_tenant_id=$tenantId/_date=$dateOfExport/$timeOfExport.json"
+        val filePathString = "$root/tenant_id=$tenantId/transaction_id/$transactionID"
         logger.debug { "Publishing Ronin clinical data to $filePathString" }
-        ociClient.uploadToDatalake(filePathString, data)
-    }
-
-    /**
-     * Publishes HL7v2 data to the OCI datalake.
-     *
-     * publishHL7v2() publishes the HL7v2 data to a file in the datalake container.
-     * The file path supports Data Platform needs for code optimization and bronze directory layout, root: hl7v2
-     *
-     * Gets messageType and messageEvent from the HL7v2 message MSH segment.
-     * The file name in the path replaces punctuation in the millisecond timestamp with hyphens.
-     *
-     * @param tenantId The tenant mnemonic
-     * @param messages List of HL7v2 messages to publish. May be a mix of different message types and message events.
-     * @throws IllegalStateException if any of the HL7v2 messages had an invalid structure so could not be published.
-     */
-    fun publishHL7v2(tenantId: String, messages: List<String>) {
-        val root = "hl7v2"
-        logger.info { "Publishing Ronin clinical data to datalake at $root" }
-        if (messages.isEmpty()) {
-            logger.debug { "Publishing nothing to datalake because the supplied data is empty" }
-            return
-        }
-        val pathCleanup: Regex = "[^A-Za-z0-9_-]+".toRegex()
-        val dateOfExport = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-        val timeOfExport = LocalTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME)
-            .replace(pathCleanup, "-")
-
-        val messagesToWrite = messages.filter { message -> message.isNotEmpty() }
-        var messageCount = messagesToWrite.size
-
-        messagesToWrite.forEachIndexed { index, message ->
-            val forEachTimeOfExport = "$timeOfExport-$index"
-            val messageStructure = getMSH9(tenantId, message)
-            if (messageStructure.count() < 2) {
-                logger.error {
-                    "Did not publish HL7v2 message to datalake for tenant $tenantId: the message has invalid structure at index $forEachTimeOfExport"
-                }
-                messageCount--
-                return@forEachIndexed
-            }
-            val messageType = messageStructure[0]
-            val messageEvent = "$messageType${messageStructure[1]}"
-            val filePathString =
-                "$root/message_type=$messageType/message_event=$messageEvent/fhir_tenant_id=$tenantId/_date=$dateOfExport/$forEachTimeOfExport.json"
-            if ((MessageType.values().find { it.toString() == messageType } == null) ||
-                (EventType.values().find { it.toString() == messageEvent } == null)
-            ) {
-                logger.error {
-                    "Did not publish HL7v2 message to datalake at $filePathString for tenant $tenantId: $messageEvent messages are not supported at index $forEachTimeOfExport"
-                }
-                messageCount--
-                return@forEachIndexed
-            }
-            logger.debug { "Publishing Ronin clinical data to $filePathString" }
-            ociClient.uploadToDatalake(filePathString, message)
-        }
-        if (messageCount < messagesToWrite.size) {
-            throw IllegalStateException(
-                "Did not publish all HL7v2 messages to datalake for tenant $tenantId: Problems with some message structures. Errors were logged."
+        taskExecutor.submit {
+            ociClient.uploadToDatalake(
+                filePathString,
+                JacksonUtil.writeJsonValue(
+                    RawDataWrapper(
+                        url,
+                        LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                        data
+                    )
+                )
             )
         }
+        return ociClient.getDatalakeFullURL(filePathString)
     }
+
+    private data class RawDataWrapper(val url: String, val time: String, val body: String)
 }
