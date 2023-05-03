@@ -8,7 +8,7 @@ interop-commonJackson = "com.projectronin.interop:interop-common-jackson:3.6.0"
 
 interop-fhir = "com.projectronin.interop.fhir:interop-fhir:7.8.1"
 
-junit-jupiter = "org.junit.jupiter:junit-jupiter:5.9.2"
+junit-jupiter = "org.junit.jupiter:junit-jupiter:5.9.3"
 junit-pioneer = "org.junit-pioneer:junit-pioneer:2.0.1"
 kotlinx-coroutines-core = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
 ktor-client-mock = "io.ktor:ktor-client-mock:2.3.0"
