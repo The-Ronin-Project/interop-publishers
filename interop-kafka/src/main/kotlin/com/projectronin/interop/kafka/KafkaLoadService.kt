@@ -1,7 +1,9 @@
 package com.projectronin.interop.kafka
 
-import com.projectronin.event.interop.resource.load.v1.InteropResourceLoadV1
-import com.projectronin.interop.common.resource.ResourceType
+import com.projectronin.event.interop.internal.v1.InteropResourceLoadV1
+import com.projectronin.event.interop.internal.v1.Metadata
+import com.projectronin.event.interop.internal.v1.ResourceType
+import com.projectronin.event.interop.internal.v1.eventName
 import com.projectronin.interop.kafka.client.KafkaClient
 import com.projectronin.interop.kafka.model.DataTrigger
 import com.projectronin.interop.kafka.model.Failure
@@ -20,7 +22,7 @@ import java.time.Duration
 class KafkaLoadService(private val kafkaClient: KafkaClient, topics: List<LoadTopic>) {
     private val logger = KotlinLogging.logger { }
 
-    private val loadTopicsByResourceType = topics.groupBy { it.resourceType.lowercase() }
+    private val loadTopicsByResourceType = topics.groupBy { it.resourceType }
 
     /**
      * Triggers a Load event for the [resourceFHIRIds] to the appropriate Kafka topics for [tenantId].
@@ -29,7 +31,8 @@ class KafkaLoadService(private val kafkaClient: KafkaClient, topics: List<LoadTo
         tenantId: String,
         trigger: DataTrigger,
         resourceFHIRIds: List<String>,
-        resourceType: ResourceType
+        resourceType: ResourceType,
+        metadata: Metadata
     ): PushResponse<String> {
         val loadTopic = getTopic(resourceType)
         if (loadTopic == null) {
@@ -46,17 +49,18 @@ class KafkaLoadService(private val kafkaClient: KafkaClient, topics: List<LoadTo
             val events = resourceFHIRIds.map {
                 KafkaEvent(
                     domain = loadTopic.systemName,
-                    resource = "resource",
+                    resource = resourceType.eventName(),
                     action = KafkaAction.LOAD,
                     resourceId = it,
                     data = InteropResourceLoadV1(
                         tenantId = tenantId,
                         resourceFHIRId = it,
-                        resourceType = resourceType.name,
+                        resourceType = resourceType,
                         dataTrigger = when (trigger) {
                             DataTrigger.AD_HOC -> InteropResourceLoadV1.DataTrigger.adhoc
                             DataTrigger.NIGHTLY -> InteropResourceLoadV1.DataTrigger.nightly
-                        }
+                        },
+                        metadata = metadata
                     )
                 )
             }
@@ -88,7 +92,7 @@ class KafkaLoadService(private val kafkaClient: KafkaClient, topics: List<LoadTo
         justClear: Boolean = false
     ): List<InteropResourceLoadV1> {
         val topic = getTopic(resourceType) ?: return emptyList()
-        val typeMap = mapOf("ronin.interop-mirth.resource.load" to InteropResourceLoadV1::class)
+        val typeMap = mapOf("ronin.interop-mirth.${resourceType.eventName()}.load" to InteropResourceLoadV1::class)
         if (justClear) {
             // shorter wait time because you are assuming events are there or not, no waiting
             kafkaClient.retrieveEvents(topic, typeMap, groupId, Duration.ofMillis(500))
@@ -105,7 +109,6 @@ class KafkaLoadService(private val kafkaClient: KafkaClient, topics: List<LoadTo
     }
 
     fun getTopic(resourceType: ResourceType): LoadTopic? {
-        val resource = resourceType.name.filter { it.isLetter() }
-        return loadTopicsByResourceType[resource.lowercase()]?.singleOrNull()
+        return loadTopicsByResourceType[resourceType]?.singleOrNull()
     }
 }

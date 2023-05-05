@@ -1,5 +1,6 @@
 package com.projectronin.interop.publishers
 
+import com.projectronin.event.interop.internal.v1.Metadata
 import com.projectronin.interop.aidbox.AidboxPublishService
 import com.projectronin.interop.datalake.DatalakePublishService
 import com.projectronin.interop.fhir.r4.resource.Resource
@@ -24,13 +25,14 @@ class PublishService(
     fun publishFHIRResources(
         tenantId: String,
         resources: List<Resource<*>>,
+        metadata: Metadata,
         dataTrigger: DataTrigger? = null
     ): Boolean {
         if (!aidboxPublishService.publish(resources)) {
             throw AidboxPublishException("Could not publish resources to Aidbox for tenant $tenantId")
         }
         datalakePublishService.publishFHIRR4(tenantId, resources)
-        dataTrigger?.let { kafkaPublishService.publishResources(tenantId, dataTrigger, resources) }
+        dataTrigger?.let { kafkaPublishService.publishResources(tenantId, dataTrigger, resources, metadata) }
         return true
     }
 }

@@ -1,7 +1,8 @@
 package com.projectronin.interop.kafka
 
-import com.projectronin.event.interop.resource.load.v1.InteropResourceLoadV1
-import com.projectronin.interop.common.resource.ResourceType
+import com.projectronin.event.interop.internal.v1.InteropResourceLoadV1
+import com.projectronin.event.interop.internal.v1.Metadata
+import com.projectronin.event.interop.internal.v1.ResourceType
 import com.projectronin.interop.kafka.client.KafkaClient
 import com.projectronin.interop.kafka.model.DataTrigger
 import com.projectronin.interop.kafka.model.Failure
@@ -16,23 +17,26 @@ import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import java.time.OffsetDateTime
 
 class KafkaLoadServiceTest {
 
     private val patientTopic = mockk<LoadTopic> {
-        every { resourceType } returns "Patient"
+        every { resourceType } returns ResourceType.Patient
         every { systemName } returns "interop-platform"
     }
 
     private val appointmentTopic = mockk<LoadTopic> {
-        every { resourceType } returns "Appointment"
+        every { resourceType } returns ResourceType.Appointment
         every { systemName } returns "interop-platform"
     }
 
     private val medicationRequestTopic = mockk<LoadTopic> {
-        every { resourceType } returns "MedicationRequest"
+        every { resourceType } returns ResourceType.MedicationRequest
         every { systemName } returns "interop-platform"
     }
+
+    private val metadata = Metadata(runId = "testRun", runDateTime = OffsetDateTime.now())
 
     private val kafkaClient = mockk<KafkaClient>()
     private val tenantId = "test"
@@ -43,10 +47,11 @@ class KafkaLoadServiceTest {
         val loadData = InteropResourceLoadV1(
             tenantId = tenantId,
             resourceFHIRId = "1234",
-            resourceType = "PATIENT",
-            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly
+            resourceType = ResourceType.Patient,
+            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly,
+            metadata = metadata
         )
-        val patientEvent = KafkaEvent("interop-platform", "resource", KafkaAction.LOAD, "1234", data = loadData)
+        val patientEvent = KafkaEvent("interop-platform", "patient", KafkaAction.LOAD, "1234", data = loadData)
         every {
             kafkaClient.publishEvents(
                 patientTopic,
@@ -54,14 +59,16 @@ class KafkaLoadServiceTest {
             )
         } returns PushResponse(successful = listOf(patientEvent))
 
-        assertDoesNotThrow {
+        assertEquals(
+            1,
             service.pushLoadEvent(
                 tenantId,
                 DataTrigger.NIGHTLY,
                 listOf("1234"),
-                ResourceType.PATIENT
-            )
-        }
+                ResourceType.Patient,
+                metadata
+            ).successful.size
+        )
     }
 
     @Test
@@ -75,10 +82,11 @@ class KafkaLoadServiceTest {
         val loadData = InteropResourceLoadV1(
             tenantId = tenantId,
             resourceFHIRId = "1234",
-            resourceType = "PATIENT",
-            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly
+            resourceType = ResourceType.Patient,
+            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly,
+            metadata = metadata
         )
-        val patientEvent = KafkaEvent("interop-platform", "resource", KafkaAction.LOAD, "1234", data = loadData)
+        val patientEvent = KafkaEvent("interop-platform", "patient", KafkaAction.LOAD, "1234", data = loadData)
         every {
             kafkaClient.publishEvents(
                 patientTopic,
@@ -87,13 +95,14 @@ class KafkaLoadServiceTest {
         } returns PushResponse(failures = listOf(Failure((patientEvent), error = Exception())))
 
         assertEquals(
+            1,
             service.pushLoadEvent(
                 tenantId,
                 DataTrigger.NIGHTLY,
                 listOf("1234"),
-                ResourceType.PATIENT
-            ).failures.size,
-            1
+                ResourceType.Patient,
+                metadata
+            ).failures.size
         )
     }
 
@@ -102,10 +111,11 @@ class KafkaLoadServiceTest {
         val loadData = InteropResourceLoadV1(
             tenantId = tenantId,
             resourceFHIRId = "1234",
-            resourceType = "PATIENT",
-            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly
+            resourceType = ResourceType.Patient,
+            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly,
+            metadata = metadata
         )
-        val patientEvent = KafkaEvent("interop-platform", "resource", KafkaAction.LOAD, "1234", data = loadData)
+        val patientEvent = KafkaEvent("interop-platform", "patient", KafkaAction.LOAD, "1234", data = loadData)
         every {
             kafkaClient.publishEvents(
                 patientTopic,
@@ -114,13 +124,14 @@ class KafkaLoadServiceTest {
         } throws Exception("error")
 
         assertEquals(
+            1,
             service.pushLoadEvent(
                 tenantId,
                 DataTrigger.NIGHTLY,
                 listOf("1234"),
-                ResourceType.PATIENT
-            ).failures.size,
-            1
+                ResourceType.Patient,
+                metadata
+            ).failures.size
         )
     }
 
@@ -131,7 +142,8 @@ class KafkaLoadServiceTest {
                 tenantId,
                 DataTrigger.NIGHTLY,
                 listOf("1234"),
-                ResourceType.PRACTITIONER
+                ResourceType.Practitioner,
+                metadata
             ).failures.size,
             1
         )
@@ -142,11 +154,12 @@ class KafkaLoadServiceTest {
         val loadData = InteropResourceLoadV1(
             tenantId = tenantId,
             resourceFHIRId = "1234",
-            resourceType = "PATIENT",
-            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly
+            resourceType = ResourceType.Patient,
+            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly,
+            metadata = metadata
         )
         every { kafkaClient.retrieveEvents(any(), any()) } returns listOf(mockk { every { data } returns loadData })
-        val ret = service.retrieveLoadEvents(ResourceType.PATIENT)
+        val ret = service.retrieveLoadEvents(ResourceType.Patient)
         assertEquals(loadData, ret.first())
     }
 
@@ -155,11 +168,12 @@ class KafkaLoadServiceTest {
         val loadData = InteropResourceLoadV1(
             tenantId = tenantId,
             resourceFHIRId = "1234",
-            resourceType = "PATIENT",
-            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly
+            resourceType = ResourceType.Patient,
+            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly,
+            metadata = metadata
         )
         every { kafkaClient.retrieveEvents(any(), any()) } returns listOf(mockk { every { data } returns loadData })
-        val ret = service.retrieveLoadEvents(ResourceType.PRACTITIONER)
+        val ret = service.retrieveLoadEvents(ResourceType.Practitioner)
         assertEquals(emptyList<InteropResourceLoadV1>(), ret)
     }
 
@@ -168,11 +182,18 @@ class KafkaLoadServiceTest {
         val loadData = InteropResourceLoadV1(
             tenantId = tenantId,
             resourceFHIRId = "1234",
-            resourceType = "PATIENT",
-            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly
+            resourceType = ResourceType.Patient,
+            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly,
+            metadata = metadata
         )
-        every { kafkaClient.retrieveEvents(any(), any(), "override") } returns listOf(mockk { every { data } returns loadData })
-        val ret = service.retrieveLoadEvents(ResourceType.PATIENT, "override")
+        every {
+            kafkaClient.retrieveEvents(
+                any(),
+                any(),
+                "override"
+            )
+        } returns listOf(mockk { every { data } returns loadData })
+        val ret = service.retrieveLoadEvents(ResourceType.Patient, "override")
         assertEquals(loadData, ret.first())
     }
 
@@ -181,12 +202,18 @@ class KafkaLoadServiceTest {
         val loadData = InteropResourceLoadV1(
             tenantId = tenantId,
             resourceFHIRId = "1234",
-            resourceType = "MedicationRequest",
-            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly
+            resourceType = ResourceType.MedicationRequest,
+            dataTrigger = InteropResourceLoadV1.DataTrigger.nightly,
+            metadata = metadata
         )
-        every { kafkaClient.retrieveEvents(any(), any(), "any") } returns listOf(mockk { every { data } returns loadData })
-        val ret = service.retrieveLoadEvents(ResourceType.MEDICATION_REQUEST, "any")
+        every {
+            kafkaClient.retrieveEvents(
+                any(),
+                any(),
+                "any"
+            )
+        } returns listOf(mockk { every { data } returns loadData })
+        val ret = service.retrieveLoadEvents(ResourceType.MedicationRequest, "any")
         assertEquals(loadData, ret.first())
-        assertEquals(loadData.resourceType, "MedicationRequest")
     }
 }

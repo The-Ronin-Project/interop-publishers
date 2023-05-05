@@ -6,6 +6,7 @@ plugins {
 dependencies {
     implementation(libs.interop.common)
     implementation(libs.interop.fhir)
+    implementation(libs.event.interop.resource.internal)
     implementation(project(":interop-aidbox"))
     implementation(project(":interop-datalake"))
     implementation(project(":interop-kafka"))

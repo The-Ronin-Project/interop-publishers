@@ -1,5 +1,7 @@
 package com.projectronin.interop.kafka.spring
 
+import com.projectronin.event.interop.internal.v1.ResourceType
+import com.projectronin.event.interop.internal.v1.eventName
 import com.projectronin.interop.kafka.model.LoadTopic
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -10,31 +12,37 @@ class LoadSpringConfig(private val kafkaSpringConfig: KafkaConfig) {
     @Bean
     fun loadTopics(): List<LoadTopic> {
         val supportedResources = listOf(
-            "Patient",
-            "Binary",
-            "Practitioner",
-            "Appointment",
-            "CarePlan",
-            "CareTeam",
-            "Communication",
-            "Condition",
-            "Encounter",
-            "DocumentReference",
-            "Location",
-            "Medication",
-            "MedicationRequest",
-            "MedicationStatement",
-            "Observation",
-            "Organization",
-            "PractitionerRole"
+            ResourceType.Patient,
+            ResourceType.Binary,
+            ResourceType.Practitioner,
+            ResourceType.Appointment,
+            ResourceType.CarePlan,
+            ResourceType.CareTeam,
+            ResourceType.Communication,
+            ResourceType.Condition,
+            ResourceType.Encounter,
+            ResourceType.DocumentReference,
+            ResourceType.Location,
+            ResourceType.Medication,
+            ResourceType.MedicationRequest,
+            ResourceType.MedicationStatement,
+            ResourceType.Observation,
+            ResourceType.Organization,
+            ResourceType.PractitionerRole
         )
         return supportedResources.map {
             generateTopics(it)
         }
     }
 
-    fun generateTopics(resourceType: String): LoadTopic {
-        val topicParameters = listOf(kafkaSpringConfig.cloud.vendor, kafkaSpringConfig.cloud.region, "interop-mirth", "${resourceType.lowercase()}-load", "v1")
+    fun generateTopics(resourceType: ResourceType): LoadTopic {
+        val topicParameters = listOf(
+            kafkaSpringConfig.cloud.vendor,
+            kafkaSpringConfig.cloud.region,
+            "interop-mirth",
+            "${resourceType.eventName()}-load",
+            "v1"
+        )
         return LoadTopic(
             systemName = kafkaSpringConfig.retrieve.serviceId,
             topicName = topicParameters.joinToString("."),

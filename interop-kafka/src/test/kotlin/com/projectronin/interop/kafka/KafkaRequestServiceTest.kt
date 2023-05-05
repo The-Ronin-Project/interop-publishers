@@ -1,7 +1,7 @@
 package com.projectronin.interop.kafka
 
+import com.projectronin.event.interop.internal.v1.ResourceType
 import com.projectronin.event.interop.resource.request.v1.InteropResourceRequestV1
-import com.projectronin.interop.common.resource.ResourceType
 import com.projectronin.interop.kafka.client.KafkaClient
 import com.projectronin.interop.kafka.model.Failure
 import com.projectronin.interop.kafka.model.KafkaAction
@@ -44,7 +44,7 @@ class KafkaRequestServiceTest {
             service.pushRequestEvent(
                 tenantId,
                 listOf("1234"),
-                ResourceType.PATIENT,
+                ResourceType.Patient,
                 "testing-service"
             )
         }
@@ -70,7 +70,7 @@ class KafkaRequestServiceTest {
             service.pushRequestEvent(
                 tenantId,
                 listOf("1234"),
-                ResourceType.PATIENT,
+                ResourceType.Patient,
                 "testing-service"
             )
         }
@@ -79,7 +79,7 @@ class KafkaRequestServiceTest {
             service.pushRequestEvent(
                 tenantId,
                 listOf("1234"),
-                ResourceType.PATIENT,
+                ResourceType.Patient,
                 "testing-service"
             )
                 .failures.size,
@@ -107,7 +107,7 @@ class KafkaRequestServiceTest {
             service.pushRequestEvent(
                 tenantId,
                 listOf("1234"),
-                ResourceType.PATIENT,
+                ResourceType.Patient,
                 "testing-service"
             ).failures.size,
             1

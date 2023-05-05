@@ -1,7 +1,9 @@
 package com.projectronin.interop.kafka
 
-import com.projectronin.event.interop.resource.publish.v1.InteropResourcePublishV1
-import com.projectronin.interop.common.resource.ResourceType
+import com.projectronin.event.interop.internal.v1.InteropResourcePublishV1
+import com.projectronin.event.interop.internal.v1.Metadata
+import com.projectronin.event.interop.internal.v1.ResourceType
+import com.projectronin.event.interop.internal.v1.eventName
 import com.projectronin.interop.fhir.r4.resource.Resource
 import com.projectronin.interop.kafka.client.KafkaClient
 import com.projectronin.interop.kafka.model.DataTrigger
@@ -21,7 +23,7 @@ import java.time.Duration
 class KafkaPublishService(private val kafkaClient: KafkaClient, topics: List<PublishTopic>) {
     private val logger = KotlinLogging.logger { }
 
-    private val publishTopicsByResourceType = topics.groupBy { getTopicKey(it.resourceType, it.dataTrigger) }
+    private val publishTopicsByResourceType = topics.groupBy { Pair(it.resourceType, it.dataTrigger) }
 
     /**
      * Publishes the [resources] to the appropriate Kafka topics for [tenantId].
@@ -29,9 +31,10 @@ class KafkaPublishService(private val kafkaClient: KafkaClient, topics: List<Pub
     fun publishResources(
         tenantId: String,
         trigger: DataTrigger,
-        resources: List<Resource<*>>
+        resources: List<Resource<*>>,
+        metadata: Metadata
     ): PushResponse<Resource<*>> {
-        val resourcesByType = resources.groupBy { it.resourceType }
+        val resourcesByType = resources.groupBy { ResourceType.valueOf(it.resourceType) }
         val results = resourcesByType.map { (type, resources) ->
             val publishTopic = getTopic(type, trigger)
             if (publishTopic == null) {
@@ -48,10 +51,10 @@ class KafkaPublishService(private val kafkaClient: KafkaClient, topics: List<Pub
                 val events = resources.associateBy {
                     KafkaEvent(
                         domain = publishTopic.systemName,
-                        resource = "resource",
+                        resource = type.eventName(),
                         action = KafkaAction.PUBLISH,
                         resourceId = it.id!!.value!!,
-                        data = publishTopic.converter(tenantId, it)
+                        data = publishTopic.converter(tenantId, it, metadata)
                     )
                 }
 
@@ -87,9 +90,10 @@ class KafkaPublishService(private val kafkaClient: KafkaClient, topics: List<Pub
         groupId: String? = null,
         justClear: Boolean = false
     ): List<InteropResourcePublishV1> {
-        val topic = getTopic(resourceType.name, dataTrigger)
+        val topic = getTopic(resourceType, dataTrigger)
             ?: return emptyList()
-        val typeMap = mapOf("ronin.interop-mirth.resource.publish" to InteropResourcePublishV1::class)
+        val typeMap =
+            mapOf("ronin.interop-mirth.${resourceType.eventName()}.publish" to InteropResourcePublishV1::class)
         if (justClear) {
             // shorter wait time because you are assuming events are there or not, no waiting
             kafkaClient.retrieveEvents(topic, typeMap, groupId, Duration.ofMillis(500))
@@ -105,12 +109,7 @@ class KafkaPublishService(private val kafkaClient: KafkaClient, topics: List<Pub
         kafkaClient.deleteTopics(publishTopicsByResourceType.values.flatten().distinct())
     }
 
-    private fun getTopic(resourceType: String, dataTrigger: DataTrigger): PublishTopic? {
-        return publishTopicsByResourceType[getTopicKey(resourceType, dataTrigger)]?.singleOrNull()
-    }
-
-    private fun getTopicKey(resourceType: String, dataTrigger: DataTrigger): Pair<String, DataTrigger> {
-        val resource = resourceType.filter { it.isLetter() }
-        return Pair(resource.lowercase(), dataTrigger)
+    private fun getTopic(resourceType: ResourceType, dataTrigger: DataTrigger): PublishTopic? {
+        return publishTopicsByResourceType[Pair(resourceType, dataTrigger)]?.singleOrNull()
     }
 }

@@ -1,6 +1,8 @@
 package com.projectronin.interop.kafka.client
 
-import com.projectronin.event.interop.resource.publish.v1.InteropResourcePublishV1
+import com.projectronin.event.interop.internal.v1.InteropResourcePublishV1
+import com.projectronin.event.interop.internal.v1.Metadata
+import com.projectronin.event.interop.internal.v1.ResourceType
 import com.projectronin.interop.kafka.model.KafkaEvent
 import com.projectronin.interop.kafka.model.KafkaTopic
 import com.projectronin.interop.kafka.spring.AdminWrapper
@@ -26,6 +28,7 @@ import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.OffsetDateTime
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
@@ -321,9 +324,10 @@ class KafkaClientTest {
         val mockEvent = mockk<RoninEvent<InteropResourcePublishV1>>()
         every { mockEvent.data } returns InteropResourcePublishV1(
             "TENANT",
-            "Patient",
+            ResourceType.Patient,
             InteropResourcePublishV1.DataTrigger.nightly,
-            resourceJson = "json"
+            resourceJson = "json",
+            metadata = Metadata(runId = "1234", runDateTime = OffsetDateTime.now())
         )
         every { mockEvent.id } returns "messageID"
         mockkStatic(::createConsumer)
@@ -335,7 +339,11 @@ class KafkaClientTest {
         every { mockConsumer.stop() } just Runs
         every { mockConsumer.unsubscribe() } just Runs
         val client = KafkaClient(kafkaConfig, kafkaAdminClient)
-        val ret = client.retrieveEvents(topic = mockk { every { topicName } returns "topicName" }, typeMap = mapOf(), limit = 1)
+        val ret = client.retrieveEvents(
+            topic = mockk { every { topicName } returns "topicName" },
+            typeMap = mapOf(),
+            limit = 1
+        )
         assertEquals(ret.size, 1)
         unmockkStatic(::createConsumer)
     }
@@ -345,9 +353,10 @@ class KafkaClientTest {
         val mockEvent = mockk<RoninEvent<InteropResourcePublishV1>>()
         every { mockEvent.data } returns InteropResourcePublishV1(
             "TENANT",
-            "Patient",
+            ResourceType.Patient,
             InteropResourcePublishV1.DataTrigger.nightly,
-            resourceJson = "json"
+            resourceJson = "json",
+            metadata = Metadata(runId = "1234", runDateTime = OffsetDateTime.now())
         )
         every { mockEvent.id } returns "messageID"
         mockkStatic(::createConsumer)

@@ -1,5 +1,6 @@
 package com.projectronin.interop.publishers
 
+import com.projectronin.event.interop.internal.v1.Metadata
 import com.projectronin.interop.aidbox.AidboxPublishService
 import com.projectronin.interop.datalake.DatalakePublishService
 import com.projectronin.interop.fhir.r4.CodeSystem
@@ -27,6 +28,7 @@ class PublishServiceTest {
     private lateinit var service: PublishService
 
     private val tenantId = "tenant"
+    private val metadata = mockk<Metadata>()
 
     private val roninDomainResources = listOf(
         Practitioner(
@@ -65,28 +67,28 @@ class PublishServiceTest {
     fun `publishes FHIR resources to Aidbox`() {
         every { aidboxPublishService.publish(roninDomainResources) } returns true
         every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
-        every { kafkaPublishService.publishResources(tenantId, any(), roninDomainResources) } returns mockk()
+        every { kafkaPublishService.publishResources(tenantId, any(), roninDomainResources, metadata) } returns mockk()
 
-        assertTrue(service.publishFHIRResources(tenantId, roninDomainResources))
+        assertTrue(service.publishFHIRResources(tenantId, roninDomainResources, metadata))
     }
 
     @Test
     fun `publishes FHIR resources to Kafka`() {
         every { aidboxPublishService.publish(roninDomainResources) } returns true
         every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
-        every { kafkaPublishService.publishResources(tenantId, any(), roninDomainResources) } returns mockk()
+        every { kafkaPublishService.publishResources(tenantId, any(), roninDomainResources, metadata) } returns mockk()
 
-        assertTrue(service.publishFHIRResources(tenantId, roninDomainResources, DataTrigger.AD_HOC))
+        assertTrue(service.publishFHIRResources(tenantId, roninDomainResources, metadata, DataTrigger.AD_HOC))
     }
 
     @Test
     fun `handles aidbox failing to publish FHIR resources`() {
         every { aidboxPublishService.publish(roninDomainResources) } returns false
         every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
-        every { kafkaPublishService.publishResources(tenantId, any(), roninDomainResources) } returns mockk()
+        every { kafkaPublishService.publishResources(tenantId, any(), roninDomainResources, metadata) } returns mockk()
 
         assertThrows<AidboxPublishException> {
-            service.publishFHIRResources(tenantId, roninDomainResources)
+            service.publishFHIRResources(tenantId, roninDomainResources, metadata)
         }
     }
 }

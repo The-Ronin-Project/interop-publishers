@@ -1,5 +1,7 @@
 package com.projectronin.interop.kafka.model
 
+import com.projectronin.event.interop.internal.v1.Metadata
+import com.projectronin.event.interop.internal.v1.ResourceType
 import com.projectronin.interop.fhir.r4.resource.Resource
 
 /**
@@ -9,7 +11,7 @@ data class PublishTopic(
     override val systemName: String,
     override val topicName: String,
     override val dataSchema: String,
-    val resourceType: String,
+    val resourceType: ResourceType,
     val dataTrigger: DataTrigger,
-    val converter: (String, Resource<*>) -> Any
+    val converter: (String, Resource<*>, Metadata) -> Any
 ) : KafkaTopic

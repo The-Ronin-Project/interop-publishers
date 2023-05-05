@@ -2,6 +2,9 @@
 commons-codec = "commons-codec:commons-codec:1.15"
 dd-trace-api = "com.datadoghq:dd-trace-api:1.13.0"
 
+event-interop-resource-internal = "com.projectronin.contract.event:event-interop-resource-internal:1.0.0"
+event-interop-resource-request = "com.projectronin.contract.event:event-interop-resource-request:1.0.0"
+
 interop-common = "com.projectronin.interop:interop-common:3.6.0"
 interop-commonHttp = "com.projectronin.interop:interop-common-http:3.6.0"
 interop-commonJackson = "com.projectronin.interop:interop-common-jackson:3.6.0"
@@ -19,14 +22,10 @@ oci-http-client = "com.oracle.oci.sdk:oci-java-sdk-common-httpclient-jersey:3.13
 oci-objectstorage = "com.oracle.oci.sdk:oci-java-sdk-objectstorage:3.13.0"
 ronin-kafka = "com.projectronin:ronin-kafka:0.3.0"
 spring-boot-parent = "org.springframework.boot:spring-boot-parent:2.7.5"
-interop-kafka-event-resource-publish = "com.projectronin.contract.event:event-interop-resource-publish:1.0.1"
-interop-kafka-event-resource-load = "com.projectronin.contract.event:event-interop-resource-load:1.0.0"
-interop-kafka-event-resource-request = "com.projectronin.contract.event:event-interop-resource-request:1.0.0"
 testcontainers-bom = "org.testcontainers:testcontainers-bom:1.18.0"
 
 [bundles]
 interop-kafka-events = [
-    "interop-kafka-event-resource-publish",
-    "interop-kafka-event-resource-load",
-    "interop-kafka-event-resource-request"
+    "event-interop-resource-internal",
+    "event-interop-resource-request"
 ]
