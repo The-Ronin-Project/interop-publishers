@@ -11,6 +11,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 /**
  * Service allowing access to push data updates to the datalake
@@ -58,7 +59,7 @@ class DatalakePublishService(private val ociClient: OCIClient, private val taskE
         }
 
         // Force completion of each job
-        jobs.forEach { it.get() }
+        jobs.forEach { it.get(20, TimeUnit.SECONDS) }
 
         if (resourcesToWrite.size < resources.size) {
             throw IllegalStateException(

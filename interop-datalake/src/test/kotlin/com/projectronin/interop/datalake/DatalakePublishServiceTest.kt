@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import java.time.LocalDate
+import java.util.concurrent.TimeUnit
 
 class DatalakePublishServiceTest {
     private val mockClient = mockk<OCIClient>()
@@ -26,7 +27,7 @@ class DatalakePublishServiceTest {
         every { submit(any()) } answers {
             val result = firstArg<Runnable>().run()
             mockk {
-                every { get() } returns result
+                every { get(20, TimeUnit.SECONDS) } returns result
             }
         }
     }
