@@ -9,7 +9,7 @@ interop-common = "com.projectronin.interop:interop-common:3.6.0"
 interop-commonHttp = "com.projectronin.interop:interop-common-http:3.6.0"
 interop-commonJackson = "com.projectronin.interop:interop-common-jackson:3.6.0"
 
-interop-fhir = "com.projectronin.interop.fhir:interop-fhir:7.8.2"
+interop-fhir = "com.projectronin.interop.fhir:interop-fhir:8.0.0"
 
 junit-jupiter = "org.junit.jupiter:junit-jupiter:5.9.3"
 junit-pioneer = "org.junit-pioneer:junit-pioneer:2.0.1"

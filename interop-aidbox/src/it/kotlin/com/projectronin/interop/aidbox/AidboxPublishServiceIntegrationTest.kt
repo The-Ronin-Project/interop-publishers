@@ -28,6 +28,8 @@ import com.projectronin.interop.fhir.r4.datatype.primitive.FHIRBoolean
 import com.projectronin.interop.fhir.r4.datatype.primitive.FHIRString
 import com.projectronin.interop.fhir.r4.datatype.primitive.Id
 import com.projectronin.interop.fhir.r4.datatype.primitive.Instant
+import com.projectronin.interop.fhir.r4.datatype.primitive.PositiveInt
+import com.projectronin.interop.fhir.r4.datatype.primitive.UnsignedInt
 import com.projectronin.interop.fhir.r4.datatype.primitive.Uri
 import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Appointment
@@ -522,11 +524,11 @@ class AidboxPublishServiceIntegrationTest : BaseAidboxTest() {
             specialty = listOf(CodeableConcept(text = "specialty".asFHIR())),
             reasonCode = listOf(CodeableConcept(text = "reason code".asFHIR())),
             reasonReference = listOf(Reference(display = "reason reference".asFHIR())),
-            priority = 1.asFHIR(),
+            priority = UnsignedInt(1),
             description = "appointment test".asFHIR(),
             start = Instant(value = "2017-01-01T00:00:00Z"),
             end = Instant(value = "2017-01-01T01:00:00Z"),
-            minutesDuration = 15.asFHIR(),
+            minutesDuration = PositiveInt(15),
             slot = listOf(Reference(display = "slot".asFHIR())),
             created = DateTime(value = "2021-11-16"),
             comment = "comment".asFHIR(),
@@ -886,11 +888,11 @@ class AidboxPublishServiceIntegrationTest : BaseAidboxTest() {
             specialty = listOf(CodeableConcept(text = "specialty".asFHIR())),
             reasonCode = listOf(CodeableConcept(text = "reason code".asFHIR())),
             reasonReference = listOf(Reference(display = "reason reference".asFHIR())),
-            priority = 1.asFHIR(),
+            priority = UnsignedInt(1),
             description = "appointment test".asFHIR(),
             start = Instant(value = "2017-01-01T00:00:00Z"),
             end = Instant(value = "2017-01-01T01:00:00Z"),
-            minutesDuration = 15.asFHIR(),
+            minutesDuration = PositiveInt(15),
             slot = listOf(Reference(display = "slot".asFHIR())),
             created = DateTime(value = "2021-11-16"),
             comment = "comment".asFHIR(),
@@ -1115,11 +1117,11 @@ class AidboxPublishServiceIntegrationTest : BaseAidboxTest() {
             specialty = listOf(CodeableConcept(text = "specialty".asFHIR())),
             reasonCode = listOf(CodeableConcept(text = "reason code".asFHIR())),
             reasonReference = listOf(Reference(display = "reason reference".asFHIR())),
-            priority = 1.asFHIR(),
+            priority = UnsignedInt(1),
             description = "appointment test".asFHIR(),
             start = Instant(value = "2017-01-01T00:00:00Z"),
             end = Instant(value = "2017-01-01T01:00:00Z"),
-            minutesDuration = 15.asFHIR(),
+            minutesDuration = PositiveInt(15),
             slot = listOf(Reference(display = "slot".asFHIR())),
             created = DateTime(value = "2021-11-16"),
             comment = "comment".asFHIR(),
