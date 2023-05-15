@@ -20,7 +20,7 @@ mockserver-client-java = "org.mock-server:mockserver-client-java-no-dependencies
 oci-common = "com.oracle.oci.sdk:oci-java-sdk-common:3.13.1"
 oci-http-client = "com.oracle.oci.sdk:oci-java-sdk-common-httpclient-jersey:3.13.1"
 oci-objectstorage = "com.oracle.oci.sdk:oci-java-sdk-objectstorage:3.13.1"
-ronin-kafka = "com.projectronin:ronin-kafka:0.4.1"
+ronin-kafka = "com.projectronin:ronin-kafka:1.0.0"
 spring-boot-parent = "org.springframework.boot:spring-boot-parent:2.7.5"
 testcontainers-bom = "org.testcontainers:testcontainers-bom:1.18.0"
 
