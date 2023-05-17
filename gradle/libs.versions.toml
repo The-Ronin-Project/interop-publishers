@@ -5,9 +5,9 @@ dd-trace-api = "com.datadoghq:dd-trace-api:1.14.0"
 event-interop-resource-internal = "com.projectronin.contract.event:event-interop-resource-internal:1.0.0"
 event-interop-resource-request = "com.projectronin.contract.event:event-interop-resource-request:1.0.0"
 
-interop-common = "com.projectronin.interop:interop-common:3.6.0"
-interop-commonHttp = "com.projectronin.interop:interop-common-http:3.6.0"
-interop-commonJackson = "com.projectronin.interop:interop-common-jackson:3.6.0"
+interop-common = "com.projectronin.interop:interop-common:3.7.0"
+interop-commonHttp = "com.projectronin.interop:interop-common-http:3.7.0"
+interop-commonJackson = "com.projectronin.interop:interop-common-jackson:3.7.0"
 
 interop-fhir = "com.projectronin.interop.fhir:interop-fhir:8.1.0"
 
