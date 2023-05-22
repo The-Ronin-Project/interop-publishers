@@ -8,6 +8,7 @@ import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.resource.Resource
 import io.ktor.client.HttpClient
 import io.ktor.client.request.accept
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
@@ -129,7 +130,10 @@ class AidboxClient(
         val tenantIdentifier = "${CodeSystem.RONIN_TENANT.uri.value}|$tenantId".encodeURLPathPart()
         val encodedIdentifierToken = identifierToken.encodeURLPathPart()
         val response: HttpResponse =
-            httpClient.request("Aidbox", "$aidboxURLRest/fhir/$resourceType?identifier=$tenantIdentifier&identifier=$encodedIdentifierToken") { url ->
+            httpClient.request(
+                "Aidbox",
+                "$aidboxURLRest/fhir/$resourceType?identifier=$tenantIdentifier&identifier=$encodedIdentifierToken"
+            ) { url ->
                 get(url) {
                     headers {
                         append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
@@ -140,5 +144,19 @@ class AidboxClient(
             }
 
         return response
+    }
+
+    /**
+     * Deletes the [resourceType] with [udpId] from Aidbox.
+     */
+    suspend fun deleteResource(resourceType: String, udpId: String): HttpResponse {
+        val authentication = authenticationBroker.getAuthentication()
+        return httpClient.request("Aidbox", "$aidboxURLRest/fhir/$resourceType/$udpId") { url ->
+            delete(url) {
+                headers {
+                    append(HttpHeaders.Authorization, "${authentication.tokenType} ${authentication.accessToken}")
+                }
+            }
+        }
     }
 }

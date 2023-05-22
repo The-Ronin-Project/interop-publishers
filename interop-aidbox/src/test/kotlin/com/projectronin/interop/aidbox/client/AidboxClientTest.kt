@@ -223,7 +223,7 @@ class AidboxClientTest {
         val actual: HttpResponse = runBlocking {
             aidboxClient.queryGraphQL(query, param)
         }
-        assertEquals(actual.status, HttpStatusCode.OK)
+        assertEquals(HttpStatusCode.OK, actual.status)
     }
 
     @Test
@@ -232,7 +232,7 @@ class AidboxClientTest {
         val actual: HttpResponse = runBlocking {
             aidboxClient.getResource("Patient", "123")
         }
-        assertEquals(actual.status, HttpStatusCode.OK)
+        assertEquals(HttpStatusCode.OK, actual.status)
     }
 
     @Test
@@ -242,7 +242,7 @@ class AidboxClientTest {
         val actualResponse: HttpResponse = runBlocking {
             aidboxClient.batchUpsert(practitioners)
         }
-        assertEquals(actualResponse.status, expectedResponseStatus)
+        assertEquals(expectedResponseStatus, actualResponse.status)
     }
 
     @Test
@@ -252,7 +252,7 @@ class AidboxClientTest {
         val actualResponse: HttpResponse = runBlocking {
             aidboxClient.batchUpsert(locations)
         }
-        assertEquals(actualResponse.status, expectedResponseStatus)
+        assertEquals(expectedResponseStatus, actualResponse.status)
     }
 
     @Test
@@ -262,7 +262,7 @@ class AidboxClientTest {
         val actualResponse: HttpResponse = runBlocking {
             aidboxClient.batchUpsert(fullRoles)
         }
-        assertEquals(actualResponse.status, expectedResponseStatus)
+        assertEquals(expectedResponseStatus, actualResponse.status)
     }
 
     @Test
@@ -272,7 +272,7 @@ class AidboxClientTest {
         val actualResponse: HttpResponse = runBlocking {
             aidboxClient.batchUpsert(unrelatedResourceInList)
         }
-        assertEquals(actualResponse.status, expectedResponseStatus)
+        assertEquals(expectedResponseStatus, actualResponse.status)
     }
 
     @Test
@@ -305,7 +305,7 @@ class AidboxClientTest {
         val actualResponse: HttpResponse = runBlocking {
             aidboxClient.batchUpsert(practitioners)
         }
-        assertEquals(actualResponse.status, expectedResponseStatus)
+        assertEquals(expectedResponseStatus, actualResponse.status)
     }
 
     @Test
@@ -315,7 +315,7 @@ class AidboxClientTest {
         val actualResponse: HttpResponse = runBlocking {
             aidboxClient.batchUpsert(practitioners)
         }
-        assertEquals(actualResponse.status, expectedResponseStatus)
+        assertEquals(expectedResponseStatus, actualResponse.status)
     }
 
     @Test
@@ -344,12 +344,26 @@ class AidboxClientTest {
     fun `search works for aidbox`() {
         val tenantIdentifier = "${CodeSystem.RONIN_TENANT.uri.value}|test".encodeURLPathPart()
         val searchToken = "system|value"
-        val expectedUrl = "$urlRest/fhir/Patient?identifier=$tenantIdentifier&identifier=${searchToken.encodeURLPathPart()}"
+        val expectedUrl =
+            "$urlRest/fhir/Patient?identifier=$tenantIdentifier&identifier=${searchToken.encodeURLPathPart()}"
         val aidboxClient = createClient("", expectedUrl)
         val actual: HttpResponse = runBlocking {
             aidboxClient.searchForResources("Patient", "test", searchToken)
         }
-        assertEquals(actual.status, HttpStatusCode.OK)
+        assertEquals(HttpStatusCode.OK, actual.status)
+    }
+
+    @Test
+    fun `delete works for aidbox`() {
+        val resourceType = "Patient"
+        val udpId = "tenant-123456"
+
+        val aidboxClient =
+            createClient(expectedUrl = "$urlRest/fhir/$resourceType/$udpId")
+        val response = runBlocking {
+            aidboxClient.deleteResource(resourceType, udpId)
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
     }
 
     private fun createClient(

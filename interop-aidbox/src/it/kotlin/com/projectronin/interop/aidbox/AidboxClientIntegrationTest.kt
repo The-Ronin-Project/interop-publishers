@@ -1,26 +1,22 @@
 package com.projectronin.interop.aidbox
 
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.module.kotlin.convertValue
+import com.projectronin.interop.aidbox.client.AidboxClient
 import com.projectronin.interop.aidbox.spring.AidboxSpringConfig
 import com.projectronin.interop.aidbox.testcontainer.AidboxData
 import com.projectronin.interop.aidbox.testcontainer.BaseAidboxTest
-import com.projectronin.interop.common.jackson.JacksonManager
-import com.projectronin.interop.fhir.r4.CodeSystem
+import com.projectronin.interop.common.http.exceptions.ClientFailureException
 import com.projectronin.interop.fhir.r4.resource.Bundle
+import com.projectronin.interop.fhir.r4.resource.Patient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.request.get
-import io.ktor.client.request.headers
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.encodeURLPathPart
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -41,38 +37,35 @@ class AidboxClientIntegrationTest : BaseAidboxTest() {
         }
     }
 
+    @Autowired
+    private lateinit var aidboxClient: AidboxClient
+
     @Test
     fun `search works`() {
-        val response = search("Patient", "mdaoc", "my-own-system|abcdef")
+        val response = runBlocking {
+            aidboxClient.searchForResources("Patient", "mdaoc", "my-own-system|abcdef").body<Bundle?>()
+        }
         val entries = response!!.entry
         assertEquals(1, entries.size)
         assertEquals("mdaoc-12345678902", entries.first().resource?.id?.value)
     }
 
-    private fun search(resourceType: String, tenant: String, identifierToken: String): Bundle? {
-        return runBlocking {
-            val aidboxUrl = aidbox.baseUrl()
-            val tenantIdentifier = "${CodeSystem.RONIN_TENANT.uri.value}|$tenant".encodeURLPathPart()
-            val identifierTokenEncode = identifierToken.encodeURLPathPart()
-            val url = "$aidboxUrl/fhir/$resourceType?identifier=$tenantIdentifier&identifier=$identifierTokenEncode"
-            val response = try {
-                aidbox.ktorClient.get(url) {
-                    headers {
-                        append(HttpHeaders.Authorization, "Bearer ${aidbox.accessToken()}")
-                    }
-                }
-            } catch (e: ClientRequestException) {
-                e.response
-            }
+    @Test
+    fun `delete works`() {
+        val resourceType = "Patient"
+        val udpId = "mdaoc-12345678901"
 
-            if (response.status.isSuccess()) {
-                val objectNode = response.body<ObjectNode>()
-                JacksonManager.objectMapper.convertValue<Bundle>(objectNode)
-            } else if (response.status == HttpStatusCode.NotFound) {
-                null
-            } else {
-                throw IllegalStateException("Error while purging test data: ${response.bodyAsText()}")
+        val initialResource = runBlocking { aidboxClient.getResource(resourceType, udpId).body<Patient?>() }
+        assertNotNull(initialResource)
+
+        val deleteResponse = runBlocking { aidboxClient.deleteResource(resourceType, udpId) }
+        assertTrue(deleteResponse.status.isSuccess())
+
+        val exception = assertThrows<ClientFailureException> {
+            runBlocking {
+                aidboxClient.getResource(resourceType, udpId).body<Patient?>()
             }
         }
+        assertTrue(exception.message!!.startsWith("Received 410 Gone"))
     }
 }
