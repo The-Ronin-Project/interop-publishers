@@ -34,7 +34,7 @@ class AidboxAuthenticationService(
         return runBlocking {
             val authUrl = aidboxBaseUrl + authPath
             logger.debug { "Retrieving authorization from $authUrl" }
-            val httpResponse: HttpResponse = httpClient.request("Aidbix", authUrl) { url ->
+            val httpResponse: HttpResponse = httpClient.request("Aidbox", authUrl) { url ->
                 post(url) {
                     contentType(ContentType.Application.Json)
                     setBody(aidboxCredentials)
