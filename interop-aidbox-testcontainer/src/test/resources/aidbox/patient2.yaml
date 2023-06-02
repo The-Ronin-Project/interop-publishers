@@ -1,8 +1,0 @@
-resourceType: "Patient"
-identifier:
-  - system: "http://projectronin.com/id/tenantId"
-    value: "psj"
-birthDate: "1984-08-31"
-name:
-  - family: "Smith"
-    given: [ "Joshua" ]

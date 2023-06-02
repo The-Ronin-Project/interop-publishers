@@ -1,7 +1,11 @@
 package com.projectronin.interop.publishers
 
+import com.projectronin.ehr.dataauthority.client.EHRDataAuthorityClient
+import com.projectronin.ehr.dataauthority.models.BatchResourceResponse
+import com.projectronin.ehr.dataauthority.models.FailedResource
+import com.projectronin.ehr.dataauthority.models.ModificationType
+import com.projectronin.ehr.dataauthority.models.SucceededResource
 import com.projectronin.event.interop.internal.v1.Metadata
-import com.projectronin.interop.aidbox.AidboxPublishService
 import com.projectronin.interop.datalake.DatalakePublishService
 import com.projectronin.interop.fhir.r4.CodeSystem
 import com.projectronin.interop.fhir.r4.datatype.HumanName
@@ -11,18 +15,23 @@ import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import com.projectronin.interop.kafka.KafkaPublishService
 import com.projectronin.interop.kafka.model.DataTrigger
-import com.projectronin.interop.publishers.exception.AidboxPublishException
+import com.projectronin.interop.publishers.exception.PublishException
+import io.mockk.Called
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.verify
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class PublishServiceTest {
-    private lateinit var aidboxPublishService: AidboxPublishService
+    private lateinit var ehrDataAuthorityClient: EHRDataAuthorityClient
     private lateinit var datalakePublishService: DatalakePublishService
     private lateinit var kafkaPublishService: KafkaPublishService
     private lateinit var service: PublishService
@@ -30,65 +39,152 @@ class PublishServiceTest {
     private val tenantId = "tenant"
     private val metadata = mockk<Metadata>()
 
-    private val roninDomainResources = listOf(
-        Practitioner(
-            id = Id("cmjones"),
-            identifier = listOf(
-                Identifier(system = CodeSystem.RONIN_TENANT.uri, value = "third".asFHIR())
-            ),
-            name = listOf(
-                HumanName(family = "Jones".asFHIR(), given = listOf("Cordelia", "May").asFHIR())
-            )
+    private val practitioner1Id = "cmjones"
+    private val practitioner1 = Practitioner(
+        id = Id(practitioner1Id),
+        identifier = listOf(
+            Identifier(system = CodeSystem.RONIN_TENANT.uri, value = "third".asFHIR())
         ),
-        Practitioner(
-            id = Id("rallyr"),
-            identifier = listOf(
-                Identifier(system = CodeSystem.RONIN_TENANT.uri, value = "second".asFHIR())
-            ),
-            name = listOf(
-                HumanName(
-                    family = "Llyr".asFHIR(),
-                    given = listOf("Regan", "Anne").asFHIR()
-                )
-            )
+        name = listOf(
+            HumanName(family = "Jones".asFHIR(), given = listOf("Cordelia", "May").asFHIR())
         )
     )
 
+    private val practitioner2Id = "rallyr"
+    private val practitioner2 = Practitioner(
+        id = Id(practitioner2Id),
+        identifier = listOf(
+            Identifier(system = CodeSystem.RONIN_TENANT.uri, value = "second".asFHIR())
+        ),
+        name = listOf(
+            HumanName(
+                family = "Llyr".asFHIR(),
+                given = listOf("Regan", "Anne").asFHIR()
+            )
+        )
+    )
+    private val roninDomainResources = listOf(practitioner1, practitioner2)
+
     @BeforeEach
     fun setup() {
-        aidboxPublishService = mockk()
+        ehrDataAuthorityClient = mockk()
         datalakePublishService = mockk()
         kafkaPublishService = mockk()
 
-        service = PublishService(aidboxPublishService, datalakePublishService, kafkaPublishService)
+        service = PublishService(ehrDataAuthorityClient, datalakePublishService, kafkaPublishService)
     }
 
     @Test
-    fun `publishes FHIR resources to Aidbox`() {
-        every { aidboxPublishService.publish(roninDomainResources) } returns true
+    fun `publishes FHIR resources to EHR Data Authority`() {
+        coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns BatchResourceResponse(
+            succeeded = listOf(
+                SucceededResource("Practitioner", practitioner1Id, ModificationType.CREATED),
+                SucceededResource("Practitioner", practitioner2Id, ModificationType.UPDATED)
+            )
+        )
         every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
-        every { kafkaPublishService.publishResources(tenantId, any(), roninDomainResources, metadata) } returns mockk()
 
         assertTrue(service.publishFHIRResources(tenantId, roninDomainResources, metadata))
+
+        coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
+        verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
+        verify { kafkaPublishService wasNot Called }
     }
 
     @Test
     fun `publishes FHIR resources to Kafka`() {
-        every { aidboxPublishService.publish(roninDomainResources) } returns true
+        coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns BatchResourceResponse(
+            succeeded = listOf(
+                SucceededResource("Practitioner", practitioner1Id, ModificationType.CREATED),
+                SucceededResource("Practitioner", practitioner2Id, ModificationType.UPDATED)
+            )
+        )
         every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
-        every { kafkaPublishService.publishResources(tenantId, any(), roninDomainResources, metadata) } returns mockk()
+        every {
+            kafkaPublishService.publishResources(
+                tenantId,
+                DataTrigger.AD_HOC,
+                roninDomainResources,
+                metadata
+            )
+        } returns mockk()
 
         assertTrue(service.publishFHIRResources(tenantId, roninDomainResources, metadata, DataTrigger.AD_HOC))
+
+        coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
+        verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
+        verify(exactly = 1) {
+            kafkaPublishService.publishResources(
+                tenantId,
+                DataTrigger.AD_HOC,
+                roninDomainResources,
+                metadata
+            )
+        }
     }
 
     @Test
-    fun `handles aidbox failing to publish FHIR resources`() {
-        every { aidboxPublishService.publish(roninDomainResources) } returns false
-        every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
-        every { kafkaPublishService.publishResources(tenantId, any(), roninDomainResources, metadata) } returns mockk()
+    fun `handles partial failure of EHR Data Authority publication`() {
+        coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns BatchResourceResponse(
+            succeeded = listOf(
+                SucceededResource("Practitioner", practitioner1Id, ModificationType.CREATED)
+            ),
+            failed = listOf(
+                FailedResource("Practitioner", practitioner2Id, "Error!")
+            )
+        )
+        every { datalakePublishService.publishFHIRR4(tenantId, listOf(practitioner1)) } just runs
+        every {
+            kafkaPublishService.publishResources(
+                tenantId,
+                DataTrigger.AD_HOC,
+                listOf(practitioner1),
+                metadata
+            )
+        } returns mockk()
 
-        assertThrows<AidboxPublishException> {
-            service.publishFHIRResources(tenantId, roninDomainResources, metadata)
+        val exception = assertThrows<PublishException> {
+            service.publishFHIRResources(tenantId, roninDomainResources, metadata, DataTrigger.AD_HOC)
         }
+        assertEquals(
+            "Published 1 resources, but failed to publish 1 resources: \n" +
+                "Practitioner/$practitioner2Id: Error!",
+            exception.message
+        )
+
+        coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
+        verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, listOf(practitioner1)) }
+        verify(exactly = 1) {
+            kafkaPublishService.publishResources(
+                tenantId,
+                DataTrigger.AD_HOC,
+                listOf(practitioner1),
+                metadata
+            )
+        }
+    }
+
+    @Test
+    fun `handles complete failure of EHR Data Authority publication`() {
+        coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns BatchResourceResponse(
+            failed = listOf(
+                FailedResource("Practitioner", practitioner1Id, "First Error!"),
+                FailedResource("Practitioner", practitioner2Id, "Second Error!")
+            )
+        )
+
+        val exception = assertThrows<PublishException> {
+            service.publishFHIRResources(tenantId, roninDomainResources, metadata, DataTrigger.AD_HOC)
+        }
+        assertEquals(
+            "Published 0 resources, but failed to publish 2 resources: \n" +
+                "Practitioner/$practitioner1Id: First Error!\n" +
+                "Practitioner/$practitioner2Id: Second Error!",
+            exception.message
+        )
+
+        coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
+        verify { datalakePublishService wasNot Called }
+        verify { kafkaPublishService wasNot Called }
     }
 }

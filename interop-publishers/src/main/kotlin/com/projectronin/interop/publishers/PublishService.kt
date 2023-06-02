@@ -1,12 +1,13 @@
 package com.projectronin.interop.publishers
 
+import com.projectronin.ehr.dataauthority.client.EHRDataAuthorityClient
 import com.projectronin.event.interop.internal.v1.Metadata
-import com.projectronin.interop.aidbox.AidboxPublishService
 import com.projectronin.interop.datalake.DatalakePublishService
 import com.projectronin.interop.fhir.r4.resource.Resource
 import com.projectronin.interop.kafka.KafkaPublishService
 import com.projectronin.interop.kafka.model.DataTrigger
-import com.projectronin.interop.publishers.exception.AidboxPublishException
+import com.projectronin.interop.publishers.exception.PublishException
+import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 
 /**
@@ -14,13 +15,13 @@ import org.springframework.stereotype.Service
  */
 @Service
 class PublishService(
-    private val aidboxPublishService: AidboxPublishService,
+    private val ehrDataAuthorityClient: EHRDataAuthorityClient,
     private val datalakePublishService: DatalakePublishService,
     private val kafkaPublishService: KafkaPublishService
 ) {
     /**
      * Publishes the supplied [resources]. If all resources were successfully published,
-     * true will be returned.  Otherwise, [AidboxPublishException] will be thrown.
+     * true will be returned.  Otherwise, [PublishException] will be thrown.
      */
     fun publishFHIRResources(
         tenantId: String,
@@ -28,11 +29,32 @@ class PublishService(
         metadata: Metadata,
         dataTrigger: DataTrigger? = null
     ): Boolean {
-        if (!aidboxPublishService.publish(resources)) {
-            throw AidboxPublishException("Could not publish resources to Aidbox for tenant $tenantId")
+        val resourcesById = resources.associateBy { it.id!!.value }
+        val response = runBlocking { ehrDataAuthorityClient.addResources(tenantId, resources) }
+
+        val successfulResources = response.succeeded.map { resourcesById[it.resourceId]!! }
+        if (successfulResources.isNotEmpty()) {
+            datalakePublishService.publishFHIRR4(tenantId, successfulResources)
+            dataTrigger?.let {
+                kafkaPublishService.publishResources(
+                    tenantId,
+                    dataTrigger,
+                    successfulResources,
+                    metadata
+                )
+            }
         }
-        datalakePublishService.publishFHIRR4(tenantId, resources)
-        dataTrigger?.let { kafkaPublishService.publishResources(tenantId, dataTrigger, resources, metadata) }
+
+        val failedResources = response.failed
+        if (failedResources.isNotEmpty()) {
+            throw PublishException(
+                "Published ${successfulResources.size} resources, but failed to publish ${failedResources.size} resources: \n${
+                failedResources.joinToString(
+                    "\n"
+                ) { "${it.resourceType}/${it.resourceId}: ${it.error}" }
+                }"
+            )
+        }
         return true
     }
 }

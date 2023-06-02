@@ -4,64 +4,20 @@ codecov:
 coverage:
   status:
     project:
-      aidbox:
-        target: auto
-        threshold: 1%
-        flags:
-          - aidbox
-      aidbox-testcontainer:
-        target: auto
-        threshold: 1%
-        flags:
-          - aidbox-tc
       publishers:
         target: auto
         threshold: 1%
         flags:
           - publishers
-      datalake:
-        target: auto
-        threshold: 1%
-        flags:
-          - datalake
-      kafka:
-        target: auto
-        threshold: 1%
-        flags:
-          - kafka
 
 
     patch:
-      aidbox:
-        target: 80
-        threshold: 1%
-        base: auto
-        flags:
-          - aidbox
-      aidbox-testcontainer:
-        target: 80
-        threshold: 1%
-        base: auto
-        flags:
-          - aidbox-tc
       publishers:
         target: 80
         threshold: 1%
         base: auto
         flags:
           - publishers
-      datalake:
-        target: 80
-        threshold: 1%
-        base: auto
-        flags:
-          - datalake
-      kafka:
-        target: 80
-        threshold: 1%
-        base: auto
-        flags:
-          - kafka
 
 comment:
   layout: "reach, diff, flags, files"
@@ -73,23 +29,7 @@ comment:
   show_carryforward_flags: false
 
 flags:
-  aidbox:
-    paths:
-      - interop-aidbox/
-    carryforward: true
-  aidbox-tc:
-    paths:
-      - interop-aidbox-testcontainer/
-    carryforward: true
   publishers:
     paths:
       - interop-publishers/
-    carryforward: true
-  datalake:
-    paths:
-      - interop-datalake/
-    carryforward: true
-  kafka:
-    paths:
-      - interop-kafka/
     carryforward: true

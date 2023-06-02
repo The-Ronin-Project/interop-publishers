@@ -1,10 +1,6 @@
 rootProject.name = "interop-publishers-build"
 
 include("interop-publishers")
-include("interop-aidbox")
-include("interop-aidbox-testcontainer")
-include("interop-datalake")
-include("interop-kafka")
 
 for (project in rootProject.children) {
     project.buildFileName = "${project.name}.gradle.kts"
