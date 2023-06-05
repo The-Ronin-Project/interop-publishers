@@ -1,14 +1,7 @@
+[![codecov](https://codecov.io/gh/projectronin/interop-publishers/branch/master/graph/badge.svg?token=ayosY0YP0o)](https://app.codecov.io/gh/projectronin/interop-publishers/branch/master)
+[![Tests](https://github.com/projectronin/interop-publishers/actions/workflows/test.yml/badge.svg)](https://github.com/projectronin/interop-publishers/actions/workflows/test.yml)
 [![Lint](https://github.com/projectronin/interop-publishers/actions/workflows/lint.yml/badge.svg)](https://github.com/projectronin/interop-publishers/actions/workflows/lint.yml)
 
-# interop-publishers-build
+# interop-publishers
 
-Build containing publisher(s) used by InterOps.
-
-### Components
-
-* [interop-publishers](interop-publishers) - Publishing to any currently
-  configured locations (aidbox, datalake, kafka)
-
-
-
-
+Provides code to support publishing to any currently configured locations, such as a server or data store.

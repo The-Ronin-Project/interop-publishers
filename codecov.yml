@@ -4,20 +4,15 @@ codecov:
 coverage:
   status:
     project:
-      publishers:
+      default:
         target: auto
         threshold: 1%
-        flags:
-          - publishers
-
 
     patch:
-      publishers:
+      default:
         target: 80
         threshold: 1%
         base: auto
-        flags:
-          - publishers
 
 comment:
   layout: "reach, diff, flags, files"
@@ -28,8 +23,3 @@ comment:
   branches: null
   show_carryforward_flags: false
 
-flags:
-  publishers:
-    paths:
-      - interop-publishers/
-    carryforward: true

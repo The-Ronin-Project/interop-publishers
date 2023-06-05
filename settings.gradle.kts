@@ -1,18 +1,10 @@
-rootProject.name = "interop-publishers-build"
-
-include("interop-publishers")
-
-for (project in rootProject.children) {
-    project.buildFileName = "${project.name}.gradle.kts"
-}
+rootProject.name = "interop-publishers"
 
 pluginManagement {
     plugins {
-        id("com.projectronin.interop.gradle.base") version "3.0.0"
-        id("com.projectronin.interop.gradle.integration") version "3.0.0"
+        id("com.projectronin.interop.gradle.junit") version "3.0.0"
         id("com.projectronin.interop.gradle.publish") version "3.0.0"
         id("com.projectronin.interop.gradle.spring") version "3.0.0"
-        id("com.projectronin.interop.gradle.version") version "3.0.0"
     }
 
     repositories {

@@ -1,15 +1,9 @@
 [libraries]
-commons-codec = "commons-codec:commons-codec:1.15"
-dd-trace-api = "com.datadoghq:dd-trace-api:1.14.0"
-
 ehr-data-authority-client = "com.projectronin.ehr:ehr-data-authority-client:1.0.0"
 
 event-interop-resource-internal = "com.projectronin.contract.event:event-interop-resource-internal:1.0.0"
-event-interop-resource-request = "com.projectronin.contract.event:event-interop-resource-request:1.0.0"
 
 interop-common = "com.projectronin.interop:interop-common:3.9.1"
-interop-commonHttp = "com.projectronin.interop:interop-common-http:3.9.1"
-interop-commonJackson = "com.projectronin.interop:interop-common-jackson:3.9.1"
 
 interop-datalake = "com.projectronin.interop.publish:interop-datalake:8.1.1"
 
@@ -17,21 +11,5 @@ interop-fhir = "com.projectronin.interop.fhir:interop-fhir:8.2.1"
 
 interop-kafka = "com.projectronin.interop.publish:interop-kafka:8.1.1"
 
-junit-jupiter = "org.junit.jupiter:junit-jupiter:5.9.3"
-junit-pioneer = "org.junit-pioneer:junit-pioneer:2.0.1"
 kotlinx-coroutines-core = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1"
-ktor-client-mock = "io.ktor:ktor-client-mock:2.3.0"
 mockk = "io.mockk:mockk:1.13.5"
-mockserver-client-java = "org.mock-server:mockserver-client-java-no-dependencies:5.15.0"
-oci-common = "com.oracle.oci.sdk:oci-java-sdk-common:3.15.0"
-oci-http-client = "com.oracle.oci.sdk:oci-java-sdk-common-httpclient-jersey:3.15.0"
-oci-objectstorage = "com.oracle.oci.sdk:oci-java-sdk-objectstorage:3.15.0"
-ronin-kafka = "com.projectronin:ronin-kafka:1.0.0"
-spring-boot-parent = "org.springframework.boot:spring-boot-parent:2.7.5"
-testcontainers-bom = "org.testcontainers:testcontainers-bom:1.18.2"
-
-[bundles]
-interop-kafka-events = [
-    "event-interop-resource-internal",
-    "event-interop-resource-request"
-]

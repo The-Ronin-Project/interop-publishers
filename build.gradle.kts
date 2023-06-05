@@ -1,13 +1,18 @@
 plugins {
-    id("com.projectronin.interop.gradle.integration") apply false
-    id("com.projectronin.interop.gradle.publish") apply false
-    id("com.projectronin.interop.gradle.spring") apply false
-    id("com.projectronin.interop.gradle.version")
+    id("com.projectronin.interop.gradle.publish")
+    id("com.projectronin.interop.gradle.junit")
+    id("com.projectronin.interop.gradle.spring")
 }
 
-subprojects {
-    apply(plugin = "com.projectronin.interop.gradle.publish")
+dependencies {
+    implementation(libs.interop.common)
+    implementation(libs.interop.fhir)
+    implementation(libs.event.interop.resource.internal)
+    implementation(libs.interop.datalake)
+    implementation(libs.ehr.data.authority.client)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.interop.kafka)
 
-    // Disable releases hub from running on the subprojects. Main project will handle it all.
-    tasks.filter { it.group.equals("releases hub", ignoreCase = true) }.forEach { it.enabled = false }
+    testImplementation(libs.mockk)
+    testImplementation("org.springframework:spring-test")
 }

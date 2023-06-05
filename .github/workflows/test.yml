@@ -1,4 +1,4 @@
-name: Interop Publishers Tests
+name: Tests
 on:
   push:
     branches: [ main ]
@@ -24,14 +24,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Gradlew Test
-        run: ./gradlew :interop-publishers:test
+        run: ./gradlew test
       - name: Upload Code Coverage
         uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
-          file: ./interop-publishers/codecov/test/jacocoTestReport.xml
-          flags: publishers
+          file: ./codecov/test/jacocoTestReport.xml
 
       - name: Upload report to DataDog
         if: always() && !cancelled()
@@ -39,4 +38,4 @@ jobs:
           DD_ENV: ci
           DATADOG_SITE: datadoghq.com
           DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
-        run: datadog-ci junit upload --service interop-publishers ./interop-publishers/build/test-results/test
+        run: datadog-ci junit upload --service interop-publishers ./build/test-results/test
