@@ -9,7 +9,7 @@ interop-datalake = "com.projectronin.interop.publish:interop-datalake:8.1.2"
 
 interop-fhir = "com.projectronin.interop.fhir:interop-fhir:8.2.1"
 
-interop-kafka = "com.projectronin.interop.publish:interop-kafka:8.1.1"
+interop-kafka = "com.projectronin.interop.publish:interop-kafka:8.1.2"
 
 kotlinx-coroutines-core = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1"
 mockk = "io.mockk:mockk:1.13.5"
