@@ -7,7 +7,7 @@ interop-common = "com.projectronin.interop:interop-common:3.9.1"
 
 interop-datalake = "com.projectronin.interop.publish:interop-datalake:8.1.2"
 
-interop-fhir = "com.projectronin.interop.fhir:interop-fhir:8.2.1"
+interop-fhir = "com.projectronin.interop.fhir:interop-fhir:8.4.0"
 
 interop-kafka = "com.projectronin.interop.publish:interop-kafka:8.1.2"
 
