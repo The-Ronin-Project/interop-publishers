@@ -1,7 +1,8 @@
 plugins {
-    id("com.projectronin.interop.gradle.publish")
-    id("com.projectronin.interop.gradle.junit")
-    id("com.projectronin.interop.gradle.spring")
+    alias(libs.plugins.interop.gradle.publish)
+    alias(libs.plugins.interop.gradle.junit)
+    alias(libs.plugins.interop.gradle.spring)
+    alias(libs.plugins.interop.version.catalog)
 }
 
 dependencies {
