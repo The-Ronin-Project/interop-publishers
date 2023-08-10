@@ -187,4 +187,99 @@ class PublishServiceTest {
         verify { datalakePublishService wasNot Called }
         verify { kafkaPublishService wasNot Called }
     }
+
+    @Test
+    fun `publishes new FHIR resources to Datalake`() {
+        coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns BatchResourceResponse(
+            succeeded = listOf(
+                SucceededResource("Practitioner", practitioner1Id, ModificationType.CREATED),
+                SucceededResource("Practitioner", practitioner2Id, ModificationType.CREATED)
+            )
+        )
+        every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
+        every {
+            kafkaPublishService.publishResources(
+                tenantId,
+                DataTrigger.AD_HOC,
+                roninDomainResources,
+                metadata
+            )
+        } returns mockk()
+
+        assertTrue(service.publishFHIRResources(tenantId, roninDomainResources, metadata, DataTrigger.AD_HOC))
+
+        coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
+        verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
+        verify(exactly = 1) {
+            kafkaPublishService.publishResources(
+                tenantId,
+                DataTrigger.AD_HOC,
+                roninDomainResources,
+                metadata
+            )
+        }
+    }
+
+    @Test
+    fun `publishes updated FHIR resources to Datalake`() {
+        coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns BatchResourceResponse(
+            succeeded = listOf(
+                SucceededResource("Practitioner", practitioner1Id, ModificationType.UPDATED),
+                SucceededResource("Practitioner", practitioner2Id, ModificationType.UPDATED)
+            )
+        )
+        every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
+        every {
+            kafkaPublishService.publishResources(
+                tenantId,
+                DataTrigger.AD_HOC,
+                roninDomainResources,
+                metadata
+            )
+        } returns mockk()
+
+        assertTrue(service.publishFHIRResources(tenantId, roninDomainResources, metadata, DataTrigger.AD_HOC))
+
+        coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
+        verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
+        verify(exactly = 1) {
+            kafkaPublishService.publishResources(
+                tenantId,
+                DataTrigger.AD_HOC,
+                roninDomainResources,
+                metadata
+            )
+        }
+    }
+
+    @Test
+    fun `does not publish unmodified FHIR resources to Datalake`() {
+        coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns BatchResourceResponse(
+            succeeded = listOf(
+                SucceededResource("Practitioner", practitioner1Id, ModificationType.UNMODIFIED),
+                SucceededResource("Practitioner", practitioner2Id, ModificationType.UNMODIFIED)
+            )
+        )
+        every {
+            kafkaPublishService.publishResources(
+                tenantId,
+                DataTrigger.AD_HOC,
+                roninDomainResources,
+                metadata
+            )
+        } returns mockk()
+
+        assertTrue(service.publishFHIRResources(tenantId, roninDomainResources, metadata, DataTrigger.AD_HOC))
+
+        coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
+        verify(exactly = 0) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
+        verify(exactly = 1) {
+            kafkaPublishService.publishResources(
+                tenantId,
+                DataTrigger.AD_HOC,
+                roninDomainResources,
+                metadata
+            )
+        }
+    }
 }

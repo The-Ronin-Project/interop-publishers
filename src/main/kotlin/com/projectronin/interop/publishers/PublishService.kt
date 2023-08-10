@@ -1,6 +1,7 @@
 package com.projectronin.interop.publishers
 
 import com.projectronin.ehr.dataauthority.client.EHRDataAuthorityClient
+import com.projectronin.ehr.dataauthority.models.ModificationType
 import com.projectronin.event.interop.internal.v1.Metadata
 import com.projectronin.interop.datalake.DatalakePublishService
 import com.projectronin.interop.fhir.r4.resource.Resource
@@ -32,14 +33,22 @@ class PublishService(
         val resourcesById = resources.associateBy { it.id!!.value }
         val response = runBlocking { ehrDataAuthorityClient.addResources(tenantId, resources) }
 
-        val successfulResources = response.succeeded.map { resourcesById[it.resourceId]!! }
-        if (successfulResources.isNotEmpty()) {
-            datalakePublishService.publishFHIRR4(tenantId, successfulResources)
+        val succeeded = response.succeeded
+        if (succeeded.isNotEmpty()) {
+            // Publish only modified resources to Datalake
+            val modifiedSuccessfulResources = succeeded.filterNot { it.modificationType == ModificationType.UNMODIFIED }
+                .map { resourcesById[it.resourceId]!! }
+            if (modifiedSuccessfulResources.isNotEmpty()) {
+                datalakePublishService.publishFHIRR4(tenantId, modifiedSuccessfulResources)
+            }
+
+            // Publish all resources to Kafka, if a data trigger was provided
+            val allSuccessfulResources = succeeded.map { resourcesById[it.resourceId]!! }
             dataTrigger?.let {
                 kafkaPublishService.publishResources(
                     tenantId,
                     dataTrigger,
-                    successfulResources,
+                    allSuccessfulResources,
                     metadata
                 )
             }
@@ -48,7 +57,7 @@ class PublishService(
         val failedResources = response.failed
         if (failedResources.isNotEmpty()) {
             throw PublishException(
-                "Published ${successfulResources.size} resources, but failed to publish ${failedResources.size} resources: \n${
+                "Published ${succeeded.size} resources, but failed to publish ${failedResources.size} resources: \n${
                 failedResources.joinToString(
                     "\n"
                 ) { "${it.resourceType}/${it.resourceId}: ${it.error}" }
