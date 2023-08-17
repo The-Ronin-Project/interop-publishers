@@ -7,7 +7,7 @@ interop-fhir = "8.8.1"
 interop-gradle = "3.2.0"
 interop-kafka = "8.3.0"
 kotlinx-coroutines-core = "1.7.3"
-mockk = "1.13.5"
+mockk = "1.13.7"
 
 [libraries]
 ehr-data-authority-client = { module = "com.projectronin.ehr:ehr-data-authority-client", version.ref = "ehr" }
