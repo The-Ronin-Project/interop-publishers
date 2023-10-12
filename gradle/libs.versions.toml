@@ -1,8 +1,8 @@
 [versions]
-ehr = "1.5.0"
-interop-common = "3.12.2"
+ehr = "1.5.2"
+interop-common = "3.13.0"
 interop-datalake = "8.4.2"
-interop-event-internal = "1.1.0"
+interop-event-internal = "1.2.0"
 interop-fhir = "8.10.2"
 interop-gradle = "3.2.0"
 interop-kafka = "8.4.2"
