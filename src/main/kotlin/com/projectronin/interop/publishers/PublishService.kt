@@ -7,6 +7,7 @@ import com.projectronin.interop.datalake.DatalakePublishService
 import com.projectronin.interop.fhir.r4.resource.Resource
 import com.projectronin.interop.kafka.KafkaPublishService
 import com.projectronin.interop.kafka.model.DataTrigger
+import com.projectronin.interop.kafka.model.PublishResourceWrapper
 import com.projectronin.interop.publishers.exception.PublishException
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
@@ -24,28 +25,44 @@ class PublishService(
      * Publishes the supplied [resources]. If all resources were successfully published,
      * true will be returned.  Otherwise, [PublishException] will be thrown.
      */
+    @Deprecated("Use publishResourceWrappers instead")
     fun publishFHIRResources(
         tenantId: String,
         resources: List<Resource<*>>,
         metadata: Metadata,
         dataTrigger: DataTrigger? = null
     ): Boolean {
-        val resourcesById = resources.associateBy { it.id!!.value }
-        val response = runBlocking { ehrDataAuthorityClient.addResources(tenantId, resources) }
+        val resourceWrappers = resources.map { PublishResourceWrapper(it) }
+        return publishResourceWrappers(tenantId, resourceWrappers, metadata, dataTrigger)
+    }
+
+    /**
+     * Publishes the supplied [resourceWrappers]. If all resources were successfully published,
+     * true will be returned.  Otherwise, [PublishException] will be thrown.
+     */
+    fun publishResourceWrappers(
+        tenantId: String,
+        resourceWrappers: List<PublishResourceWrapper>,
+        metadata: Metadata,
+        dataTrigger: DataTrigger? = null
+    ): Boolean {
+        val resourceWrappersByResourceId = resourceWrappers.associateBy { it.id!!.value }
+        val resourcesById = resourceWrappers.associate { it.id!!.value to it.resource }
+        val response = runBlocking { ehrDataAuthorityClient.addResources(tenantId, resourcesById.values.toList()) }
 
         val succeeded = response.succeeded
         if (succeeded.isNotEmpty()) {
             // Publish only modified resources to Datalake
             val modifiedSuccessfulResources = succeeded.filterNot { it.modificationType == ModificationType.UNMODIFIED }
-                .map { resourcesById[it.resourceId]!! }
+                .map { resourceWrappersByResourceId[it.resourceId]!! }
             if (modifiedSuccessfulResources.isNotEmpty()) {
-                datalakePublishService.publishFHIRR4(tenantId, modifiedSuccessfulResources)
+                datalakePublishService.publishFHIRR4(tenantId, modifiedSuccessfulResources.map { it.resource })
             }
 
             // Publish all resources to Kafka, if a data trigger was provided
-            val allSuccessfulResources = succeeded.map { resourcesById[it.resourceId]!! }
+            val allSuccessfulResources = succeeded.map { resourceWrappersByResourceId[it.resourceId]!! }
             dataTrigger?.let {
-                kafkaPublishService.publishResources(
+                kafkaPublishService.publishResourceWrappers(
                     tenantId,
                     dataTrigger,
                     allSuccessfulResources,

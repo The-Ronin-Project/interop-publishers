@@ -5,7 +5,7 @@ interop-datalake = "8.4.2"
 interop-event-internal = "1.2.0"
 interop-fhir = "8.10.2"
 interop-gradle = "3.2.0"
-interop-kafka = "8.4.2"
+interop-kafka = "8.5.0"
 kotlinx-coroutines-core = "1.7.3"
 mockk = "1.13.8"
 

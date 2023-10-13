@@ -15,6 +15,7 @@ import com.projectronin.interop.fhir.r4.datatype.primitive.asFHIR
 import com.projectronin.interop.fhir.r4.resource.Practitioner
 import com.projectronin.interop.kafka.KafkaPublishService
 import com.projectronin.interop.kafka.model.DataTrigger
+import com.projectronin.interop.kafka.model.PublishResourceWrapper
 import com.projectronin.interop.publishers.exception.PublishException
 import io.mockk.Called
 import io.mockk.coEvery
@@ -65,6 +66,10 @@ class PublishServiceTest {
     )
     private val roninDomainResources = listOf(practitioner1, practitioner2)
 
+    private val practitionerWrapper1 = PublishResourceWrapper(practitioner1)
+    private val practitionerWrapper2 = PublishResourceWrapper(practitioner2)
+    private val roninDomainResourceWrappers = listOf(practitionerWrapper1, practitionerWrapper2)
+
     @BeforeEach
     fun setup() {
         ehrDataAuthorityClient = mockk()
@@ -75,11 +80,11 @@ class PublishServiceTest {
     }
 
     @Test
-    fun `publishes FHIR resources to EHR Data Authority`() {
+    fun `publish FHIR resources works without data trigger`() {
         coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns BatchResourceResponse(
             succeeded = listOf(
                 SucceededResource("Practitioner", practitioner1Id, ModificationType.CREATED),
-                SucceededResource("Practitioner", practitioner2Id, ModificationType.UPDATED)
+                SucceededResource("Practitioner", practitioner2Id, ModificationType.CREATED)
             )
         )
         every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
@@ -92,19 +97,19 @@ class PublishServiceTest {
     }
 
     @Test
-    fun `publishes FHIR resources to Kafka`() {
+    fun `publish FHIR resources works with data trigger`() {
         coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns BatchResourceResponse(
             succeeded = listOf(
                 SucceededResource("Practitioner", practitioner1Id, ModificationType.CREATED),
-                SucceededResource("Practitioner", practitioner2Id, ModificationType.UPDATED)
+                SucceededResource("Practitioner", practitioner2Id, ModificationType.CREATED)
             )
         )
         every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
         every {
-            kafkaPublishService.publishResources(
+            kafkaPublishService.publishResourceWrappers(
                 tenantId,
                 DataTrigger.AD_HOC,
-                roninDomainResources,
+                roninDomainResourceWrappers,
                 metadata
             )
         } returns mockk()
@@ -114,10 +119,59 @@ class PublishServiceTest {
         coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
         verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
         verify(exactly = 1) {
-            kafkaPublishService.publishResources(
+            kafkaPublishService.publishResourceWrappers(
                 tenantId,
                 DataTrigger.AD_HOC,
-                roninDomainResources,
+                roninDomainResourceWrappers,
+                metadata
+            )
+        }
+    }
+
+    @Test
+    fun `publishes resource wrappers to EHR Data Authority`() {
+        coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns BatchResourceResponse(
+            succeeded = listOf(
+                SucceededResource("Practitioner", practitioner1Id, ModificationType.CREATED),
+                SucceededResource("Practitioner", practitioner2Id, ModificationType.UPDATED)
+            )
+        )
+        every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
+
+        assertTrue(service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata))
+
+        coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
+        verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
+        verify { kafkaPublishService wasNot Called }
+    }
+
+    @Test
+    fun `publishes resource wrappers to Kafka`() {
+        coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns BatchResourceResponse(
+            succeeded = listOf(
+                SucceededResource("Practitioner", practitioner1Id, ModificationType.CREATED),
+                SucceededResource("Practitioner", practitioner2Id, ModificationType.UPDATED)
+            )
+        )
+        every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
+        every {
+            kafkaPublishService.publishResourceWrappers(
+                tenantId,
+                DataTrigger.AD_HOC,
+                roninDomainResourceWrappers,
+                metadata
+            )
+        } returns mockk()
+
+        assertTrue(service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC))
+
+        coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
+        verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
+        verify(exactly = 1) {
+            kafkaPublishService.publishResourceWrappers(
+                tenantId,
+                DataTrigger.AD_HOC,
+                roninDomainResourceWrappers,
                 metadata
             )
         }
@@ -135,16 +189,16 @@ class PublishServiceTest {
         )
         every { datalakePublishService.publishFHIRR4(tenantId, listOf(practitioner1)) } just runs
         every {
-            kafkaPublishService.publishResources(
+            kafkaPublishService.publishResourceWrappers(
                 tenantId,
                 DataTrigger.AD_HOC,
-                listOf(practitioner1),
+                listOf(practitionerWrapper1),
                 metadata
             )
         } returns mockk()
 
         val exception = assertThrows<PublishException> {
-            service.publishFHIRResources(tenantId, roninDomainResources, metadata, DataTrigger.AD_HOC)
+            service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC)
         }
         assertEquals(
             "Published 1 resources, but failed to publish 1 resources: \n" +
@@ -155,10 +209,10 @@ class PublishServiceTest {
         coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
         verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, listOf(practitioner1)) }
         verify(exactly = 1) {
-            kafkaPublishService.publishResources(
+            kafkaPublishService.publishResourceWrappers(
                 tenantId,
                 DataTrigger.AD_HOC,
-                listOf(practitioner1),
+                listOf(practitionerWrapper1),
                 metadata
             )
         }
@@ -174,7 +228,7 @@ class PublishServiceTest {
         )
 
         val exception = assertThrows<PublishException> {
-            service.publishFHIRResources(tenantId, roninDomainResources, metadata, DataTrigger.AD_HOC)
+            service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC)
         }
         assertEquals(
             "Published 0 resources, but failed to publish 2 resources: \n" +
@@ -189,7 +243,7 @@ class PublishServiceTest {
     }
 
     @Test
-    fun `publishes new FHIR resources to Datalake`() {
+    fun `publishes new resource wrappers to Datalake`() {
         coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns BatchResourceResponse(
             succeeded = listOf(
                 SucceededResource("Practitioner", practitioner1Id, ModificationType.CREATED),
@@ -198,30 +252,30 @@ class PublishServiceTest {
         )
         every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
         every {
-            kafkaPublishService.publishResources(
+            kafkaPublishService.publishResourceWrappers(
                 tenantId,
                 DataTrigger.AD_HOC,
-                roninDomainResources,
+                roninDomainResourceWrappers,
                 metadata
             )
         } returns mockk()
 
-        assertTrue(service.publishFHIRResources(tenantId, roninDomainResources, metadata, DataTrigger.AD_HOC))
+        assertTrue(service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC))
 
         coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
         verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
         verify(exactly = 1) {
-            kafkaPublishService.publishResources(
+            kafkaPublishService.publishResourceWrappers(
                 tenantId,
                 DataTrigger.AD_HOC,
-                roninDomainResources,
+                roninDomainResourceWrappers,
                 metadata
             )
         }
     }
 
     @Test
-    fun `publishes updated FHIR resources to Datalake`() {
+    fun `publishes updated resource wrappers to Datalake`() {
         coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns BatchResourceResponse(
             succeeded = listOf(
                 SucceededResource("Practitioner", practitioner1Id, ModificationType.UPDATED),
@@ -230,30 +284,30 @@ class PublishServiceTest {
         )
         every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
         every {
-            kafkaPublishService.publishResources(
+            kafkaPublishService.publishResourceWrappers(
                 tenantId,
                 DataTrigger.AD_HOC,
-                roninDomainResources,
+                roninDomainResourceWrappers,
                 metadata
             )
         } returns mockk()
 
-        assertTrue(service.publishFHIRResources(tenantId, roninDomainResources, metadata, DataTrigger.AD_HOC))
+        assertTrue(service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC))
 
         coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
         verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
         verify(exactly = 1) {
-            kafkaPublishService.publishResources(
+            kafkaPublishService.publishResourceWrappers(
                 tenantId,
                 DataTrigger.AD_HOC,
-                roninDomainResources,
+                roninDomainResourceWrappers,
                 metadata
             )
         }
     }
 
     @Test
-    fun `does not publish unmodified FHIR resources to Datalake`() {
+    fun `does not publish unmodified resource wrappers to Datalake`() {
         coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns BatchResourceResponse(
             succeeded = listOf(
                 SucceededResource("Practitioner", practitioner1Id, ModificationType.UNMODIFIED),
@@ -261,23 +315,23 @@ class PublishServiceTest {
             )
         )
         every {
-            kafkaPublishService.publishResources(
+            kafkaPublishService.publishResourceWrappers(
                 tenantId,
                 DataTrigger.AD_HOC,
-                roninDomainResources,
+                roninDomainResourceWrappers,
                 metadata
             )
         } returns mockk()
 
-        assertTrue(service.publishFHIRResources(tenantId, roninDomainResources, metadata, DataTrigger.AD_HOC))
+        assertTrue(service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC))
 
         coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
         verify(exactly = 0) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
         verify(exactly = 1) {
-            kafkaPublishService.publishResources(
+            kafkaPublishService.publishResourceWrappers(
                 tenantId,
                 DataTrigger.AD_HOC,
-                roninDomainResources,
+                roninDomainResourceWrappers,
                 metadata
             )
         }
