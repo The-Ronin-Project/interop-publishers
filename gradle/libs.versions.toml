@@ -1,9 +1,9 @@
 [versions]
-ehr = "1.5.2"
-interop-common = "3.13.2"
+ehr = "1.5.4"
+interop-common = "3.13.3"
 interop-datalake = "8.4.2"
 interop-event-internal = "1.2.1"
-interop-fhir = "8.10.2"
+interop-fhir = "8.10.3"
 interop-gradle = "3.2.0"
 interop-kafka = "8.5.0"
 kotlinx-coroutines-core = "1.7.3"
