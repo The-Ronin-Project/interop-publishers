@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.interop.gradle.junit)
     alias(libs.plugins.interop.gradle.spring)
     alias(libs.plugins.interop.version.catalog)
+    alias(libs.plugins.interop.gradle.sonarqube)
 }
 
 dependencies {
