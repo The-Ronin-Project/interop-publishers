@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service
 class PublishService(
     private val ehrDataAuthorityClient: EHRDataAuthorityClient,
     private val datalakePublishService: DatalakePublishService,
-    private val kafkaPublishService: KafkaPublishService
+    private val kafkaPublishService: KafkaPublishService,
 ) {
     /**
      * Publishes the supplied [resources]. If all resources were successfully published,
@@ -30,7 +30,7 @@ class PublishService(
         tenantId: String,
         resources: List<Resource<*>>,
         metadata: Metadata,
-        dataTrigger: DataTrigger? = null
+        dataTrigger: DataTrigger? = null,
     ): Boolean {
         val resourceWrappers = resources.map { PublishResourceWrapper(it) }
         return publishResourceWrappers(tenantId, resourceWrappers, metadata, dataTrigger)
@@ -44,7 +44,7 @@ class PublishService(
         tenantId: String,
         resourceWrappers: List<PublishResourceWrapper>,
         metadata: Metadata,
-        dataTrigger: DataTrigger? = null
+        dataTrigger: DataTrigger? = null,
     ): Boolean {
         val resourceWrappersByResourceId = resourceWrappers.associateBy { it.id!!.value }
         val resourcesById = resourceWrappers.associate { it.id!!.value to it.resource }
@@ -53,8 +53,9 @@ class PublishService(
         val succeeded = response.succeeded
         if (succeeded.isNotEmpty()) {
             // Publish only modified resources to Datalake
-            val modifiedSuccessfulResources = succeeded.filterNot { it.modificationType == ModificationType.UNMODIFIED }
-                .map { resourceWrappersByResourceId[it.resourceId]!! }
+            val modifiedSuccessfulResources =
+                succeeded.filterNot { it.modificationType == ModificationType.UNMODIFIED }
+                    .map { resourceWrappersByResourceId[it.resourceId]!! }
             if (modifiedSuccessfulResources.isNotEmpty()) {
                 datalakePublishService.publishFHIRR4(tenantId, modifiedSuccessfulResources.map { it.resource })
             }
@@ -66,7 +67,7 @@ class PublishService(
                     tenantId,
                     dataTrigger,
                     allSuccessfulResources,
-                    metadata
+                    metadata,
                 )
             }
         }
@@ -75,10 +76,10 @@ class PublishService(
         if (failedResources.isNotEmpty()) {
             throw PublishException(
                 "Published ${succeeded.size} resources, but failed to publish ${failedResources.size} resources: \n${
-                failedResources.joinToString(
-                    "\n"
-                ) { "${it.resourceType}/${it.resourceId}: ${it.error}" }
-                }"
+                    failedResources.joinToString(
+                        "\n",
+                    ) { "${it.resourceType}/${it.resourceId}: ${it.error}" }
+                }",
             )
         }
         return true
