@@ -1,5 +1,5 @@
 [versions]
-ehr = "2.2.0"
+ehr = "2.2.1"
 interop-common = "4.1.0"
 interop-datalake = "9.0.0"
 interop-event-internal = "1.2.3"
