@@ -4,11 +4,11 @@ import com.projectronin.ehr.dataauthority.client.EHRDataAuthorityClient
 import com.projectronin.ehr.dataauthority.models.ModificationType
 import com.projectronin.event.interop.internal.v1.Metadata
 import com.projectronin.interop.datalake.DatalakePublishService
-import com.projectronin.interop.fhir.r4.resource.Resource
 import com.projectronin.interop.kafka.KafkaPublishService
 import com.projectronin.interop.kafka.model.DataTrigger
 import com.projectronin.interop.kafka.model.PublishResourceWrapper
 import com.projectronin.interop.publishers.exception.PublishException
+import com.projectronin.interop.publishers.model.PublishResponse
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 
@@ -22,21 +22,6 @@ class PublishService(
     private val kafkaPublishService: KafkaPublishService,
 ) {
     /**
-     * Publishes the supplied [resources]. If all resources were successfully published,
-     * true will be returned.  Otherwise, [PublishException] will be thrown.
-     */
-    @Deprecated("Use publishResourceWrappers instead")
-    fun publishFHIRResources(
-        tenantId: String,
-        resources: List<Resource<*>>,
-        metadata: Metadata,
-        dataTrigger: DataTrigger? = null,
-    ): Boolean {
-        val resourceWrappers = resources.map { PublishResourceWrapper(it) }
-        return publishResourceWrappers(tenantId, resourceWrappers, metadata, dataTrigger)
-    }
-
-    /**
      * Publishes the supplied [resourceWrappers]. If all resources were successfully published,
      * true will be returned.  Otherwise, [PublishException] will be thrown.
      */
@@ -45,7 +30,7 @@ class PublishService(
         resourceWrappers: List<PublishResourceWrapper>,
         metadata: Metadata,
         dataTrigger: DataTrigger? = null,
-    ): Boolean {
+    ): PublishResponse {
         val resourceWrappersByResourceId = resourceWrappers.associateBy { it.id!!.value }
         val resourcesById = resourceWrappers.associate { it.id!!.value to it.resource }
         val response = runBlocking { ehrDataAuthorityClient.addResources(tenantId, resourcesById.values.toList()) }
@@ -72,16 +57,9 @@ class PublishService(
             }
         }
 
-        val failedResources = response.failed
-        if (failedResources.isNotEmpty()) {
-            throw PublishException(
-                "Published ${succeeded.size} resources, but failed to publish ${failedResources.size} resources: \n${
-                    failedResources.joinToString(
-                        "\n",
-                    ) { "${it.resourceType}/${it.resourceId}: ${it.error}" }
-                }",
-            )
-        }
-        return true
+        return PublishResponse(
+            successfulIds = succeeded.map { it.resourceId },
+            failedIds = response.failed.map { it.resourceId },
+        )
     }
 }

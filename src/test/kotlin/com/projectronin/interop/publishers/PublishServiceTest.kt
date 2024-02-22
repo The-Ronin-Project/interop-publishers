@@ -16,7 +16,6 @@ import com.projectronin.interop.fhir.r4.resource.Practitioner
 import com.projectronin.interop.kafka.KafkaPublishService
 import com.projectronin.interop.kafka.model.DataTrigger
 import com.projectronin.interop.kafka.model.PublishResourceWrapper
-import com.projectronin.interop.publishers.exception.PublishException
 import io.mockk.Called
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -26,10 +25,10 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class PublishServiceTest {
     private lateinit var ehrDataAuthorityClient: EHRDataAuthorityClient
@@ -86,59 +85,6 @@ class PublishServiceTest {
     }
 
     @Test
-    fun `publish FHIR resources works without data trigger`() {
-        coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns
-            BatchResourceResponse(
-                succeeded =
-                    listOf(
-                        SucceededResource("Practitioner", practitioner1Id, ModificationType.CREATED),
-                        SucceededResource("Practitioner", practitioner2Id, ModificationType.CREATED),
-                    ),
-            )
-        every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
-
-        assertTrue(service.publishFHIRResources(tenantId, roninDomainResources, metadata))
-
-        coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
-        verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
-        verify { kafkaPublishService wasNot Called }
-    }
-
-    @Test
-    fun `publish FHIR resources works with data trigger`() {
-        coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns
-            BatchResourceResponse(
-                succeeded =
-                    listOf(
-                        SucceededResource("Practitioner", practitioner1Id, ModificationType.CREATED),
-                        SucceededResource("Practitioner", practitioner2Id, ModificationType.CREATED),
-                    ),
-            )
-        every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
-        every {
-            kafkaPublishService.publishResourceWrappers(
-                tenantId,
-                DataTrigger.AD_HOC,
-                roninDomainResourceWrappers,
-                metadata,
-            )
-        } returns mockk()
-
-        assertTrue(service.publishFHIRResources(tenantId, roninDomainResources, metadata, DataTrigger.AD_HOC))
-
-        coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
-        verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
-        verify(exactly = 1) {
-            kafkaPublishService.publishResourceWrappers(
-                tenantId,
-                DataTrigger.AD_HOC,
-                roninDomainResourceWrappers,
-                metadata,
-            )
-        }
-    }
-
-    @Test
     fun `publishes resource wrappers to EHR Data Authority`() {
         coEvery { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) } returns
             BatchResourceResponse(
@@ -150,7 +96,10 @@ class PublishServiceTest {
             )
         every { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) } just runs
 
-        assertTrue(service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata))
+        val response = service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata)
+        assertTrue(response.isSuccess)
+        assertEquals(listOf(practitioner1Id, practitioner2Id), response.successfulIds)
+        assertEquals(listOf<String>(), response.failedIds)
 
         coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
         verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
@@ -177,7 +126,11 @@ class PublishServiceTest {
             )
         } returns mockk()
 
-        assertTrue(service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC))
+        val response =
+            service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC)
+        assertTrue(response.isSuccess)
+        assertEquals(listOf(practitioner1Id, practitioner2Id), response.successfulIds)
+        assertEquals(listOf<String>(), response.failedIds)
 
         coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
         verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
@@ -214,15 +167,12 @@ class PublishServiceTest {
             )
         } returns mockk()
 
-        val exception =
-            assertThrows<PublishException> {
-                service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC)
-            }
-        assertEquals(
-            "Published 1 resources, but failed to publish 1 resources: \n" +
-                "Practitioner/$practitioner2Id: Error!",
-            exception.message,
-        )
+        val response =
+            service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC)
+
+        assertFalse(response.isSuccess)
+        assertEquals(listOf(practitioner1Id), response.successfulIds)
+        assertEquals(listOf(practitioner2Id), response.failedIds)
 
         coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
         verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, listOf(practitioner1)) }
@@ -247,16 +197,12 @@ class PublishServiceTest {
                     ),
             )
 
-        val exception =
-            assertThrows<PublishException> {
-                service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC)
-            }
-        assertEquals(
-            "Published 0 resources, but failed to publish 2 resources: \n" +
-                "Practitioner/$practitioner1Id: First Error!\n" +
-                "Practitioner/$practitioner2Id: Second Error!",
-            exception.message,
-        )
+        val response =
+            service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC)
+
+        assertFalse(response.isSuccess)
+        assertEquals(listOf<String>(), response.successfulIds)
+        assertEquals(listOf(practitioner1Id, practitioner2Id), response.failedIds)
 
         coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
         verify { datalakePublishService wasNot Called }
@@ -283,7 +229,11 @@ class PublishServiceTest {
             )
         } returns mockk()
 
-        assertTrue(service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC))
+        val response =
+            service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC)
+        assertTrue(response.isSuccess)
+        assertEquals(listOf(practitioner1Id, practitioner2Id), response.successfulIds)
+        assertEquals(listOf<String>(), response.failedIds)
 
         coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
         verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
@@ -317,7 +267,11 @@ class PublishServiceTest {
             )
         } returns mockk()
 
-        assertTrue(service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC))
+        val response =
+            service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC)
+        assertTrue(response.isSuccess)
+        assertEquals(listOf(practitioner1Id, practitioner2Id), response.successfulIds)
+        assertEquals(listOf<String>(), response.failedIds)
 
         coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
         verify(exactly = 1) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
@@ -350,7 +304,11 @@ class PublishServiceTest {
             )
         } returns mockk()
 
-        assertTrue(service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC))
+        val response =
+            service.publishResourceWrappers(tenantId, roninDomainResourceWrappers, metadata, DataTrigger.AD_HOC)
+        assertTrue(response.isSuccess)
+        assertEquals(listOf(practitioner1Id, practitioner2Id), response.successfulIds)
+        assertEquals(listOf<String>(), response.failedIds)
 
         coVerify(exactly = 1) { ehrDataAuthorityClient.addResources(tenantId, roninDomainResources) }
         verify(exactly = 0) { datalakePublishService.publishFHIRR4(tenantId, roninDomainResources) }
