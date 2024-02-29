@@ -9,6 +9,7 @@ import com.projectronin.interop.kafka.model.DataTrigger
 import com.projectronin.interop.kafka.model.PublishResourceWrapper
 import com.projectronin.interop.publishers.exception.PublishException
 import com.projectronin.interop.publishers.model.PublishResponse
+import datadog.trace.api.Trace
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 
@@ -25,6 +26,7 @@ class PublishService(
      * Publishes the supplied [resourceWrappers]. If all resources were successfully published,
      * true will be returned.  Otherwise, [PublishException] will be thrown.
      */
+    @Trace
     fun publishResourceWrappers(
         tenantId: String,
         resourceWrappers: List<PublishResourceWrapper>,

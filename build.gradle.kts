@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     implementation(libs.interop.common)
+    implementation(libs.dd.trace.api)
     implementation(libs.interop.fhir)
     implementation(libs.event.interop.resource.internal)
     implementation(libs.interop.datalake)
